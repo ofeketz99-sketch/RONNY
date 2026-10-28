@@ -2049,6 +2049,88 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .planner-horizontal-resizer{cursor:ns-resize}
 @media(max-width:650px){.ronny-undo-btn{min-width:35px;padding-inline:9px}.ronny-undo-btn span{display:none}.ronny-group-navigation{padding-inline:8px}}
 </style>
+<style id="ronny-v35-18-refinement">
+/* RONNY 35.18 — visual rhythm & restrained motion: applied after legacy themes. */
+:root{
+ --ink:#30443c;--muted:#72877a;--line:#dce6db;--bg:#f3f6f1;
+ --teal:#538a73;--teal-dark:#386b54;--navy:#283f36;
+ --ronny-motion:cubic-bezier(.22,1,.36,1);
+ --ronny-surface:#fffdf8;--ronny-shadow:0 14px 34px rgba(37,64,48,.11);
+}
+/* Quietly warm canvas. Day accents are not overwritten. */
+.topbar{border-bottom:1px solid #dce6db;background-color:#fcfdf9;box-shadow:0 2px 15px #2a48340a}
+.planner{border-color:#dce6db;box-shadow:-8px 0 30px #304c3610}
+.panel-head .heading-line h2{color:#2e473b;letter-spacing:-.35px}
+.trip-name{color:#304a3c}
+.trip-name:focus-visible{background:#fffefa;border-color:#87ad95;box-shadow:0 0 0 3px #6b987524}
+.rail-btn.active:before{background:#d7e8c8!important}
+/* Interactive controls: feedback without noisy scaling or map movement. */
+.btn,.btn-icon,.tiny-action,.rail-btn,.map-tool,.float-btn,.ronny-day-arrow,
+.ronny-group-arrow,.ronny-fixed-add-day,.day-pill,.ronny-group-chip,
+.point-choice,.day-color-swatch,.stop-tools button,.map-quick-trigger{
+ transition:background-color .2s ease,border-color .2s ease,color .2s ease,
+ box-shadow .24s ease,transform .24s var(--ronny-motion),opacity .2s ease;
+}
+.btn:active:not(:disabled),.tiny-action:active:not(:disabled),.float-btn:active:not(:disabled),
+.ronny-day-arrow:active:not(:disabled),.ronny-group-arrow:active:not(:disabled){transform:translateY(0) scale(.97)}
+.btn-primary{background:#507f67;border-color:#507f67;color:#fff;box-shadow:0 4px 14px #476c5130}
+.btn-primary:hover:not(:disabled){background:#3d6d55;border-color:#3d6d55;box-shadow:0 7px 18px #476c5136}
+.btn-soft{background:#edf5ed;border-color:#d2e3d3;color:#416c53}
+.btn-soft:hover:not(:disabled){background:#dfeee0;border-color:#bad6bd}
+/* Navigation: visible selected day, distinct but cohesive stage navigator. */
+.day-pill[data-day]{border-radius:12px;box-shadow:0 2px 9px #39543e0a}
+.day-pill[data-day]:hover:not(:disabled){box-shadow:0 6px 16px #33493b1c;transform:translateY(-2px)}
+.day-pill[data-day].active{box-shadow:0 6px 17px #334c3c26}
+.ronny-day-arrow,.ronny-group-arrow{border-color:#d7e3d7!important;background:#f2f7f0!important;color:#466f54!important}
+.ronny-day-arrow:hover:not(:disabled),.ronny-group-arrow:hover:not(:disabled){background:#e4efe3!important;border-color:#a4c3a7!important;box-shadow:0 4px 11px #49654c1c}
+.ronny-group-chip{border:1px solid color-mix(in srgb,var(--group-c,#87a695) 40%,#e1e6da);background:color-mix(in srgb,var(--group-c,#87a695) 10%,#fffdfa)}
+.ronny-group-chip:hover:not(:disabled){background:color-mix(in srgb,var(--group-c,#87a695) 19%,#fffdfa);transform:translateY(-1px)}
+.ronny-group-chip.selected{background:color-mix(in srgb,var(--group-c,#87a695) 25%,#fffdfa);border-color:var(--group-c,#87a695);box-shadow:0 3px 9px #304f371c}
+.ronny-day-groups-bar{scroll-padding-inline:15px}
+/* Stop cards: maintain native day and point colors, improve spacing/readability. */
+#schedule .stop-body{box-shadow:0 2px 7px #314d3510;transition:background-color .2s ease,border-color .2s ease,box-shadow .23s ease,transform .23s var(--ronny-motion)}
+#schedule .stop-body:hover{box-shadow:0 5px 18px #344c3b20}
+#schedule .stop.focused .stop-body{box-shadow:0 5px 18px #344c3b22}
+#schedule .ronny-side-point{transition:background-color .2s ease,box-shadow .2s ease,border-color .2s ease}
+/* One short fade when moving between days, not on every autosave/keystroke. */
+#schedule.ronny-day-enter{animation:ronny-day-appear .28s var(--ronny-motion) both}
+@keyframes ronny-day-appear{from{opacity:.55;translate:0 7px}to{opacity:1;translate:0 0}}
+/* Drawers and managers already use transform for position: tune only their entrance. */
+.drawer{background:#fffdf8;transition:transform .32s var(--ronny-motion);box-shadow:12px 0 42px #243b2b30}
+.drawer-backdrop{background:#1d33264d;backdrop-filter:blur(2px);transition:opacity .26s ease}
+.drawer.open .drawer-header,.drawer.open .drawer-body,.drawer.open .drawer-footer{animation:ronny-soft-content .32s var(--ronny-motion) both!important}
+.drawer.open .drawer-body{animation-delay:45ms!important}
+.drawer.open .drawer-footer{animation-delay:75ms!important}
+.days-manager{transition:transform .32s var(--ronny-motion),visibility .32s!important;background:#fffdf8}
+.days-manager-shade{backdrop-filter:blur(2px)}
+.days-manager.open .days-manager-header,.days-manager.open .days-manager-list{animation:ronny-soft-content .3s var(--ronny-motion) both}
+.ronny-groups-shade:not([hidden]){animation:ronny-fade-in .24s ease both;backdrop-filter:blur(2px)}
+.ronny-groups-panel:not([hidden]){animation:ronny-panel-enter .34s var(--ronny-motion) both}
+.ronny-groups-list > *{transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
+@keyframes ronny-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes ronny-panel-enter{from{opacity:.55;translate:16px 0}to{opacity:1;translate:0 0}}
+@keyframes ronny-soft-content{from{opacity:.65;translate:0 7px}to{opacity:1;translate:0 0}}
+/* Popups are absolutely positioned by the map code; never animate their transform. */
+.map-pane .leg-editor.open,.map-pane .point-quick.open,
+.map-context.open,.map-quick-menu.open,.map-search .search-results.open,
+.layer-filter-panel.open{animation:ronny-fade-in .22s ease both!important}
+.map-search .result:hover,.map-context button:hover{background:#edf5eb}
+.map-pane .leg-editor,.map-pane .point-quick,.map-context{border-color:#d7e5d7;box-shadow:var(--ronny-shadow)}
+.ronny-local-save-status{border-color:#dbe6d8;background:#f5faf2;color:#54745d}
+.ronny-local-save-status[data-status="saved"] .ronny-save-dot{background:#5e9a73}
+/* Keyboard and low-motion accessibility. */
+:where(button,input,textarea,select,[role="button"]):focus-visible{outline:2px solid #5a9272;outline-offset:3px}
+@media(max-width:760px){.drawer-backdrop,.days-manager-shade{backdrop-filter:none}.topbar{box-shadow:none}.ronny-groups-panel:not([hidden]){animation-duration:.22s}}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;
+ animation-delay:0ms!important;transition-duration:.01ms!important}
+ #days .day-pill[data-day],#schedule .stop-body,
+ .day-pill,.ronny-group-chip,.ronny-day-arrow,.ronny-group-arrow,.btn,.tiny-action,.stop-body,.drawer,.days-manager,.ronny-groups-panel{transition:none!important}
+ #schedule.ronny-day-enter{animation:none!important}
+ .drawer.open .drawer-header,.drawer.open .drawer-body,.drawer.open .drawer-footer,
+ .ronny-groups-panel:not([hidden]),.map-pane .leg-editor.open,.map-pane .point-quick.open{animation:none!important}
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -2485,12 +2567,16 @@ function ronnyUndo(){
 }
 function save(){
   if(!libraryReady||!activeTripId)return;
+  // Normalize derived paths before snapshotting: Undo and persistent storage must
+  // represent the same fully-synchronized trip, not an intermediate state.
   if(Array.isArray(state.settings.dayGroups)&&state.settings.dayGroups.length)ronnyNormalizeDayGroups();
+  const hikesUpdated=synchronizeHikeDays();
+  const loopsUpdated=synchronizeLoopDays();
+  if(loopsUpdated||hikesUpdated)invalidate();
+  ensureStableViaColors();
   ronnyTrackChange();
- ronnyLocalSaveStatus('saving');
- const hikesUpdated=synchronizeHikeDays();const loopsUpdated=synchronizeLoopDays();if(loopsUpdated||hikesUpdated)invalidate();
- ensureStableViaColors();
- const record=libraryRecord();library.set(record.id,record);
+  ronnyLocalSaveStatus('saving');
+  const record=libraryRecord();library.set(record.id,record);
  try{localStorage.setItem(LIB_ACTIVE,record.id)}catch(e){}
  // Capture each immutable snapshot now, in order, to prevent cross-trip overwrites.
  saveQueue=saveQueue.catch(()=>{}).then(()=>putTrip(record)).then(()=>{lastSaveError=false;ronnyLocalSaveStatus('saved');return true}).catch(e=>{lastSaveError=true;ronnyLocalSaveStatus('error');toast('לא ניתן לשמור את הטיול. בצע ייצוא JSON לגיבוי. '+(e.name==='QuotaExceededError'?'האחסון מלא.':''));return false});
@@ -3404,7 +3490,12 @@ function ronnySetupRecovery(){
   if(e.target.closest('button,[role="button"]'))setTimeout(()=>save(),0);
   const action=e.target.closest('button');if(action&&/save|apply|confirm|finish|close/i.test(action.id||'')||action?.hasAttribute('data-group-save'))ronnyDraftClear();
  });
- window.addEventListener('pagehide',()=>{if(ronnyAutoSaveTimer){clearTimeout(ronnyAutoSaveTimer);ronnyAutoSaveTimer=null;save()}});
+ const ronnyFlushPendingSave=()=>{
+  if(ronnyAutoSaveTimer){clearTimeout(ronnyAutoSaveTimer);ronnyAutoSaveTimer=null;save()}
+ };
+ // Flush while the tab is still active enough to finish an IndexedDB commit.
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')ronnyFlushPendingSave()});
+ window.addEventListener('pagehide',ronnyFlushPendingSave);
  // Drafts are separate from committed trip data; rehydrate uncommitted drawer edits after reopening.
  const observer=new MutationObserver(()=>ronnyDraftRestore());observer.observe($('drawer'),{childList:true,subtree:true});
 }
@@ -5359,7 +5450,7 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
 function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
 function renderAll(){ronnyRenderGroupBar();const hikeLinked=synchronizeHikeDays();const loopLinked=synchronizeLoopDays();const linked=planningResolution==='day'?synchronizeDayStarts():false;ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(linked||loopLinked||hikeLinked)save()}
-function selectDay(i){if(i<0||i>=state.days.length)return;ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
+function selectDay(i){if(i<0||i>=state.days.length)return;const changed=i!==selectedDay||planningResolution!=='day';ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();if(changed&&window.matchMedia?.('(prefers-reduced-motion: reduce)').matches!==true){const panel=$('schedule');if(panel){panel.classList.remove('ronny-day-enter');void panel.offsetWidth;panel.classList.add('ronny-day-enter')}}fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
 function fitMap(){
  if(!map)return;
  if(planningResolution!=='day'){fitOutlineMap();return;}
