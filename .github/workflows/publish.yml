@@ -1,0 +1,43 @@
+
+name: Publish RONNY
+
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Sync dev to production
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            days=$(( $(date -u +%s) / 86400 ))
+            if (( days % 3 != 0 )); then
+              echo "Not a publishing day"
+              exit 0
+            fi
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin dev
+
+          if git merge-base --is-ancestor origin/dev HEAD; then
+            echo "No new changes"
+            exit 0
+          fi
+
+          git merge --no-edit origin/dev
+          git push origin HEAD:main
