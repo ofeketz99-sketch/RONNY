@@ -3347,7 +3347,7 @@ function addFullRouteCaption(spot,text,isTime=false,targetLayer=null){
 function drawRouteAnnotations(index,coords,arr=stops(),targetLayer){
  if(!Array.isArray(coords)||coords.length<2)return;
  const conf=legAt(index,arr),label=String(conf.label||'').trim().replace(/\s+/g,' '),times=routeTimeTextForLeg(index,arr);
- const showLabel=!!label&&layerOn('routeLabels'),showTime=!!times&&layerOn('routeTimes');
+ const showLabel=!!label&&layerOn('routeLabels'),showTime=!!times&&viewScope!=='all'&&layerOn('routeTimes');
  if(!showLabel&&!showTime)return;
  const runs=visibleRouteLabelRuns(coords);if(!runs.length)return;
  let occupied=false;
@@ -4487,7 +4487,7 @@ function renderMarkers(){
    const override=viewScope==='all'?`style="background:${palette[di%palette.length]}"`:'';
    const routeOrder=isMapOnlyPoint(s)?null:routeStopsForDay(di).findIndex(p=>p.id===s.id)+1;
    const tint=['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${cls} ${selectedStop===s.id?'active':''} ${(routeEdit||pointMoveModeId===s.id||($('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:pointSymbol(s.type==='start'&&state.days[di]?.loop?'loop':s.type)}</span></div>`;
-   const timeInfo=isMapOnlyPoint(s)?'':`<div class="map-time-badge" aria-label="${s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.time||'')}</div>`;
+   const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
    const canDrag=(routeEdit&&viewScope==='day')||pointMoveModeId===s.id||selectedQuick;
    const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'לחיצה לבחירה · לאחר הבחירה גרור לשינוי מיקום'}).addTo(markerLayer);
@@ -4525,7 +4525,7 @@ function renderMarkers(){
     revealPlanningCardFromMap(s.id,'day');
     syncMarkerDragState();
    });const permanent=state.settings.showMapDescriptions!==false&&s.showMapDescription===true&&!!String(s.description||s.notes||'').trim();
-   const tip=permanent?`<div class="ronny-permanent-point-name">${esc(s.name)}</div><div class="ronny-permanent-point-desc">${esc(String(s.description||s.notes).slice(0,240))}</div>`:`<div class="point-tip-title">${esc(s.name)}</div>${(s.description||s.notes)?`<div class="point-tip-description">${esc(s.description||s.notes)}</div>`:''}${isMapOnlyPoint(s)?'':`<div class="point-tip-time">${s.type==='start'?'יציאה · ':''}${esc((viewScope==='all'?'יום '+(di+1)+' · ':'')+(s.time||''))}</div>`}`;
+   const tip=permanent?`<div class="ronny-permanent-point-name">${esc(s.name)}</div><div class="ronny-permanent-point-desc">${esc(String(s.description||s.notes).slice(0,240))}</div>`:`<div class="point-tip-title">${esc(s.name)}</div>${(s.description||s.notes)?`<div class="point-tip-description">${esc(s.description||s.notes)}</div>`:''}${(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="point-tip-time">${s.type==='start'?'יציאה · ':''}${esc((viewScope==='all'?'יום '+(di+1)+' · ':'')+(s.time||''))}</div>`}`;
    m.bindTooltip(tip,{direction:'top',offset:[0,permanent?-5:-15],opacity:1,permanent,className:permanent?'ronny-map-description point-info-tooltip':'point-info-tooltip'});
  });refreshIcons();
 }
