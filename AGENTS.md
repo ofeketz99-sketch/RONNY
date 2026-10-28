@@ -11,6 +11,7 @@ These instructions apply to all edits in this repository, including Codex-driven
 6. Include in each change summary: which files changed, the backup paths, and how to restore them.
 7. Keep all archives unless the repository owner explicitly authorizes pruning. Git's commit history is an additional recovery mechanism, not a replacement for the requested `backups/` copies.
 8. with every time the file are edited by and agent, there should be a short explenation of the edit in the patch note file
+
 ## Restoring a version
 Copy the desired archived file back to its original production path, review/test, and commit to the deployment branch (`main`). Netlify can then redeploy it.
 
