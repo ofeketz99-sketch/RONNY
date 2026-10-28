@@ -1,0 +1,10 @@
+{
+  "version": "45",
+  "date": "2026-10-28",
+  "notes": [
+    "הופרדו קובצי העיצוב והקוד לקבצים עצמאיים ללא שכתוב פונקציות.",
+    "אוחדו שתי תמונות הסמל הזהות לקובץ PNG אחד, וקובץ HTML הראשי הוקטן.",
+    "נשמר סדר טעינת הספריות והסקריפט הראשי; תפקוד בדפדפן חי טרם אומת."
+  ],
+  "technical": "DEV only; index.html + styles/app.css + scripts/app.js + assets/favicon.png. Pre-change backup: backups/2026-10-28_pre-static-split_08cdbb916902; functional regression requires browser."
+}
