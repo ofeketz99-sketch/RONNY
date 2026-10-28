@@ -997,8 +997,7 @@ body.ronny-no-times .planner #auto-time,body.ronny-no-times .point-quick .quick-
 .ronny-place-collection{border:1px solid #e0e5d9;border-radius:13px;background:#fffdf8;overflow:hidden;margin:0 0 8px}
 .ronny-place-collection.expanded{border-color:color-mix(in srgb,var(--place-color) 55%,#e0e5d9)}
 .ronny-place-collection .saved-place-list-row{border:0;border-radius:0;box-shadow:none!important;transform:none!important;margin:0;padding:9px 11px}
-.ronny-place-collection .saved-place-list-row:hover{background:#f0f5ed}
-.ronny-list-toggle{display:flex!important;align-items:center;gap:8px;min-width:0;flex:1;justify-content:space-between;text-align:right}
+.ronny-place-collection .saved-place-list-row:hover{background:#f0f5ed}.ronny-list-toggle{display:flex!important;align-items:center;gap:8px;min-width:0;flex:1;justify-content:space-between;text-align:right}
 .ronny-list-toggle .ronny-list-text{min-width:0;flex:1}
 .ronny-list-toggle .small-icon{flex:none;width:15px;height:15px;opacity:.7}
 .ronny-place-collection-body{padding:9px;background:#fcfbf6;border-top:1px solid #ece9df;display:grid;gap:8px}
@@ -1991,48 +1990,40 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 @media(max-width:760px){.map-pane .ronny-measure-panel{top:70px;width:min(350px,calc(100% - 24px));padding:11px}.ronny-measure-value{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.map-pane .ronny-measure-panel{animation:none}.ronny-measure-buttons button{transition:none}}
 </style>
+
 <style id="ronny-v35-33-loop-symbol">
-.marker.point-pin.ronny-loop-pin{background:transparent!important;border:0!important;border-radius:0!important;width:38px;height:38px;transform:none!important;box-shadow:none!important;display:grid;place-items:center;overflow:visible}
-.marker.point-pin.ronny-loop-pin .point-pin-inner{transform:none!important;width:38px;height:38px;display:grid;place-items:center}
-.marker.point-pin.ronny-loop-pin .ronny-loop-symbol-img{width:38px;height:38px;filter:drop-shadow(0 2px 3px #1b322c66)}
-.ronny-loop-symbol-img{display:block;object-fit:contain;max-width:none;pointer-events:none;user-select:none}
-.ronny-loop-setting-icon .ronny-loop-symbol-img{width:28px;height:28px}
-.point-pin-inner .ronny-loop-symbol-img{width:100%;height:100%}
+/* The supplied combined house/bed symbol replaces the entire circular-day marker. */
+.marker.point-pin.ronny-loop-pin{
+ background:transparent!important;border:0!important;border-radius:0!important;
+ width:38px;height:38px;transform:none!important;box-shadow:none!important;
+ display:grid;place-items:center;overflow:visible;}
+.marker.point-pin.ronny-loop-pin .point-pin-inner{
+ transform:none!important;width:38px;height:38px;display:grid;place-items:center;
+}
+.marker.point-pin.ronny-loop-pin .ronny-loop-symbol-img{width:38px;height:38px;filter:drop-shadow(0 2px 3px #1b322c66);}
+.ronny-loop-symbol-img{display:block;object-fit:contain;max-width:none;pointer-events:none;user-select:none;}
+.ronny-loop-setting-icon .ronny-loop-symbol-img{width:28px;height:28px;}
+.point-pin-inner .ronny-loop-symbol-img{width:100%;height:100%;}
 </style>
 <style id="ronny-v35-34-groups">
-.ronny-sequence-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.day-sequence-heading .sequence-edit-action{font-size:11px;padding:7px 9px}
-.ronny-day-groups-bar{display:flex;align-items:center;gap:6px;padding:2px 14px 9px;overflow-x:auto;scrollbar-width:thin}
-.ronny-day-groups-bar[hidden]{display:none!important}
-.ronny-groups-caption{font-size:10px;color:#6f8577;white-space:nowrap;margin-inline-end:3px}
-.ronny-group-chip{border:1px solid color-mix(in srgb,var(--group-color) 38%,#d9e3d8);background:color-mix(in srgb,var(--group-color) 13%,#fffdf8);border-radius:11px;color:#405948;display:flex;align-items:center;gap:6px;min-height:32px;padding:5px 8px;white-space:nowrap;font-size:11px;cursor:pointer;transition:background .18s,transform .15s}
-.ronny-group-chip:hover{background:color-mix(in srgb,var(--group-color) 27%,#fffdf8);transform:translateY(-1px)}
-.ronny-group-chip:active{transform:scale(.97)}
-.ronny-group-chip.selected{background:color-mix(in srgb,var(--group-color) 42%,#fffcf6);box-shadow:inset 0 -2px 0 var(--group-color)}
-.ronny-group-chip small{font-size:10px;opacity:.8}
-.day-pill[data-day] .ronny-day-number{position:absolute;top:7px;right:7px;width:21px;height:21px;background:color-mix(in srgb,var(--pill-color,#668b74) 37%,white);border:1px solid color-mix(in srgb,var(--pill-color,#668b74) 50%,#d4ded2);border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:11px;color:#384f43}
-.day-pill[data-day]{position:relative;min-width:104px;padding:29px 10px 10px;text-align:center;align-items:center;justify-content:center;gap:3px}
-.day-pill[data-day] .ronny-day-label{font-size:11px;line-height:1.3;white-space:normal;word-break:break-word;max-width:125px}
-.day-pill[data-day] .ronny-day-path-kind{position:absolute;top:7px;left:7px}
-.day-pill[data-day] small{font-size:10px}
-.day-manager-number{flex-shrink:0}
-.ronny-group-manager{display:grid;gap:16px}
-.ronny-group-intro{margin:0;font-size:12px;line-height:1.65;color:#60786a}
-.ronny-group-list{display:grid;gap:8px;max-height:200px;overflow:auto}
-.ronny-group-row{display:flex;align-items:center;gap:7px;padding:10px;border:1px solid #dce6d9;border-right:4px solid var(--group-color);border-radius:12px;background:#fffdf8}
-.ronny-group-text{flex:1;min-width:0;display:grid;gap:4px}
-.ronny-group-text strong{font-size:12px;color:#3c5747}.ronny-group-text small{font-size:10px;color:#687a6d;overflow-wrap:anywhere}
-.ronny-group-row button{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:#eff4ee;color:#466a52;border:1px solid #e1e8dd;cursor:pointer}
-.ronny-group-row button:hover{background:#dae7dc}.ronny-group-row .ronny-group-delete{color:#a76965;background:#fff2ee}
-.ronny-group-edit{display:grid;gap:11px;padding:14px;border:1px solid #dae5d9;background:#f8faf5;border-radius:14px}
-.ronny-group-edit>strong{font-size:14px;color:#365a45}.ronny-group-edit label{display:grid;gap:5px;font-size:11px;color:#526e5b}
-.ronny-group-edit input:not([type=color]),.ronny-group-edit textarea,.ronny-group-edit select{width:100%;min-width:0;padding:10px;border:1px solid #d2dfd1;background:white;border-radius:9px;color:#34523d;font:inherit;font-size:12px}
-.ronny-group-range{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ronny-group-edit>small{font-size:10px;color:#748678;line-height:1.5}
-.ronny-group-color{display:flex!important;flex-direction:row;align-items:center;justify-content:space-between}.ronny-group-color input{width:46px;height:33px;border:1px solid #d5ded1;border-radius:8px;background:white;padding:3px}
-.days-manager-footer{padding-bottom:max(72px,env(safe-area-inset-bottom))}
-.drawer-footer{padding-bottom:max(62px,env(safe-area-inset-bottom))}
-@media(max-width:760px){.ronny-day-groups-bar{padding-inline:8px}.ronny-sequence-actions{gap:3px}.day-sequence-heading .sequence-edit-action{padding:5px}}
+.ronny-day-group-entry{display:inline-flex;align-items:center;gap:5px;border:1px solid #d8e5d7;border-radius:9px;background:#f1f6ed;color:#496b54;font-size:11px;font-weight:700;padding:5px 8px;cursor:pointer;margin-inline-start:7px;transition:background .2s,transform .2s}
+.ronny-day-group-entry:hover{background:#dcead9;transform:translateY(-1px)}
+.ronny-day-groups-bar{display:flex;gap:7px;overflow-x:auto;padding:4px 15px 6px;scrollbar-width:thin}.ronny-day-groups-bar[hidden]{display:none}
+.ronny-group-chip{flex:none;display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid color-mix(in srgb,var(--group-c,#87a695) 50%,#edeada);border-radius:999px;background:color-mix(in srgb,var(--group-c,#87a695) 14%,#fffef9);color:#445f4d;cursor:pointer;font-weight:700;font-size:11px}.ronny-group-chip small{color:#677d6f;font-weight:500}.ronny-group-chip.selected,.ronny-group-chip:hover{background:color-mix(in srgb,var(--group-c,#87a695) 30%,#fffef9)}
+.ronny-groups-shade{position:fixed;inset:0;background:#16291f64;z-index:1995}.ronny-groups-shade[hidden],.ronny-groups-panel[hidden]{display:none!important}
+.ronny-groups-panel{position:fixed;z-index:2000;top:0;bottom:0;right:0;width:min(500px,100vw);display:flex;flex-direction:column;background:#fffaf2;box-shadow:-15px 0 42px #182c1d3b;direction:rtl}
+.ronny-groups-head{padding:22px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #e2e5dc}.ronny-groups-head small{color:#638571;font-size:11px;font-weight:bold}.ronny-groups-head h2{margin:5px 0;font-size:23px;color:#365c43}.ronny-groups-head p{margin:0;color:#738479;font-size:12px;max-width:310px;line-height:1.6}
+.ronny-groups-head button{height:36px;width:36px;flex:none;border:0;border-radius:10px;background:#eff4ec;color:#446950;cursor:pointer;display:grid;place-items:center}
+.ronny-groups-list{flex:1;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:12px}
+.ronny-group-editor{display:grid;gap:11px;padding:16px;border:1px solid #dce5d8;border-right:5px solid var(--group-c);background:#fffdfa;border-radius:14px}
+.ronny-group-editor label{display:grid;gap:5px;font-size:12px;color:#627468}.ronny-group-editor input:not([type=color]),.ronny-group-editor textarea,.ronny-group-editor select{width:100%;min-width:0;padding:8px 10px;border:1px solid #d2dfd2;background:white;border-radius:8px;font:inherit;color:#344c3d}.ronny-group-editor textarea{resize:vertical}
+.ronny-group-range{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+.ronny-group-color{display:flex!important;flex-direction:row;align-items:center;justify-content:space-between}.ronny-group-color input{width:50px;height:32px;border:0;background:transparent}
+.ronny-group-actions{display:flex;gap:7px;flex-wrap:wrap}.ronny-group-actions .btn{font-size:11px;padding:7px}.ronny-group-empty{color:#6e8172;font-size:13px;line-height:1.8}
+.ronny-groups-footer{padding:16px 170px 18px 20px;border-top:1px solid #e5e2d8}.ronny-groups-footer .btn{min-width:150px}
+.days-manager-footer{padding-right:170px!important}.days-manager-footer .btn{min-width:170px}
+/* The hosting badge occupies the bottom-right corner; interactive controls avoid it. */
+@media(max-width:650px){.ronny-groups-footer,.days-manager-footer{padding-right:150px!important}.ronny-day-groups-bar{padding-inline:10px}.ronny-group-range{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2047,7 +2038,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 <header class="topbar"><div class="trip-title"><span class="trip-logo">RONNY<span style="color:#9fbbc1">.</span></span><input id="trip-name" class="trip-name" aria-label="שם הטיול" maxlength="64"/></div>
 <div class="ronny-trip-dashboard" id="ronny-trip-dashboard" aria-label="נתוני הטיול"></div><button type="button" id="ronny-local-save-status" class="ronny-local-save-status" data-status="saving" title="נשמר אוטומטית במכשיר ובדפדפן הנוכחיים. להעברה למחשב אחר יש לייצא ולייבא JSON. הנתונים אינם מסונכרנים לענן." aria-label="מידע על שמירת הטיולים"><span class="ronny-save-dot" aria-hidden="true"></span><span class="ronny-local-save-label">שומר בדפדפן...</span></button><div class="top-actions"><button class="btn desktop-only" id="new-trip"><i data-lucide="plus-circle" class="small-icon"></i> טיול חדש</button><button class="btn" id="data-transfer-btn" title="גיבוי, ייבוא וייצוא של טיולים"><i data-lucide="arrow-down-up" class="small-icon"></i><span>ייבוא וייצוא</span></button><button class="btn btn-primary" id="top-add"><i data-lucide="plus" class="small-icon"></i><span>הוספת עצירה</span></button><input type="file" id="import-file" accept="application/json,.json" hidden/></div></header>
 <section class="planner" id="planner"><button type="button" id="planner-ribbon-open" class="planner-ribbon" aria-label="פתח פאנל תכנון מסלול" aria-expanded="true"><span class="ribbon-text">תכנון מסלול</span></button><div class="resolution-switch" role="group" aria-label="רזולוציית תכנון"><button type="button" data-plan-level="outline" aria-pressed="false"><i data-lucide="globe-2"></i> מתאר הטיול</button><button type="button" data-plan-level="day" aria-pressed="true"><i data-lucide="calendar-days"></i> יום</button></div><div class="zoom-workspace" id="zoom-workspace"><div class="zoom-header" id="zoom-header"></div><div class="zoom-scroll" id="zoom-scroll"><div id="zoom-content"></div></div><div class="zoom-footer" id="zoom-footer"></div></div><div class="planner-upper scroll" id="planner-upper"><div class="panel-head"><div class="heading-line"><h2>תכנון המסלול</h2><button class="btn btn-ghost btn-icon side-mobile-btn" id="close-planner" aria-label="סגירה"><i data-lucide="x"></i></button><button class="tiny-action" id="fit-route"><i data-lucide="maximize-2" class="small-icon"></i> הצג הכול</button></div><div class="date-row"><label>תאריך יציאה</label><span class="date-picker-control"><input type="date" id="start-date" aria-label="תאריך תחילת הטיול"/><button type="button" class="calendar-trigger" id="start-date-trigger" aria-label="פתח בחירת תאריך" title="בחירת תאריך"><i data-lucide="calendar-days" class="small-icon"></i></button></span></div></div>
-<div class="day-sequence-heading"><strong>רצף ימים</strong><div class="ronny-sequence-actions"><button type="button" id="manage-day-groups" class="sequence-edit-action" title="קיבוץ ימים למקטעי טיול"><i data-lucide="layers-3" class="small-icon"></i><span>מקטעי טיול</span></button><button type="button" id="manage-days-trigger" class="sequence-edit-action" aria-label="עריכת רצף הימים" title="ניהול סדר, מחיקה ועריכת ימים"><i data-lucide="list-ordered" class="small-icon"></i><span>עריכה</span></button></div></div><div id="ronny-day-groups-bar" class="ronny-day-groups-bar" hidden></div><div class="ronny-day-navigation"><button type="button" class="ronny-day-arrow" id="day-prev" aria-label="היום הקודם" title="היום הקודם"><i data-lucide="chevron-right"></i></button><div class="day-strip" id="days" tabindex="0" aria-label="גלול בין ימים עם גלגלת העכבר"></div><button type="button" class="ronny-fixed-add-day" id="add-day" title="הוסף יום אחרי היום הנבחר" aria-label="הוסף יום אחרי היום הנבחר"><i data-lucide="plus" class="small-icon"></i></button><button type="button" class="ronny-day-arrow" id="day-next" aria-label="היום הבא" title="היום הבא"><i data-lucide="chevron-left"></i></button></div><div id="day-time-mode"></div><div id="day-context" class="day-context" hidden></div><div class="segment-bar"><button class="btn btn-soft" id="segments-btn" title="חלוקת היום למקטעים לפי שעות"><i data-lucide="clock-4" class="small-icon"></i> מקטעי זמן</button><div id="segment-chips" class="segment-chips"></div></div></div><button type="button" class="planner-horizontal-resizer" id="planner-upper-resizer" title="גרור לשינוי גובה האזור העליון · לחיצה כפולה לאיפוס" aria-label="שינוי גובה כותרת התכנון ומרחב לוח הזמנים" aria-orientation="horizontal" role="separator" tabindex="0"><span class="planner-grip" aria-hidden="true"></span><span class="planner-grip-label">שינוי גובה</span></button><div class="section-ribbon"><h3>לוח הזמנים <span class="count-pill" id="stop-count">0 עצירות</span></h3><button class="tiny-action" id="auto-time" title="סידור זמני הגעה לפי נסיעה ומשך ביקור"><i data-lucide="clock-3" class="small-icon"></i> תזמון אוטומטי</button></div>
+<div class="day-sequence-heading"><strong>רצף ימים</strong><button type="button" class="ronny-day-group-entry" id="ronny-day-groups-open" title="קיבוץ ימים למקטעי טיול"><i data-lucide="layers-3" class="small-icon"></i> מקטעי טיול</button><button type="button" id="manage-days-trigger" class="sequence-edit-action" aria-label="עריכת רצף הימים" title="ניהול סדר, מחיקה ועריכת ימים"><i data-lucide="list-ordered" class="small-icon"></i><span>עריכה</span></button></div><div class="ronny-day-groups-bar" id="ronny-day-groups-bar"></div><div class="ronny-day-navigation"><button type="button" class="ronny-day-arrow" id="day-prev" aria-label="היום הקודם" title="היום הקודם"><i data-lucide="chevron-right"></i></button><div class="day-strip" id="days" tabindex="0" aria-label="גלול בין ימים עם גלגלת העכבר"></div><button type="button" class="ronny-fixed-add-day" id="add-day" title="הוסף יום אחרי היום הנבחר" aria-label="הוסף יום אחרי היום הנבחר"><i data-lucide="plus" class="small-icon"></i></button><button type="button" class="ronny-day-arrow" id="day-next" aria-label="היום הבא" title="היום הבא"><i data-lucide="chevron-left"></i></button></div><div id="day-time-mode"></div><div id="day-context" class="day-context" hidden></div><div class="segment-bar"><button class="btn btn-soft" id="segments-btn" title="חלוקת היום למקטעים לפי שעות"><i data-lucide="clock-4" class="small-icon"></i> מקטעי זמן</button><div id="segment-chips" class="segment-chips"></div></div></div><button type="button" class="planner-horizontal-resizer" id="planner-upper-resizer" title="גרור לשינוי גובה האזור העליון · לחיצה כפולה לאיפוס" aria-label="שינוי גובה כותרת התכנון ומרחב לוח הזמנים" aria-orientation="horizontal" role="separator" tabindex="0"><span class="planner-grip" aria-hidden="true"></span><span class="planner-grip-label">שינוי גובה</span></button><div class="section-ribbon"><h3>לוח הזמנים <span class="count-pill" id="stop-count">0 עצירות</span></h3><button class="tiny-action" id="auto-time" title="סידור זמני הגעה לפי נסיעה ומשך ביקור"><i data-lucide="clock-3" class="small-icon"></i> תזמון אוטומטי</button></div>
 <div class="planner-notes" id="planner-notes" hidden></div><div class="schedule scroll" id="schedule"></div><div class="panel-footer"><button class="btn btn-soft" id="panel-add"><i data-lucide="plus-circle" class="small-icon"></i> הוספת עצירה ליום</button><div class="budget-line"><span>תקציב מתוכנן ליום זה</span><strong id="day-budget">₪0</strong></div></div></section>
 <section class="map-pane"><div id="map" aria-label="מפת מסלול אינטראקטיבית"></div><div id="google-coverage-map" role="region" aria-label="מפת כיסוי Street View של Google"></div><input type="file" id="photo-file" accept="image/*" multiple hidden><div class="map-quick-views" id="map-quick-views">
 <button type="button" id="map-day-trigger" class="map-quick-trigger" aria-label="בחירת היקף התצוגה" aria-expanded="false" aria-controls="map-day-menu" title="יום נבחר או כל הטיול"><i data-lucide="calendar-days" class="small-icon"></i></button>
@@ -2061,6 +2052,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 </section><div class="map-hint" id="map-hint" hidden></div><button type="button" class="map-group-toggle" id="route-card-toggle" aria-label="הצג סיכום מסלול" aria-expanded="false" aria-controls="route-card" title="סיכום מסלול"><i data-lucide="chart-no-axes-column" class="small-icon"></i></button><div class="map-bottom"><div class="route-card" id="route-card"><div class="route-kicker">סקירת מסלול • יום נבחר</div><div class="route-metrics"><div><strong id="route-distance">—</strong><small>מרחק מסלול</small></div><div><strong id="route-duration">—</strong><small>זמן בדרך</small></div><div><strong id="route-stops">0</strong><small>נקודות במסלול</small></div></div><p class="route-msg" id="route-msg">ממתין לחישוב מסלול</p></div><div class="map-utility"><button class="float-btn" id="map-add" title="הוספת עצירה במרכז המפה"><i data-lucide="map-pin-plus"></i></button></div></div>
 <div id="outline-map-add" class="outline-map-add" role="dialog" aria-label="הוספת יעד למתאר"></div><div id="layer-filter-panel" class="layer-filter-panel" role="dialog" aria-label="סינון שכבות במפה"></div><div id="leg-editor" class="leg-editor" role="dialog" aria-label="עריכת מקטע מסלול"></div><div id="leg-draw-banner" class="leg-draw-banner" role="status" aria-live="polite"></div><div id="map-context" class="map-context" role="dialog" aria-label="בחירת סוג נקודה"></div><div id="point-quick" class="point-quick" role="dialog" aria-label="עריכת נקודה קיימת"></div>
 </section><div class="splitter splitter-planner" id="planner-resizer" role="separator" aria-label="לחץ כדי לסגור או לפתוח את פאנל התכנון, או גרור כדי לשנות רוחב" aria-orientation="vertical" tabindex="0" title="לחיצה לפתיחה וסגירה · גרירה לשינוי רוחב"><span class="planner-handle-pill" aria-hidden="true"><i data-lucide="chevron-right" class="small-icon"></i></span></div><div class="splitter splitter-rail" id="rail-resizer" role="separator" aria-label="שינוי רוחב סרגל הניווט" aria-orientation="vertical" tabindex="0" title="גרור לשינוי רוחב · לחיצה כפולה לאיפוס"></div></div>
+<div id="ronny-day-groups-shade" class="ronny-groups-shade" hidden></div>
+<aside id="ronny-day-groups-panel" class="ronny-groups-panel" dir="rtl" role="dialog" aria-modal="true" aria-labelledby="ronny-day-groups-heading" hidden>
+<header class="ronny-groups-head"><div><small>תכנון לפי מקטעים</small><h2 id="ronny-day-groups-heading">מקטעי טיול</h2><p>קבץ ימים רצופים להצגה ועריכה משותפת, בלי לשנות את המסלולים עצמם</p></div><button type="button" id="ronny-day-groups-close" aria-label="סגור מקטעי טיול"><i data-lucide="x"></i></button></header>
+<div id="ronny-day-groups-list" class="ronny-groups-list"></div>
+<footer class="ronny-groups-footer"><button id="ronny-day-groups-add" type="button" class="btn btn-soft"><i data-lucide="plus-circle" class="small-icon"></i> מקטע חדש</button></footer>
+</aside>
 <div id="days-manager-shade" class="days-manager-shade" aria-hidden="true"></div>
 <aside id="days-manager" class="days-manager" role="dialog" aria-modal="true" aria-labelledby="days-manager-title" aria-hidden="true" dir="rtl">
   <header class="days-manager-header"><div><small>ניהול הטיול</small><h2 id="days-manager-title">רצף ימים</h2><p>שינוי סדר בגרירה, עריכה ומחיקה</p></div><button type="button" id="days-manager-close" aria-label="סגור ניהול ימים" class="days-manager-close"><i data-lucide="x"></i></button></header>
@@ -2105,7 +2102,7 @@ let pointOrder=readPointOrder();
 function readPointOrder(){try{const stored=JSON.parse(localStorage.getItem(POINT_ORDER_KEY)||'{}');const order={};pointGroups.forEach(g=>{const list=Array.isArray(stored[g.id])?stored[g.id]:[];order[g.id]=[...new Set([...list.filter(x=>g.types.includes(x)),...g.types])]});return order}catch(e){return Object.fromEntries(pointGroups.map(g=>[g.id,[...g.types]]))}}
 function persistPointOrder(){try{localStorage.setItem(POINT_ORDER_KEY,JSON.stringify(pointOrder))}catch(e){toast('לא ניתן לשמור את סדר הסוגים בדפדפן')}}
 function pointTypeAlias(t){return t==='attraction'?'poi':t==='hotel'?'end':types[t]?t:'other'}
-const RONNY_LOOP_ICON='data:image/webp;base64,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';
+const RONNY_LOOP_ICON='\x64ata:image/png;base64,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';
 function pointSymbol(type){if(type==='loop')return '<img class="ronny-loop-symbol-img" src="'+RONNY_LOOP_ICON+'" alt="" draggable="false" aria-hidden="true">';const t=types[type]||types.other;if(t.icon==='bench')return '<svg class="point-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16M4 13h16M5 7v8M19 7v8M6 15l-1 5M18 15l1 5M3 15h18"/></svg>';if(t.icon==='balloon-custom')return '<svg class="point-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-4 0-6 3-6 7 0 4 2 6 6 8 4-2 6-4 6-8 0-4-2-7-6-7Z"/><path d="M10 18h4l-2 2v2"/></svg>';return icon(t.icon,'point-symbol-icon')}
 function pointChoiceMarkup(selectedType){return `<div class="point-picker-hint">${icon('grip-vertical','small-icon')} גרור את הידית לשינוי סדר · במקלדת Alt וחצים</div><div class="point-type-picker" id="point-type-picker" aria-label="סוג הנקודה">${pointGroups.map(g=>`<section class="point-section" style="--group-accent:${g.color}" data-point-group="${g.id}"><div class="point-section-heading"><span class="group-indicator"></span><div><strong>${g.label}</strong><small>${g.subtitle}</small></div><span class="group-count">${g.types.length}</span></div><div class="point-choice-grid">${pointOrder[g.id].map((type)=>`<button type="button" class="point-choice ${selectedType===type?'selected':''}" data-point-choice="${type}" draggable="true" aria-pressed="${selectedType===type}"><span class="point-grip" aria-hidden="true" title="גרור לשינוי הסדר">${icon('grip-vertical','small-icon')}</span><span class="point-choice-symbol" style="--symbol-color:${types[type].color}">${pointSymbol(type)}</span><span class="point-choice-name">${types[type].name}</span><span class="point-choice-check">${icon('check','small-icon')}</span></button>`).join('')}</div></section>`).join('')}</div>`}
 function bindPointTypePicker({autoSaveOnPick=false}={}){const picker=$('point-type-picker');if(!picker)return;let from=null;picker.querySelectorAll('[data-point-choice]').forEach(btn=>{
@@ -2183,7 +2180,6 @@ const LIB_DB='ronny-trip-library-v1', LIB_STORE='trips', LIB_ACTIVE='ronny-activ
 let db=null, library=new Map(), activeTripId=null, saveQueue=Promise.resolve(), usingFallback=false, libraryReady=false, lastSaveError=false;
 const cloneValue=value=>JSON.parse(JSON.stringify(value));
 let state=demo();
-let activeDayGroupId=null;
 let planningResolution='day',selectedOutlineId=null,selectedStageId=null,outlineAddArmed=false,outlineLayer=null,outlineMoveModeId=null;
 let ronnyMarkerDraggedAt=0; // Recent physical drag must never count as a click.
 
@@ -2299,7 +2295,6 @@ function prepareTrip(t){
  if(!t||!Array.isArray(t.days)||!t.days.length||!t.settings)throw Error('קובץ טיול לא תקין');
  const cleaned=cloneValue(t);
  cleaned.outline=normalizeOutline(cleaned.outline);
- cleaned.dayGroups=(Array.isArray(cleaned.dayGroups)?cleaned.dayGroups:[]).filter(g=>g&&typeof g==='object').map(g=>({id:String(g.id||uid()),label:String(g.label||'מקטע טיול').slice(0,65),description:String(g.description||'').slice(0,600),color:/^#[0-9a-f]{6}$/i.test(g.color||'')?g.color:'#91a9a0',dayIds:[...new Set((g.dayIds||[]).filter(id=>cleaned.days.some(d=>d.dayId===id)))]})).filter(g=>g.dayIds.length);
  cleaned.settings={googleKey:'',mapStyle:'streets',travelMode:'driving',plannerWidth:430,railWidth:54,drawerWidth:440,layerVisibility:{...DEFAULT_LAYER_VISIBILITY},...cleaned.settings};cleaned.settings.layerVisibility=normalizeLayerVisibility(cleaned.settings.layerVisibility);
  delete cleaned.settings.mapyKey;delete cleaned.settings.routingProvider;
  cleaned.settings.mapStyle=mapPrefs.enabledMaps.includes(cleaned.settings.mapStyle)?cleaned.settings.mapStyle:mapPrefs.defaultStyle;
@@ -2360,7 +2355,7 @@ async function initTripLibrary(){
   try{localStorage.setItem(LIB_ACTIVE,activeTripId)}catch(e){}
  }
 }
-function freshTrip(){const date=new Date();return {version:3,dayGroups:[],outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...state.settings,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
+function freshTrip(){const date=new Date();return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...state.settings,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
 function tripMapPositions(){
  const points=[];
  const add=p=>{if(validPoint(p))points.push([+p.lat,+p.lng])};
@@ -2621,7 +2616,29 @@ async function refreshLegStreetViewAvailability(el,lat,lng){
 }
 
 function validPoint(s){return s?.lat!==null&&s?.lat!==undefined&&s?.lat!==''&&s?.lng!==null&&s?.lng!==undefined&&s?.lng!==''&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lng))&&Math.abs(Number(s.lat))<=90&&Math.abs(Number(s.lng))<=180}
-function currentStopsForMap(){return viewScope==='all'?visibleDayIndices().flatMap(di=>state.days[di].stops.map((stop,si)=>({stop,di,si}))):(state.days[selectedDay]?.stops||[]).map((stop,si)=>({stop,di:selectedDay,si}))}
+let ronnyActiveDayGroupId=null;
+function ronnyDayGroups(){return Array.isArray(state.settings.dayGroups)?state.settings.dayGroups:[]}
+function ronnyGroupDays(group){
+ if(!group)return [];
+ const start=state.days.findIndex(d=>d.dayId===group.fromDayId);
+ const end=state.days.findIndex(d=>d.dayId===group.toDayId);
+ if(start<0||end<0)return [];
+ const a=Math.min(start,end),b=Math.max(start,end);
+ return state.days.map((_,i)=>i).filter(i=>i>=a&&i<=b);
+}
+function ronnyVisibleDayIndices(){
+ if(viewScope!=='all')return [selectedDay];
+ const selected=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);
+ return selected?ronnyGroupDays(selected):state.days.map((_,i)=>i);
+}
+function ronnyGroupCaption(){const g=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);return g?.name||'כל הטיול'}
+function ronnySetGroupView(id){
+ ronnyActiveDayGroupId=id;
+ if(planningResolution!=='day')setPlanningResolution('day',{fit:false});
+ viewScope='all';$('map-scope').value='all';selectedStop=null;
+ closeLegEditor();hidePointQuick();renderAll();fitMap();
+}
+function currentStopsForMap(){return ronnyVisibleDayIndices().flatMap(di=>state.days[di].stops.map((stop,si)=>({stop,di,si})))}
 function makeDate(i){let d=new Date((state.startDate||'2026-10-26')+'T12:00:00');d.setDate(d.getDate()+i);return d}
 function dayDate(i){return new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short'}).format(makeDate(i))}
 function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:0})}
@@ -2650,7 +2667,6 @@ function dayDefaultProfile(dayIndex=selectedDay){
  const preferred=state.days[dayIndex]?.travelMode;
  return TRAVEL_MODES[preferred]?preferred:(TRAVEL_MODES[state.settings.travelMode]?state.settings.travelMode:'driving');
 }
-function dayVisibleName(day){const name=String(day?.label||'').trim();return !name||/^יום\s+\d+$/u.test(name)?'ללא שם':name}
 function renumberGenericDayLabels(){
  state.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
 }
@@ -2779,45 +2795,9 @@ function highlightMapPoint(id,on=true){
  });
 }
 
-
-// Travel sections: an intermediate geographic grouping of complete daily plans.
-function activeDayGroup(){return (state.dayGroups||[]).find(g=>g.id===activeDayGroupId)||null}
-function visibleDayIndices(){const group=activeDayGroup();return state.days.map((d,i)=>i).filter(i=>!group||group.dayIds.includes(state.days[i].dayId))}
-function groupDayRangeText(g){const n=state.days.map((d,i)=>g.dayIds.includes(d.dayId)?i+1:null).filter(Boolean);return !n.length?'ללא ימים':n.length===1?'יום '+n[0]:'ימים '+n[0]+'–'+n[n.length-1]}
-function autoGroupInsertedDay(id,previousId,nextId){if(!Array.isArray(state.dayGroups))return;for(const g of state.dayGroups){if(g.dayIds.includes(previousId)&&(!nextId||g.dayIds.includes(nextId))&&!g.dayIds.includes(id))g.dayIds.push(id)}}
-function renderDayGroupsBar(){const el=$('ronny-day-groups-bar');if(!el)return;const groups=(state.dayGroups||[]).filter(g=>g.dayIds?.length);el.hidden=!groups.length;if(!groups.length){el.innerHTML='';return}el.innerHTML='<span class="ronny-groups-caption">מקטעי הטיול</span>'+groups.map(g=>`<button type="button" class="ronny-group-chip ${activeDayGroupId===g.id&&viewScope==='all'?'selected':''}" data-view-day-group="${esc(g.id)}" style="--group-color:${esc(g.color||'#91a9a0')}" title="${esc(g.description||'הצגת ימי המקטע')}">${icon('layers-3','small-icon')} <strong>${esc(g.label)}</strong><small>${esc(groupDayRangeText(g))}</small></button>`).join('');el.querySelectorAll('[data-view-day-group]').forEach(b=>b.onclick=()=>showDayGroup(b.dataset.viewDayGroup));refreshIcons()}
-function showDayGroup(id){const group=(state.dayGroups||[]).find(g=>g.id===id);if(!group)return;planningResolution='day';activeDayGroupId=id;viewScope='all';$('map-scope').value='all';selectedStop=null;hidePointQuick();closeLegEditor();const inds=visibleDayIndices();if(inds.length)selectedDay=inds[0];renderAll();fitMap();toast('מציג רק את '+group.label)}
-function openDayGroupsManager(editId=null){
- const current=(state.dayGroups||[]).find(g=>g.id===editId)||null;
- const choices=state.days.map((d,i)=>`<option value="${i}">יום ${i+1} · ${esc(dayVisibleName(d))}</option>`).join('');
- const inds=current?state.days.map((d,i)=>current.dayIds.includes(d.dayId)?i:null).filter(x=>x!==null):[];
- const first=inds.length?inds[0]:Math.max(0,selectedDay),last=inds.length?inds[inds.length-1]:Math.min(state.days.length-1,first+Math.min(3,state.days.length-1-first));
- const rows=(state.dayGroups||[]).map(g=>`<div class="ronny-group-row" style="--group-color:${esc(g.color)}"><div class="ronny-group-text"><strong>${esc(g.label)}</strong><small>${esc(groupDayRangeText(g))}${g.description?' · '+esc(g.description):''}</small></div><button type="button" data-group-view="${esc(g.id)}" title="הצג את המקטע">${icon('eye','small-icon')}</button><button type="button" data-group-edit="${esc(g.id)}" title="ערוך מקטע">${icon('pencil','small-icon')}</button><button type="button" data-group-remove="${esc(g.id)}" title="הסר מקטע, בלי למחוק את הימים" class="ronny-group-delete">${icon('trash-2','small-icon')}</button></div>`).join('');
- const body=`<div class="ronny-group-manager"><p class="ronny-group-intro">קבץ ימים לתחנות גאוגרפיות גדולות. המקטע הוא שכבת תכנון: שינויו לא משנה או מוחק את המסלולים היומיים.</p><div class="ronny-group-list">${rows||'<p class="ronny-group-empty">עדיין אין מקטעים בטיול.</p>'}</div><div class="ronny-group-edit"><strong>${current?'עריכת מקטע':'יצירת מקטע חדש'}</strong><label>שם המקטע<input id="ronny-group-name" maxlength="65" placeholder="למשל: ההיילנדס" value="${esc(current?.label||'')}"></label><label>תיאור המקטע<textarea id="ronny-group-desc" rows="3" maxlength="600" placeholder="האזור, המטרה או נקודות חשובות">${esc(current?.description||'')}</textarea></label><div class="ronny-group-range"><label>מהיום<select id="ronny-group-first">${choices}</select></label><label>עד יום (כולל)<select id="ronny-group-last">${choices}</select></label></div><label class="ronny-group-color">צבע המקטע<input type="color" id="ronny-group-color" value="${esc(current?.color||'#91a9a0')}"></label><small>המקטע יכלול את כל הימים בטווח שבחרת. יום יכול להיות משויך למקטע אחד בלבד.</small></div></div>`;
- const foot=`<button type="button" class="btn" id="ronny-group-cancel">${icon('x','small-icon')} ביטול</button><button type="button" class="btn btn-primary" id="ronny-group-save">${icon('check','small-icon')} ${current?'שמירת מקטע':'יצירת מקטע'}</button>`;
- openDrawer('מקטעי הטיול','תכנון אזורי','חיבור בין המתאר הגאוגרפי לבין ימי הטיול',body,foot);
- $('ronny-group-first').value=String(first);$('ronny-group-last').value=String(last);
- $('ronny-group-cancel').onclick=closeDrawer;
- $('ronny-group-save').onclick=()=>{
-  const label=$('ronny-group-name').value.trim().slice(0,65),description=$('ronny-group-desc').value.trim().slice(0,600),start=+$('ronny-group-first').value,end=+$('ronny-group-last').value;
-  if(!label){toast('יש להוסיף שם למקטע');$('ronny-group-name').focus();return}
-  if(start>end){toast('יום ההתחלה חייב להיות לפני יום הסיום');return}
-  const ids=state.days.slice(start,end+1).map(d=>d.dayId);const groups=state.dayGroups||(state.dayGroups=[]);
-  const obj=current||{id:uid()};obj.label=label;obj.description=description;obj.color=$('ronny-group-color').value;obj.dayIds=ids;
-  groups.forEach(g=>{if(g!==obj)g.dayIds=g.dayIds.filter(id=>!ids.includes(id))});state.dayGroups=groups.filter(g=>g===obj||g.dayIds.length);if(!current)state.dayGroups.push(obj);
-  save();closeDrawer();renderDayGroupsBar();showDayGroup(obj.id);
- };
- document.querySelectorAll('[data-group-view]').forEach(b=>b.onclick=()=>{closeDrawer();showDayGroup(b.dataset.groupView)});
- document.querySelectorAll('[data-group-edit]').forEach(b=>b.onclick=()=>openDayGroupsManager(b.dataset.groupEdit));
- document.querySelectorAll('[data-group-remove]').forEach(b=>b.onclick=()=>{
-  const id=b.dataset.groupRemove;state.dayGroups=(state.dayGroups||[]).filter(g=>g.id!==id);if(activeDayGroupId===id)activeDayGroupId=null;save();closeDrawer();renderAll();openDayGroupsManager();toast('המקטע הוסר; הימים נשמרו');
- });
- $('ronny-group-name').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();$('ronny-group-save').click()}});refreshIcons();
-}
-
 function renderDays(){
- const html=state.days.map((d,i)=>`<button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><span class="ronny-day-number">${i+1}</span><strong class="ronny-day-label">${esc(dayVisibleName(d))}</strong><small>${esc(dayDate(i))}</small></button>`).join('');
- $('days').innerHTML=html;renderDayGroupsBar();const prev=$('day-prev'),next=$('day-next');if(prev)prev.disabled=selectedDay<=0;if(next)next.disabled=selectedDay>=state.days.length-1;const active=$('days').querySelector('.day-pill.active');if(active){const strip=$('days').getBoundingClientRect(),rect=active.getBoundingClientRect();if(rect.left<strip.left+3||rect.right>strip.right-3)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
+ const html=state.days.map((d,i)=>`<button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button>`).join('');
+ $('days').innerHTML=html;const prev=$('day-prev'),next=$('day-next');if(prev)prev.disabled=selectedDay<=0;if(next)next.disabled=selectedDay>=state.days.length-1;const active=$('days').querySelector('.day-pill.active');if(active){const strip=$('days').getBoundingClientRect(),rect=active.getBoundingClientRect();if(rect.left<strip.left+3||rect.right>strip.right-3)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
  $('days').querySelectorAll('[data-day]').forEach(el=>{
   el.onclick=()=>selectDay(+el.dataset.day);
   el.addEventListener('dragstart',e=>{e.dataTransfer.setData('application/x-ronny-day',el.dataset.day);e.dataTransfer.effectAllowed='move';el.classList.add('is-day-dragging')});
@@ -2833,11 +2813,10 @@ function renderDays(){
   const at=after+1;
   const inherited=inheritedStartForNewDay(after);
   if(inherited)inherited.autoInheritedStart=true;
-  state.days.splice(at,0,{label:'',description:'',travelMode:'',dayId:uid(),color:nextDayAccent(),segments:[],stops:inherited?[inherited]:[]});
+  state.days.splice(at,0,{label:'יום '+(at+1),description:'',travelMode:'',dayId:uid(),color:nextDayAccent(),segments:[],stops:inherited?[inherited]:[]});
   // Photos refer to the numeric day index, not the day ID.
   state.photos=(state.photos||[]).map(photo=>({...photo,day:photo.day>=at?photo.day+1:photo.day}));
   renumberGenericDayLabels();
-  autoGroupInsertedDay(state.days[at].dayId,state.days[after].dayId,state.days[at+1]?.dayId);
   synchronizeDayStarts();
   selectedDay=at;selectedStop=null;viewScope='day';$('map-scope').value='day';
   invalidate();save();renderAll();fitMap();toast('נוסף יום אחרי היום שנבחר');
@@ -2862,7 +2841,7 @@ function wireDayColorChooser(scope, inputId, swatchAttr){
 }
 function editDay(){
  const day=state.days[selectedDay];
- const body=`<div class="day-editor-section"><div class="field"><label for="d-label">שם היום</label><input id="d-label" maxlength="65" value="${esc(dayVisibleName(day)==='ללא שם'?'':day.label)}" placeholder="למשל: הרי ההיילנדס"></div>
+ const body=`<div class="day-editor-section"><div class="field"><label for="d-label">שם היום</label><input id="d-label" maxlength="65" value="${esc(day.label||'')}" placeholder="שם היום"></div>
  <div class="field"><label for="d-description">תיאור היום</label><textarea id="d-description" maxlength="1200" rows="4" placeholder="הערות ותכנון ליום הזה">${esc(day.description||'')}</textarea></div>
  <div class="field"><label for="d-travel-mode">ברירת מחדל לניווט ביום הזה</label><select id="d-travel-mode"><option value="" ${!day.travelMode?'selected':''}>לפי הגדרות הטיול · ${esc(TRAVEL_MODES[state.settings.travelMode]||TRAVEL_MODES.driving)}</option>${Object.entries(TRAVEL_MODES).map(([mode,label])=>`<option value="${mode}" ${day.travelMode===mode?'selected':''}>${label}</option>`).join('')}</select></div>
  ${dayColorChooserMarkup(day,'d-color','data-day-palette')}<label class="ronny-loop-setting"><input type="checkbox" id="d-loop" ${day.loop?'checked':''}><span class="ronny-loop-setting-icon">${pointSymbol('loop')}</span><span><strong>יום מעגלי — חוזרים לנקודת ההתחלה</strong><small>המערכת מוסיפה מקטע חזרה בכבישים ומציגה סמל משולב של בית ומיטה במקום סיכה כפולה. נדרשות לפחות שתי נקודות דרך.</small></span></label></div>
@@ -2871,7 +2850,7 @@ function editDay(){
  openDrawer('הגדרות יום','DAY SETTINGS','שם, תיאור, צבע, סדר ופעולות',body,foot);
  wireDayColorChooser(document.getElementById('drawer'), 'd-color', 'data-day-palette');
  const store=()=>{const mode=$('d-travel-mode').value;const changed=(day.travelMode||'')!==mode;
-  day.label=$('d-label').value.trim().slice(0,65);
+  day.label=$('d-label').value.trim().slice(0,65)||'יום '+(state.days.indexOf(day)+1);
   day.description=$('d-description').value.trim().slice(0,1200);day.travelMode=TRAVEL_MODES[mode]?mode:'';const wasLoop=day.loop===true;day.loop=$('d-loop')?.checked===true;const loopChanged=wasLoop!==day.loop;const pathChanged=syncLoopDay(day);
   const chosen=$('d-color')?.value;if(validDayColor(chosen)&&$('d-color')?.dataset.userChoice==='true'){day.color=chosen;day.manualDayColor=true;}
   if(changed||loopChanged||pathChanged){invalidate();retimeAfterOrderChange(selectedDay)}save()};
@@ -2883,8 +2862,8 @@ function editDay(){
   save();renderAll();
   toast(day.loop?'היום מעגלי: היציאה והסיום באותה נקודה':'היום הוחזר למסלול קווי');
  });
+ $('d-label')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('day-save').click()}});
  $('day-save').onclick=()=>{store();closeDrawer();renderAll();toast('פרטי היום נשמרו')};
- $('d-label')?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();$('day-save')?.click()}});
  $('day-move-prev').onclick=()=>{store();closeDrawer();moveDay(state.days.indexOf(day),state.days.indexOf(day)-1)};
  $('day-move-next').onclick=()=>{store();closeDrawer();moveDay(state.days.indexOf(day),state.days.indexOf(day)+1)};
  $('day-duplicate').onclick=()=>{store();closeDrawer();duplicateDayAt(state.days.indexOf(day));};
@@ -2916,7 +2895,7 @@ function openDaysManager(){
 function cloneDayForDuplicate(day){
  const copy=cloneValue(day);
  copy.dayId=uid();
- copy.label=((dayVisibleName(day)==='ללא שם'?'יום':dayVisibleName(day))+' — עותק').slice(0,65);
+ copy.label=((String(day.label||'יום').trim()||'יום')+' — עותק').slice(0,65);
  if(!copy.manualDayColor)copy.color=nextDayAccent();
  const idMap=new Map();
  copy.stops=(copy.stops||[]).map(stop=>{
@@ -2935,7 +2914,6 @@ function duplicateDayAt(index,{reopenManager=false}={}){
  if(state.days.length>=100){toast('ניתן ליצור עד 100 ימים');return;}
  const copy=cloneDayForDuplicate(state.days[index]);
  state.days.splice(index+1,0,copy);
- autoGroupInsertedDay(copy.dayId,state.days[index]?.dayId,state.days[index+2]?.dayId);
  state.photos=(state.photos||[]).map(p=>({...p,day:p.day>index?p.day+1:p.day}));
  selectedDay=index+1;selectedStop=null;viewScope='day';$('map-scope').value='day';
  editingDayManagerId=null;managerBulkSelected.clear();managerBulkActive=false;
@@ -2969,7 +2947,7 @@ function renderDaysManagerRows(){
           <button class="day-manager-select" type="button" data-day-select="${esc(d.dayId)}" title="הצג את יום ${i+1}">
             <span class="day-manager-number">${i+1}</span>
             <span class="day-manager-details">
-              <b>${esc(dayVisibleName(d))}</b>
+              <b>${/^יום\s+\d+$/u.test(String(d.label||''))?'יום ללא שם':esc(d.label||'יום ללא שם')}</b>
               <small>${esc(dayDate(i))} · ${count} נקודות</small>
               <div class="day-manager-transport-line">
                 <span class="ronny-manager-path-kind day-manager-kind-badge" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')} ${d.loop?'יום מעגלי':'יום קווי'}</span>
@@ -2988,7 +2966,7 @@ function renderDaysManagerRows(){
       </div>
     </div>
     ${editing?`<div class="day-manager-editor">
-      <label class="day-manager-field"><span>שם היום</span><input data-day-name="${esc(d.dayId)}" value="${esc(dayVisibleName(d)==='ללא שם'?'':d.label)}" placeholder="למשל: סיבוב סביב האגם" maxlength="65"></label>
+      <label class="day-manager-field"><span>שם היום</span><input data-day-name="${esc(d.dayId)}" value="${/^יום\s+\d+$/u.test(d.label||'')?'':esc(d.label||'')}" maxlength="65"></label>
       <label class="day-manager-field"><span>ברירת מחדל לתחבורה</span><select data-day-travel="${esc(d.dayId)}"><option value="" ${!d.travelMode?'selected':''}>לפי הטיול · ${esc(TRAVEL_MODES[state.settings.travelMode]||TRAVEL_MODES.driving)}</option>${Object.entries(TRAVEL_MODES).map(([m,label])=>`<option value="${m}" ${d.travelMode===m?'selected':''}>${label}</option>`).join('')}</select></label>
       <label class="day-manager-field day-manager-field-wide"><span>תיאור</span><textarea data-day-description="${esc(d.dayId)}" maxlength="1200" rows="4">${esc(d.description||'')}</textarea></label>
       ${dayColorChooserMarkup(d,'day-manager-color','data-manager-palette')}
@@ -3017,11 +2995,10 @@ function renderDaysManagerRows(){
   day.loop=box.checked;const changed=syncLoopDay(day);invalidate();if(changed)retimeAfterOrderChange(index);
   save();renderDays();renderMap();if(index===selectedDay)renderSchedule();refreshIcons();
   toast(day.loop?'היום מעגלי: חזרה לנקודת ההתחלה':'היום הוחזר למסלול קווי');
- }));
- list.querySelectorAll('[data-day-name]').forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();list.querySelector('[data-day-save]')?.click()}}));
+ })); list.querySelectorAll('[data-day-name]').forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();list.querySelector('[data-day-save]')?.click()}}));
  list.querySelectorAll('[data-day-save]').forEach(b=>b.onclick=()=>{
   const d=state.days[findDay(b.dataset.daySave)];if(!d)return;
-  d.label=(list.querySelector('[data-day-name]')?.value.trim()||'').slice(0,65);
+  d.label=(list.querySelector('[data-day-name]')?.value.trim()||'יום '+(findDay(d.dayId)+1)).slice(0,65);
   d.description=(list.querySelector('[data-day-description]')?.value||'').trim().slice(0,1200);
   const chosen=list.querySelector('#day-manager-color')?.value;if(validDayColor(chosen)&&list.querySelector('#day-manager-color')?.dataset.userChoice==='true'){d.color=chosen;d.manualDayColor=true;}
   const mode=list.querySelector('[data-day-travel]')?.value||'',changed=(d.travelMode||'')!==mode;
@@ -3158,9 +3135,63 @@ function initOutsideDismissal(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&daysManagerIsOpen()){e.preventDefault();e.stopImmediatePropagation();closeDaysManager()}},true);
 }
 
+function ronnyCleanDayGroups(){
+ const groups=ronnyDayGroups();
+ const clean=groups.filter(g=>ronnyGroupDays(g).length>0);
+ if(clean.length!==groups.length){state.settings.dayGroups=clean;if(!clean.some(g=>g.id===ronnyActiveDayGroupId))ronnyActiveDayGroupId=null;}
+ return clean;
+}
+function ronnyRenderGroupBar(){
+ const bar=$('ronny-day-groups-bar');if(!bar)return;
+ const groups=ronnyCleanDayGroups();
+ bar.innerHTML=groups.length?`<button type="button" data-ronny-group-view="" class="ronny-group-chip ${viewScope==='all'&&!ronnyActiveDayGroupId?'selected':''}">כל הטיול</button>${groups.map(g=>`<button type="button" class="ronny-group-chip ${viewScope==='all'&&ronnyActiveDayGroupId===g.id?'selected':''}" data-ronny-group-view="${esc(g.id)}" title="${esc(g.description||'הצגת כל ימי המקטע במפה')}" style="--group-c:${esc(g.color||'#87a695')}">${esc(g.name||'מקטע')} <small>${ronnyGroupDays(g).length} ימים</small></button>`).join('')}`:'';
+ bar.hidden=!groups.length;
+ bar.querySelectorAll('[data-ronny-group-view]').forEach(b=>b.onclick=()=>ronnySetGroupView(b.dataset.ronnyGroupView||null));
+}
+function ronnyOpenGroups(){
+ const shade=$('ronny-day-groups-shade'),panel=$('ronny-day-groups-panel');if(!shade||!panel)return;
+ closeDaysManager();closeDrawer();shade.hidden=false;panel.hidden=false;ronnyRenderGroupsManager();refreshIcons();
+}
+function ronnyCloseGroups(){const shade=$('ronny-day-groups-shade'),panel=$('ronny-day-groups-panel');if(shade)shade.hidden=true;if(panel)panel.hidden=true;}
+function ronnyGroupSelectOptions(current){return state.days.map((d,i)=>`<option value="${esc(d.dayId)}" ${d.dayId===current?'selected':''}>יום ${i+1} · ${esc(/^יום\s+\d+$/u.test(d.label||'')?'ללא שם':d.label||'ללא שם')}</option>`).join('')}
+function ronnyRenderGroupsManager(){
+ const el=$('ronny-day-groups-list');if(!el)return;
+ const groups=ronnyCleanDayGroups();
+ el.innerHTML=groups.length?groups.map(g=>`<article class="ronny-group-editor" data-ronny-group-id="${esc(g.id)}" style="--group-c:${esc(g.color||'#87a695')}"><label>שם המקטע<input data-group-name maxlength="65" value="${esc(g.name||'')}"></label><label>תיאור המקטע<textarea data-group-description rows="2" maxlength="600">${esc(g.description||'')}</textarea></label><div class="ronny-group-range"><label>מיום<select data-group-from>${ronnyGroupSelectOptions(g.fromDayId)}</select></label><label>עד יום<select data-group-to>${ronnyGroupSelectOptions(g.toDayId)}</select></label></div><label class="ronny-group-color">צבע המקטע <input data-group-color type="color" value="${esc(g.color||'#87a695')}"></label><div class="ronny-group-actions"><button type="button" class="btn btn-soft" data-group-save>${icon('check','small-icon')} שמירה</button><button type="button" class="btn btn-soft" data-group-show>${icon('layers-3','small-icon')} הצג במפה</button><button type="button" class="btn danger-btn" data-group-remove>${icon('trash-2','small-icon')} מחיקה</button></div></article>`).join(''):'<p class="ronny-group-empty">עדיין לא הוגדרו מקטעים. אפשר לקבץ כמה ימים רצופים ולתכנן אותם יחד.</p>';
+ el.querySelectorAll('[data-ronny-group-id]').forEach(row=>{
+  const id=row.dataset.ronnyGroupId;
+  row.querySelector('[data-group-save]').onclick=()=>{
+   const g=ronnyDayGroups().find(x=>x.id===id);if(!g)return;
+   g.name=row.querySelector('[data-group-name]').value.trim().slice(0,65)||'מקטע טיול';
+   g.description=row.querySelector('[data-group-description]').value.trim().slice(0,600);
+   g.fromDayId=row.querySelector('[data-group-from]').value;
+   g.toDayId=row.querySelector('[data-group-to]').value;
+   if(state.days.findIndex(d=>d.dayId===g.fromDayId)>state.days.findIndex(d=>d.dayId===g.toDayId)){[g.fromDayId,g.toDayId]=[g.toDayId,g.fromDayId]}
+   g.color=row.querySelector('[data-group-color]').value;
+   save();ronnyRenderGroupsManager();ronnyRenderGroupBar();toast('המקטע נשמר');
+   if(viewScope==='all')renderMap();
+  };
+  row.querySelector('[data-group-name]').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();row.querySelector('[data-group-save]').click()}});
+  row.querySelector('[data-group-show]').onclick=()=>{row.querySelector('[data-group-save]').click();ronnyCloseGroups();ronnySetGroupView(id)};
+  row.querySelector('[data-group-remove]').onclick=()=>{state.settings.dayGroups=ronnyDayGroups().filter(g=>g.id!==id);if(ronnyActiveDayGroupId===id)ronnyActiveDayGroupId=null;save();renderAll();ronnyRenderGroupsManager();toast('המקטע הוסר. הימים נשארו ללא שינוי')};
+ });
+ refreshIcons();
+}
+function ronnyInitGroups(){
+ $('ronny-day-groups-open')?.addEventListener('click',ronnyOpenGroups);
+ $('ronny-day-groups-close')?.addEventListener('click',ronnyCloseGroups);
+ $('ronny-day-groups-shade')?.addEventListener('click',ronnyCloseGroups);
+ $('ronny-day-groups-add')?.addEventListener('click',()=>{
+  if(!state.settings.dayGroups)state.settings.dayGroups=[];
+  const i=Math.max(0,selectedDay);
+  state.settings.dayGroups.push({id:uid(),name:'מקטע '+(state.settings.dayGroups.length+1),description:'',fromDayId:state.days[i].dayId,toDayId:state.days[Math.min(state.days.length-1,i+Math.min(3,state.days.length-1))].dayId,color:DAY_ACCENTS[(state.settings.dayGroups.length-1)%DAY_ACCENTS.length]});
+  save();ronnyRenderGroupsManager();ronnyRenderGroupBar();
+ });
+}
+
 function initDaysManager(){
+ ronnyInitGroups();
  $('manage-days-trigger').onclick=openDaysManager;
- $('manage-day-groups').onclick=()=>openDayGroupsManager();
  $('days-manager-close').onclick=closeDaysManager;
  $('days-manager-add').onclick=()=>{$('add-day')?.click();renderDaysManagerRows()};
  $('days-manager-shade').onclick=closeDaysManager;
@@ -3963,8 +3994,7 @@ function openLegEditor(index,clickLocation=null){
   $('leg-duration-label').textContent=next==='extra'?'תוספת דקות מעבר לזמן המחושב':'משך מעבר כולל (דקות)';
   persistLegTime();
  });
- updateLegDurationPreview();
- requestAnimationFrame(()=>keepMapPopoverVisible(el));
+ updateLegDurationPreview(); requestAnimationFrame(()=>keepMapPopoverVisible(el));
  $('leg-start-draw')?.addEventListener('click',()=>startLegDrawing(index));$('leg-add-draw')?.addEventListener('click',()=>{drawLegSession={index,day:selectedDay};closeLegEditor();renderViaHandles();renderDrawBanner();updateMapHint()});$('leg-clear-draw')?.addEventListener('click',async()=>{if(!await confirmOnMap('לאפס את השרטוט של מקטע זה?',{title:'איפוס שרטוט',accept:'אפס שרטוט'}))return;const l=getLegMutable(index);l.path=[];save();drawRoute();openLegEditor(index)});
  refreshIcons();
 }
@@ -4621,12 +4651,12 @@ function showOverview(){
  if(!map)return;
  routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
  let lastStop=null;
- visibleDayIndices().forEach(di=>{const day=state.days[di],arr=routeStopsForDay(di).filter(validPoint);if(lastStop&&arr.length&&layerOn('routeLines'))L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
+ ronnyVisibleDayIndices().forEach(di=>{const day=state.days[di],arr=routeStopsForDay(di).filter(validPoint);if(lastStop&&arr.length&&layerOn('routeLines'))L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
   for(let i=1;i<arr.length;i++){const config=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);const cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));const coords=config.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(config.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);drawLegLineOverview(coords,config.mode,di,i);drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer)}
   if(arr.length)lastStop=[+arr[arr.length-1].lat,+arr[arr.length-1].lng];
  });
- $('route-stops').textContent=visibleDayIndices().reduce((n,i)=>n+state.days[i].stops.length,0);$('route-distance').textContent='—';$('route-duration').textContent='—';$('route-msg').textContent='סקירת כל הטיול: נתיבי כביש מוצגים בקירוב; תוואי ידני וקו אווירי נשמרים לכל יום.';
- $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • '+(activeDayGroup()?.label||'כל הטיול');renderSchedule();
+ $('route-stops').textContent=ronnyVisibleDayIndices().reduce((n,di)=>n+state.days[di].stops.length,0);$('route-distance').textContent='—';$('route-duration').textContent='—';$('route-msg').textContent='סקירת כל הטיול: נתיבי כביש מוצגים בקירוב; תוואי ידני וקו אווירי נשמרים לכל יום.';
+ $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • '+ronnyGroupCaption();renderSchedule();
 }
 function drawLegLineOverview(coords,mode,di,index){
  const arrival=state.days[di]?.stops[index];
@@ -4722,7 +4752,7 @@ function renderPoiLinks(){
  if(!map||!poiLinkLayer)return;
  poiLinkLayer.clearLayers();
  if(!layerOn('poiLinks'))return;
- const days=viewScope==='all'?visibleDayIndices():[selectedDay];
+ const days=ronnyVisibleDayIndices();
  for(const di of days){
   for(const {point,nearest} of poiLinksForDay(di)){
     if((point.type==='note'&&!layerOn('notes'))||(point.type!=='note'&&!layerOn('poi'))||(!layerOn('routeStops')&&!layerOn('routeLines')))continue;
@@ -4963,8 +4993,7 @@ async function legacyDeriveAllOutlineDays(options={}){const segs=outlineSegments
  const added=createOutlineDaysInternal(remaining.map(s=>s.to.id));if(added.length){if(options.openFirst!==false)openDayFromOutline(added[0]);else renderAll();toast(`נוצרו ${added.length} ימים המקושרים למתאר. עכשיו אפשר לפרט את הדרכים והעצירות.`)}return added;
 }
 function renderOutlineStageGuide(){
- if(!map||!outlineLayer||planningResolution!=='day')return;
- outlineLayer.clearLayers();
+ if(!map||!outlineLayer||planningResolution!=='day')return; outlineLayer.clearLayers();
  const prefs=outlineGuidePrefs(),pts=currentOutline().points;
  if(!prefs.enabled||pts.length<2)return;
  for(let i=1;i<pts.length;i++){
@@ -5029,8 +5058,8 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
 
 function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
-function renderAll(){const loopLinked=synchronizeLoopDays();const linked=planningResolution==='day'?synchronizeDayStarts():false;ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(linked||loopLinked)save()}
-function selectDay(i){if(i<0||i>=state.days.length)return;ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;activeDayGroupId=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
+function renderAll(){ronnyRenderGroupBar();const loopLinked=synchronizeLoopDays();const linked=planningResolution==='day'?synchronizeDayStarts():false;ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(linked||loopLinked)save()}
+function selectDay(i){if(i<0||i>=state.days.length)return;ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
 function fitMap(){
  if(!map)return;
  if(planningResolution!=='day'){fitOutlineMap();return;}
@@ -5092,7 +5121,7 @@ function openPointQuick(id){
   {left:existingPopup.style.left,top:existingPopup.style.top}:null;
  hideContext();hidePointQuick();
  if(obj.day!==selectedDay||viewScope==='all'){
-  activeDayGroupId=null;selectedDay=obj.day;viewScope='day';$('map-scope').value='day';renderAll();
+  selectedDay=obj.day;viewScope='day';$('map-scope').value='day';renderAll();
  }
  selectedStop=id;
  const s=obj.stop,el=$('point-quick'),pt=map.latLngToContainerPoint([+s.lat,+s.lng]);
@@ -5796,7 +5825,7 @@ async function estimateRouteClimb(){const btn=$('ronny-elevation-trigger');if(bt
 function initDayNavigation(){const strip=$('days');if(!strip||strip.dataset.scrollReady)return;strip.dataset.scrollReady='true';
  strip.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return; if(strip.scrollWidth<=strip.clientWidth+2)return;e.preventDefault();strip.scrollLeft+=e.deltaY},{passive:false});
  $('day-prev').onclick=()=>selectDay(selectedDay-1);$('day-next').onclick=()=>selectDay(selectedDay+1);
-
+ 
 }
 function openOutlineDayAssignment(){const points=currentOutline().points;if(!points.length){toast('ראשית הוסף עוגנים למתאר');return}
  document.getElementById('ronny-anchor-dialog')?.remove();const oldDays=state.days.filter(d=>(d.stops||[]).length||d.outlineDayMapped||d.outlineStageId);const hasExisting=oldDays.length>0;
@@ -5824,7 +5853,7 @@ function bind(){
 initResolutionUI();initDayNavigation();
  const descToggle=$('map-description-toggle');if(descToggle){const sync=()=>{const on=state.settings.showMapDescriptions!==false;descToggle.setAttribute('aria-pressed',String(on));descToggle.title=on?'הסתר תיאורים קבועים':'הצג תיאורים שסומנו';};sync();descToggle.addEventListener('click',()=>{state.settings.showMapDescriptions=state.settings.showMapDescriptions===false;sync();save();if(planningResolution==='outline')renderOutlineMap();else renderMarkers()})}
 $('trip-name').value=state.title;$('trip-name').onchange=()=>{state.title=$('trip-name').value.trim()||'הטיול שלי';save();renderTripDashboard()};$('trip-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.title=$('trip-name').value.trim()||'הטיול שלי';$('trip-name').value=state.title;save();$('trip-name').blur();toast('שם הטיול נשמר')}});$('start-date').value=state.startDate;$('start-date-trigger').onclick=()=>{const field=$('start-date');try{field.showPicker()}catch(e){field.focus();field.click()}};$('start-date').onchange=()=>{state.startDate=$('start-date').value||state.startDate;save();renderDays()};$('travel-mode').value=state.settings.travelMode;$('travel-mode').onchange=()=>{closeLegEditor();stopLegDrawing();state.settings.travelMode=$('travel-mode').value;invalidate();retimeAfterOrderChange(selectedDay);save();drawRoute();renderSchedule();renderMarkers()};rebuildMapOptions();
-initMapSelectClickTargets();$('map-scope').onchange=()=>{if(drawLegSession)stopLegDrawing();closeLegEditor();const requested=$('map-scope').value;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope=requested;activeDayGroupId=null;selectedStop=null;renderAll();fitMap()};$('map-style').onchange=()=>setMapStyle($('map-style').value);$('top-add').onclick=$('panel-add').onclick=()=>openStopForm();$('map-add').onclick=()=>{const c=map?.getCenter();if(!c)return;if(planningResolution!=='day')addOutlinePoint(c);else openStopForm(null,{lat:c.lat,lng:c.lng})};$('fit-route').onclick=()=>{if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope='all';activeDayGroupId=null;$('map-scope').value='all';selectedStop=null;closeLegEditor();hidePointQuick();renderAll();fitMap();};$('auto-time').onclick=autoSchedule;$('close-drawer').onclick=$('drawer-backdrop').onclick=closeDrawer;$('close-planner').onclick=showMap;
+initMapSelectClickTargets();$('map-scope').onchange=()=>{if(drawLegSession)stopLegDrawing();closeLegEditor();const requested=$('map-scope').value;ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope=requested;selectedStop=null;renderAll();fitMap()};$('map-style').onchange=()=>setMapStyle($('map-style').value);$('top-add').onclick=$('panel-add').onclick=()=>openStopForm();$('map-add').onclick=()=>{const c=map?.getCenter();if(!c)return;if(planningResolution!=='day')addOutlinePoint(c);else openStopForm(null,{lat:c.lat,lng:c.lng})};$('fit-route').onclick=()=>{ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope='all';$('map-scope').value='all';selectedStop=null;closeLegEditor();hidePointQuick();renderAll();fitMap();};$('auto-time').onclick=autoSchedule;$('close-drawer').onclick=$('drawer-backdrop').onclick=closeDrawer;$('close-planner').onclick=showMap;
 $('search-btn').onclick=()=>searchPlaces(null,[]);$('place-search').addEventListener('input',schedulePlaceSearch);$('segments-btn').onclick=manageSegments;$('layer-filter-toggle').onclick=toggleLayerFilterPanel;ronnyMeasureBindControls();$('photo-add').onclick=()=>{photoPlacement=null;$('photo-file').click()};$('photo-file').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;await handlePhotos(files,photoPlacement);e.target.value='';photoPlacement=null;updateMapHint()};$('route-edit-toggle').onclick=()=>{cancelPointMove();routeEdit=!routeEdit;if(routeEdit){quickStreetMode=false;$('street-link-mode').setAttribute('aria-pressed','false')}viewScope='day';$('map-scope').value='day';$('route-edit-toggle').setAttribute('aria-pressed',String(routeEdit));updateMapHint();renderMap()};$('street-link-mode').onclick=()=>{quickStreetMode=!quickStreetMode;hideContext();if(quickStreetMode&&googleMode)toggleGoogleCoverage();if(quickStreetMode&&routeEdit){routeEdit=false;$('route-edit-toggle').setAttribute('aria-pressed','false');renderMap()}$('street-link-mode').setAttribute('aria-pressed',String(quickStreetMode));updateMapHint();toast(quickStreetMode?'כעת לחיצה על כל נקודה במפה פותחת את Google Street View בטאב חדש — ללא מפתח API':'מצב Street View הסתיים')};$('google-coverage-toggle').onclick=toggleGoogleCoverage;$('place-search').addEventListener('keydown',searchKeydown);document.addEventListener('pointerdown',e=>{if(document.getElementById('ronny-time-dialog')?.open)return;// Allow the Leaflet map-click handler to consume the first outside click as dismissal.
 // Hiding the editor here on pointerdown would make the subsequent click create an unwanted new point.
 if(!e.target.closest('#point-quick')&&!e.target.closest('.leaflet-marker-icon')&&!e.target.closest('#map')&&!e.target.closest('[data-zoom-card]'))hidePointQuick();if(!e.target.closest('#leg-editor')&&!e.target.closest('#map')&&!e.target.closest('.leg-open'))closeLegEditor();if(!e.target.closest('#layer-filter-panel')&&!e.target.closest('#layer-filter-toggle'))closeLayerFilterPanel();if(!e.target.closest('#search-box'))$('search-results').classList.remove('open');if(!e.target.closest('#map-context')&&!e.target.closest('#map'))hideContext()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&savedPinPlacementId){savedPinPlacementId=null;toast('בחירת מיקום בוטלה');return}if(e.key==='Escape'&&newTripSetupDraft){newTripSetupDraft=null;updateMapHint();toast('בחירת מיקום לטיול בוטלה');return}if(e.key==='Escape'&&forcedRelocateSession){cancelForcedRelocate();return}if(e.key==='Escape'){outlineMoveModeId=null;hidePointQuick();cancelPointMove();updateMapHint();if(drawLegSession)stopLegDrawing();closeLegEditor();closeLayerFilterPanel();closeDrawer();hideContext();photoPlacement=null;homePickMode=false;updateMapHint();$('search-results').classList.remove('open')}});
@@ -5920,7 +5949,7 @@ function renderViaHandles(){if(!viaLayer)return;viaLayer.clearLayers();if(drawLe
 function scaledPhoto(file){return new Promise((resolve,reject)=>{if(!file.type.startsWith('image/')){reject(Error('לא מדובר בקובץ תמונה'));return}if(file.size>18*1024*1024){reject(Error('תמונה גדולה מ־18MB'));return}const blobUrl=URL.createObjectURL(file),img=new Image();img.onload=()=>{try{const w=img.naturalWidth,h=img.naturalHeight,ratio=Math.min(1,850/Math.max(w,h));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(w*ratio));canvas.height=Math.max(1,Math.round(h*ratio));const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);const data=canvas.toDataURL('image/jpeg',.69);resolve(data)}catch(e){reject(e)}finally{URL.revokeObjectURL(blobUrl)}};img.onerror=()=>{URL.revokeObjectURL(blobUrl);reject(Error('לא ניתן לפתוח את התמונה'))};img.src=blobUrl})}
 async function handlePhotos(files,point){let added=0;for(const f of files.slice(0,15)){try{const data=await scaledPhoto(f);if(data.length>580000)throw Error('התמונה גדולה מדי גם לאחר דחיסה');const center=point||map?.getCenter()||{lat:46.75,lng:8.12};const photo={id:uid(),name:f.name.slice(0,80),caption:'',day:selectedDay,lat:+center.lat,lng:+center.lng,data};if(usingFallback&&JSON.stringify({...state,photos:[...state.photos,photo]}).length>3800000)throw Error('האחסון המקומי הגיע למגבלה. ייצא גיבוי וצמצם תמונות.');state.photos.push(photo);added++}catch(e){toast('תמונה לא נוספה: '+e.message);break}}
  if(added){save();renderPhotos();toast(added+' תמונות נוספו למפה. ניתן לגרור כל תמונה למקום הרצוי')} }
-function renderPhotos(){if(!photoLayer||!map)return;photoLayer.clearLayers();if(!layerOn('photos'))return;state.photos.filter(p=>viewScope==='all'?visibleDayIndices().includes(p.day):p.day===selectedDay).forEach(p=>{if(!validPoint(p))return;const img=L.divIcon({html:`<div class="photo-pin"><img src="${p.data}" alt=""></div>`,className:'',iconSize:[57,61],iconAnchor:[27,60]});const m=L.marker([p.lat,p.lng],{icon:img,draggable:true,autoPan:true}).addTo(photoLayer);
+function renderPhotos(){if(!photoLayer||!map)return;photoLayer.clearLayers();if(!layerOn('photos'))return;state.photos.filter(p=>ronnyVisibleDayIndices().includes(p.day)).forEach(p=>{if(!validPoint(p))return;const img=L.divIcon({html:`<div class="photo-pin"><img src="${p.data}" alt=""></div>`,className:'',iconSize:[57,61],iconAnchor:[27,60]});const m=L.marker([p.lat,p.lng],{icon:img,draggable:true,autoPan:true}).addTo(photoLayer);
  m.on('click',e=>{if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);openPhoto(p.id)});
  m.on('dragend',e=>{const xy=e.target.getLatLng();p.lat=+xy.lat.toFixed(6);p.lng=+xy.lng.toFixed(6);save();renderPhotos();toast('התמונה הוצמדה למיקום החדש')});m.bindTooltip(esc(p.caption||p.name),{direction:'top'})})}
 function openPhoto(id){const p=state.photos.find(x=>x.id===id);if(!p)return;openDrawer('תמונה מהטיול','PHOTO JOURNAL',`יום ${p.day+1} · ${dayDate(p.day)}`,`<img src="${p.data}" alt="" style="width:100%;border-radius:14px;max-height:330px;object-fit:contain;background:#f0f5f7"><div class="field" style="margin-top:18px"><label>כיתוב ותיעוד</label><textarea id="photo-caption" maxlength="300">${esc(p.caption||'')}</textarea></div><div class="field"><label>יום בטיול</label><select id="photo-day">${state.days.map((d,i)=>`<option value="${i}" ${i===p.day?'selected':''}>יום ${i+1} · ${esc(d.label)}</option>`).join('')}</select></div><div class="footnote">גרור את סיכת התמונה על המפה כדי לשנות מיקום. התמונות נשמרות מקומית וייכללו בגיבוי JSON.</div>`,`<button class="btn danger-btn" id="photo-delete">מחיקה</button><button class="btn btn-primary" id="photo-save">שמירה</button>`);
@@ -5963,8 +5992,7 @@ function openPrintDialog(){const body=`<div class="api-intro"><strong>ייצוא
  $('print-generate').onclick=()=>{const layout=$('print-layout').value,scope=$('print-scope').value;buildPrintable(layout,scope)};
 }
 function printHtmlEscape(s){return esc(s)}
-function buildPrintable(layout,scope){const w=window.open('','_blank');if(!w){toast('חלון ההדפסה נחסם. אפשר חלונות קופצים ונסה שוב.');return}
- const days=scope==='all'?state.days.map((d,i)=>({d,i})):[{d:state.days[selectedDay],i:selectedDay}];const isMap=layout!=='schedule',isSchedule=layout!=='map';const layoutCls=layout==='both-horizontal'?'horizontal':'vertical';
+function buildPrintable(layout,scope){const w=window.open('','_blank');if(!w){toast('חלון ההדפסה נחסם. אפשר חלונות קופצים ונסה שוב.');return} const days=scope==='all'?state.days.map((d,i)=>({d,i})):[{d:state.days[selectedDay],i:selectedDay}];const isMap=layout!=='schedule',isSchedule=layout!=='map';const layoutCls=layout==='both-horizontal'?'horizontal':'vertical';
  const sections=days.map(({d,i})=>{const rows=d.stops.filter(s=>!isMapOnlyPoint(s)).map((s,idx)=>{const seg=segmentFor(s,i);return `<tr><td>${printHtmlEscape(s.time||'')}</td><td><strong>${printHtmlEscape(s.name)}</strong>${idx>0&&s.leg&&s.leg.fromId===d.stops[idx-1].id&&s.leg.label?`<div class="seg">דרך: ${printHtmlEscape(s.leg.label)}</div>`:''}${seg?`<div class="seg">${printHtmlEscape(seg.label)}</div>`:''}</td><td>${printHtmlEscape(types[s.type]?.name||'עצירה')}</td><td>${s.duration?minsFmt(+s.duration):'—'}</td><td>${money(s.cost)}</td></tr>`}).join('');const photos=state.photos.filter(p=>p.day===i);return `<section class="page"><header class="page-header"><strong class="brand">RONNY.</strong><div><h1>${printHtmlEscape(state.title)} — יום ${i+1}</h1><p>${printHtmlEscape(dayDate(i))} · ${printHtmlEscape(d.label||'')} · ${d.stops.length} נקודות</p></div></header><div class="report-grid ${layoutCls}">${isMap?`<article class="map-card"><div class="subhead">מפת מסלול · יום ${i+1}</div><div class="export-map" id="print-map-${i}"></div><div class="map-caption">מפת רקע על בסיס שירות המפות הפעיל, והמסלול מצויר בין נקודות התכנון. קווים אינם בהכרח נתיבי כביש.</div></article>`:''}${isSchedule?`<article class="schedule-card"><div class="subhead">לוח זמנים מפורט</div><table><thead><tr><th>שעה</th><th>מקום</th><th>סוג</th><th>משך</th><th>עלות</th></tr></thead><tbody>${rows||'<tr><td colspan="5">לא תוכננו עצירות ליום זה</td></tr>'}</tbody></table>${photos.length?`<div class="photo-strip">${photos.slice(0,5).map(p=>`<figure><img src="${p.data}" alt=""><figcaption>${printHtmlEscape(p.caption||p.name)}</figcaption></figure>`).join('')}</div>`:''}</article>`:''}</div><footer>נוצר באמצעות RONNY · ${new Date().toLocaleDateString('he-IL')} · הערכות בלבד</footer></section>`}).join('');
    let tileUrl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',tileMax=19,attrib='Tiles © Esri and contributors';
   const style=normalizeMapStyle(state.settings.mapStyle);let printLabelsUrl='';
