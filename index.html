@@ -2084,6 +2084,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .rail .ronny-rail-back{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:48px;border-radius:10px;margin-bottom:7px;background:#eaf3ec;color:#476d59}
 .rail .ronny-rail-back span{font-size:9px;font-weight:800;line-height:1}
 .rail .ronny-rail-back:disabled{opacity:.35;cursor:default}
+.rail .ronny-rail-back[hidden]{display:none}
 .rail .ronny-rail-back:not(:disabled):hover{background:#d9e9dc}
 .rail .ronny-rail-back:focus-visible{outline:2px solid #488868}
 </style><style id="ronny-walk-clock-p42">
@@ -2098,7 +2099,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 <body>
 <div class="app">
 <aside class="rail" aria-label="ניווט">
-<button type="button" class="rail-btn ronny-rail-back" id="ronny-rail-back" title="חזור לחלונית הקודמת" aria-label="חזור" disabled><i data-lucide="arrow-right"></i><span>חזור</span></button><button class="rail-btn active" id="rail-plan" title="תכנון מסלול" aria-label="תכנון מסלול"><i data-lucide="route"></i></button>
+<button type="button" class="rail-btn ronny-rail-back" id="ronny-rail-back" title="חזור לחלונית הקודמת" aria-label="חזור" disabled hidden><i data-lucide="arrow-right"></i><span>חזור</span></button><button class="rail-btn active" id="rail-plan" title="תכנון מסלול" aria-label="תכנון מסלול"><i data-lucide="route"></i></button>
 
 <button class="rail-btn" id="rail-saved-places" title="המקומות שלי מגוגל מפות" aria-label="המקומות השמורים שלי"><i data-lucide="book-marked"></i></button>
 <button class="rail-btn" id="rail-budget" title="תקציב" aria-label="תקציב"><i data-lucide="wallet"></i></button>
@@ -3717,6 +3718,7 @@ function addDrawPointOnLine(index,location){
 }
 function drawLegLine(coords,mode,index,unavailable=false){
  const current=stops(),point=current[index];
+ if(point?.type==='walkStart')return;
  const walkingAccess=point?.type==='walkStart';const unverified=!!unavailable||!!point?.leg?.walkRetraceUnverified;
  if(point?.leg?.walkAutoRetrace&&point.walkLoopSource&&coords?.length>1&&map){
   coords=coords.map((coord,i)=>{
@@ -4110,6 +4112,7 @@ function updateLegDurationPreview(){
 }
 function openLegEditor(index,clickLocation=null){
  const arr=stops();if(index<1||index>=arr.length||!map)return;
+ if(arr[index]?.type==='walkStart')return;
  if(drawLegSession)stopLegDrawing();cancelPointMove();hideContext();hidePointQuick();
  const leg=legAt(index,arr);activeDrawEditLeg=['draw','pencil'].includes(leg.mode)?index:null;renderViaHandles();
  const coords=paintedLegCoordinates.get(index)||legCoords(index,arr);
@@ -4191,6 +4194,7 @@ function approximateLegs(list,dayIndex=selectedDay){
  const rad=Math.PI/180;
  const speedFor=p=>p==='driving'?45:p==='cycling'?14:p==='hiking'?3.7:4.5;
  return list.slice(1).map((p,i)=>{
+  if(p.type==='walkStart')return {duration:0,baseDuration:0,distance:0,mode:'association',estimated:false,manualMissing:false};
   const index=i+1,conf=legAt(index,list);
   if(conf.mode!=='auto')return manualLeg(index,list);
   const profile=effectiveLegProfile(index,list,dayIndex),speed=speedFor(profile),a=list[i];
@@ -4218,7 +4222,7 @@ function ronnyFutureWalkingClock(base,value){
  if(result<base)result+=1440;
  return result;
 }
-function ronnyApplyWalkingTimeline(arr,absolute,anchorIndex){
+function ronnyApplyWalkingTimeline(arr,absolute,anchorIndex,timeAnchor=null){
  let durationChanged=false;
  for(let i=0;i<arr.length;i++){
   const start=arr[i];if(start?.type!=='walkStart')continue;
@@ -4228,10 +4232,10 @@ function ronnyApplyWalkingTimeline(arr,absolute,anchorIndex){
    if(arr[j].type==='walkTurn'&&turn<0)turn=j;
    if(arr[j].type==='walkEnd'&&arr[j].walkLoopSource===start.id){end=j;break}
   }
-  if(end<0||(anchorIndex>i&&anchorIndex<=end))continue;
+  if(end<0)continue;
   const total=Math.max(0,Math.min(3000,Number(start.duration)||0));
-  const explicitTurn=ronnyFutureWalkingClock(absolute[i],start.walkTurnClock);
-  const explicitFinish=ronnyFutureWalkingClock(explicitTurn??absolute[i],start.walkFinishClock);
+  const explicitTurn=ronnyFutureWalkingClock(absolute[i],start.walkTurnClock)??(anchorIndex===turn&&timeAnchor?.stopId===arr[turn]?.id?absolute[turn]:null);
+  const explicitFinish=ronnyFutureWalkingClock(explicitTurn??absolute[i],start.walkFinishClock)??(anchorIndex===end&&timeAnchor?.stopId===arr[end]?.id?absolute[end]:null);
   if(total<=0&&explicitTurn===null&&explicitFinish===null)continue;
   const oldEnd=absolute[end],originalStart=absolute[i],originalTurn=turn>i?absolute[turn]:originalStart;
   let finish=explicitFinish??(total>0?originalStart+total:oldEnd);
@@ -4285,7 +4289,7 @@ function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
  absolute[anchorIndex]=baseTime+initialOffset*1440-(reference?.kind==='departure'?dwell(referenceStop):0);
  for(let i=anchorIndex+1;i<arr.length;i++)absolute[i]=absolute[i-1]+hop(i);
  for(let i=anchorIndex-1;i>=0;i--)absolute[i]=absolute[i+1]-hop(i+1);
- let changed=ronnyApplyWalkingTimeline(arr,absolute,anchorIndex);
+ let changed=ronnyApplyWalkingTimeline(arr,absolute,anchorIndex,reference);
  for(let i=0;i<arr.length;i++){
   const time=clockAt(absolute[i]);const extra=Math.floor(absolute[i]/1440);
   if(arr[i].time!==time){arr[i].time=time;changed=true}
@@ -4327,7 +4331,8 @@ function repairExistingSchedules(){
  state.days.forEach((day,di)=>{
   const arr=routeStopsForDay(di);
   const backwards=arr.some((s,i)=>i>0&&((Number(s.dayOffset)||0)*1440+clockMinutes(s.time))<((Number(arr[i-1].dayOffset)||0)*1440+clockMinutes(arr[i-1].time)));
-  if(backwards){retimeAfterOrderChange(di,0)}
+  const needsMidpoint=arr.some((s,i)=>{if(s.type!=='walkStart'||s.walkTurnClock||!(+s.duration>0))return false;const next=arr.slice(i+1),turn=next.find(p=>p.type==='walkTurn'),end=next.find(p=>p.type==='walkEnd'&&p.walkLoopSource===s.id);return !!turn&&!!end&&next.indexOf(turn)<next.indexOf(end)&&Math.abs((clockMinutes(turn.time)-clockMinutes(s.time)+1440)%1440-Math.round(s.duration/2))>1;});
+  if(backwards||needsMidpoint)retimeAfterOrderChange(di,0);
  });
 }
 function restorePlannerUpperHeight(){
@@ -4890,7 +4895,7 @@ function showOverview(){
  routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
  let lastStop=null;
  ronnyVisibleDayIndices().forEach(di=>{const day=state.days[di],arr=routeStopsForDay(di).filter(validPoint);if(lastStop&&arr.length&&layerOn('routeLines')&&kmBetween(lastStop,[+arr[0].lat,+arr[0].lng])>0.01)L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
-  for(let i=1;i<arr.length;i++){const config=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);const cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));const coords=config.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(config.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);drawLegLineOverview(coords,config.mode,di,i);drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer)}
+  for(let i=1;i<arr.length;i++){if(arr[i].type==='walkStart')continue;const config=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);const cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));const coords=config.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(config.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);drawLegLineOverview(coords,config.mode,di,i);drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer)}
   if(arr.length)lastStop=[+arr[arr.length-1].lat,+arr[arr.length-1].lng];
  });
  $('route-stops').textContent=ronnyVisibleDayIndices().reduce((n,di)=>n+state.days[di].stops.length,0);$('route-distance').textContent='—';$('route-duration').textContent='—';$('route-msg').textContent='סקירת כל הטיול: נתיבי כביש מוצגים בקירוב; תוואי ידני וקו אווירי נשמרים לכל יום.';
@@ -4898,6 +4903,7 @@ function showOverview(){
 }
 function drawLegLineOverview(coords,mode,di,index){
  const arrival=state.days[di]?.stops[index];
+ if(arrival?.type==='walkStart')return;
  const baseColor=arrival?pointColor(arrival,di):'#6b8675';
  const color=routeDisplayColor(baseColor,di*11+index);
  if(layerOn('routeLines')){
@@ -4937,7 +4943,7 @@ function drawRoute(){
   const forced=Array.isArray(conf.viaPoints)?conf.viaPoints:[];
   if(forced.length){groups.push({start:i-1,end:i,profile:effectiveLegProfile(i,arr),forced:true,stops:[{...arr[i-1]},...forced.map(([lat,lng])=>({lat,lng})),{...arr[i]}]});i++;continue}
   const start=i-1;
-  while(i<arr.length&&legAt(i,arr).mode==='auto'&&!legAt(i,arr).viaPoints?.length&&effectiveLegProfile(i,arr)===effectiveLegProfile(start+1,arr)&&i-start<24)i++;
+  while(i<arr.length&&arr[i].type!=='walkStart'&&legAt(i,arr).mode==='auto'&&!legAt(i,arr).viaPoints?.length&&effectiveLegProfile(i,arr)===effectiveLegProfile(start+1,arr)&&i-start<24)i++;
   groups.push({start,end:i-1,profile:effectiveLegProfile(start+1,arr),stops:arr.slice(start,i).map(p=>({...p}))});
  }
  // Pre-draw manual geometry immediately, while public routing is being requested.
@@ -4953,16 +4959,31 @@ function drawRoute(){
    }
    if(syncWalkingLoops(state.days[day]))save();
   }
+  const shapes=new Map(),uncertain=new Set();
   for(let i=1;i<arr.length;i++){
+   if(arr[i].type==='walkStart')continue;
    const conf=legAt(i,arr);
-   if(conf.mode!=='auto')drawLegLine(legCoords(i,arr),conf.mode,i);
+   if(conf.mode==='auto'){
+    const shape=routedLegVisualCache.get(routedShapeKey(arr,i,effectiveLegProfile(i,arr,day)));
+    if(!shape)uncertain.add(i);
+    shapes.set(i,shape||[[+arr[i-1].lat,+arr[i-1].lng],...(conf.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]);
+   }else shapes.set(i,legCoords(i,arr));
   }
-  for(const group of groups){
-   if(group.result?.geometry?.coordinates?.length){
-    const coords=group.result.geometry.coordinates.map(pt=>[pt[1],pt[0]]);
-    const sections=splitRoutedLegs(coords,arr.slice(group.start,group.end+1));
-    for(let i=group.start+1;i<=group.end;i++){const shape=sections[i-group.start-1]||legCoords(i,arr);rememberRoutedShape(arr,i,group.profile,shape);drawLegLine(shape,'auto',i);}
-   }else{for(let i=group.start+1;i<=group.end;i++){const previous=routedLegVisualCache.get(routedShapeKey(arr,i,group.profile));const constraint=legAt(i,arr).viaPoints||[];drawLegLine(previous||[[+arr[i-1].lat,+arr[i-1].lng],...constraint,[+arr[i].lat,+arr[i].lng]],'auto',i,!previous)}}
+  for(let i=1;i<arr.length;i++){
+   if(arr[i].type==='walkStart')continue;
+   const destination=arr[i],conf=legAt(i,arr);let geometry=shapes.get(i);
+   if(destination.type==='walkEnd'&&destination.leg?.walkAutoRetrace){
+    const first=arr.findIndex(s=>s.id===destination.walkLoopSource),outward=[];
+    if(first>=0&&first<i-1){
+     for(let j=first+1;j<i;j++){
+      const part=shapes.get(j);
+      if(part?.length>1)outward.push(...(!outward.length?part:part.slice(1)));
+      if(uncertain.has(j))uncertain.add(i);
+     }
+     if(outward.length>1)geometry=outward.reverse();
+    }
+   }
+   drawLegLine(geometry,conf.mode,i,uncertain.has(i));
   }
  };
  paint();
@@ -5015,7 +5036,8 @@ function renderPoiLinks(){
    if(!previous)continue;
    const coords=[[+previous.lat,+previous.lng],[+start.lat,+start.lng]];
    if(kmBetween(coords[0],coords[1])<1)continue;
-   L.polyline(coords,{pane:'ronnyPoiLinks',color:'#568973',weight:2,dashArray:'3 9',opacity:.72,interactive:false,className:'ronny-walk-access-link'}).addTo(poiLinkLayer);
+   L.polyline(coords,{pane:'ronnyPoiLinks',color:'#fffdf6',weight:4,dashArray:'3 9',opacity:.9,interactive:false}).addTo(poiLinkLayer);
+   L.polyline(coords,{pane:'ronnyPoiLinks',color:'#568973',weight:2.3,dashArray:'3 9',opacity:.95,interactive:false,className:'ronny-walk-access-link'}).addTo(poiLinkLayer);
   }
   if(!layerOn('poiLinks'))continue;
   for(const {point,nearest} of poiLinksForDay(di)){
@@ -5557,7 +5579,7 @@ function focusStop(id){
 }
 // Drawer history retains DOM elements, listeners, form state, and scroll offset.
 const ronnyDrawerHistory=[];
-function ronnyBackState(){const btn=$('ronny-rail-back');if(btn)btn.disabled=!ronnyDrawerHistory.length}
+function ronnyBackState(){const btn=$('ronny-rail-back');if(!btn)return;const available=ronnyDrawerHistory.length>0&&!!$('drawer')?.classList.contains('open');btn.disabled=!available;btn.hidden=!available}
 function ronnyGoBack(){
  const item=ronnyDrawerHistory.pop();
  if(!item){ronnyBackState();return}
@@ -6102,6 +6124,7 @@ async function ronnyComputeRoadTotal(key){
  for(let di=0;di<state.days.length;di++){
   const arr=dayExcludedFromTotals(state.days[di])?[]:routeStopsForDay(di).filter(validPoint);
   for(let i=1;i<arr.length;){
+   if(arr[i].type==='walkStart'){results[i-1]={duration:0,baseDuration:0,distance:0,mode:'association',estimated:false,manualMissing:false};i++;continue;}
    const conf=legAt(i,arr);
    if(conf.mode==='straight'){missing=true;i++;continue;}
    if(conf.mode==='draw'||conf.mode==='pencil'){
