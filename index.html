@@ -369,7 +369,7 @@ body{background:var(--bg);color:var(--ink)}
 .leg-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px}
 .leg-editor-head strong{font-size:14px}.leg-editor-head small{display:block;color:#887c6b;margin-top:4px;font-size:11px}
 .leg-x{height:29px;width:29px;border:0;border-radius:9px;background:#f1e8da;display:grid;place-items:center;color:#5f685a}
-.leg-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:14px}
+.leg-modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:14px}
 .leg-mode{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 3px;border-radius:11px;border:1px solid #e2d7c6;background:#f8f2e8;color:#6c7068;font-size:11px;font-weight:800;cursor:pointer}
 .leg-mode.selected{background:#e5ede1;color:#3e684c;border-color:#7d9c82;box-shadow:0 0 0 1px #8bab8d48}
 .leg-mode:hover{background:#eaf0e5;transform:translateY(-2px)}
@@ -2080,12 +2080,25 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-default-departure:focus-visible{outline:2px solid #4b8065;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){#point-quick .walk-retrace-track,#point-quick .walk-retrace-track:before{transition:none}}
 </style>
-<style id="ronny-about-disclosures-v38">.ronny-about-root{display:grid;gap:12px;direction:rtl}.ronny-about-section{border:1px solid #dbe7e4;border-radius:14px;background:#fff;overflow:hidden}.ronny-about-section>summary{list-style:none;cursor:pointer;padding:16px 17px;font-weight:800;color:#2e4c55}.ronny-about-section>summary::-webkit-details-marker,.ronny-about-archive-entry>summary::-webkit-details-marker{display:none}.ronny-about-section>summary:after{content:'⌄';float:left}.ronny-about-section[open]>summary:after{content:'⌃'}.ronny-about-section[open]>summary{background:#f7fbf9;border-bottom:1px solid #e5eeec}.ronny-about-content{padding:14px 16px}.ronny-about-version-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ronny-about-version-stats>div{padding:13px;border-radius:11px;background:#f1f7f4;display:grid;gap:4px}.ronny-about-version-stats small{color:#6b8380;font-size:11px}.ronny-about-version-stats strong{display:block;font-size:20px;color:#274d44}.ronny-about-content h3{font-size:13px;color:#34574e;margin:20px 0 10px}.ronny-release-notes{padding-inline-start:21px;color:#46665e;font-size:12px;line-height:1.9}.ronny-about-archive-entry{border:1px solid #e0e9e5;border-radius:10px;margin-top:8px}.ronny-about-archive-entry>summary{cursor:pointer;display:flex;justify-content:space-between;padding:11px 12px;font-size:12px;font-weight:750}.ronny-about-archive-entry>summary span{font-weight:400;color:#84918d}.ronny-about-archive-entry>.ronny-release-notes{padding:10px 30px 14px 16px}.ronny-about-root summary:focus-visible{outline:2px solid #287f73}</style>
+<style id="ronny-nav-geo-p42">
+.rail .ronny-rail-back{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:48px;border-radius:10px;margin-bottom:7px;background:#eaf3ec;color:#476d59}
+.rail .ronny-rail-back span{font-size:9px;font-weight:800;line-height:1}
+.rail .ronny-rail-back:disabled{opacity:.35;cursor:default}
+.rail .ronny-rail-back:not(:disabled):hover{background:#d9e9dc}
+.rail .ronny-rail-back:focus-visible{outline:2px solid #488868}
+</style><style id="ronny-walk-clock-p42">
+#point-quick .ronny-walk-clock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#point-quick .ronny-walk-clock-grid label{font:750 11px var(--ui-font);color:#4b6b55;display:grid;gap:5px}
+#point-quick .ronny-walk-clock-grid input{width:100%;min-width:0;max-width:100%;height:37px;border:1px solid #d4e0d5;border-radius:9px;background:#fff;color:#314b39;text-align:center;font:750 13px var(--ui-font);direction:ltr}
+#point-quick .ronny-walk-clock-hint{font-size:10px;line-height:1.5;color:#738576}
+#point-quick .ronny-walk-clock-grid input:focus-visible{outline:2px solid #568b6a;outline-offset:1px}
+@media(max-width:420px){#point-quick .ronny-walk-clock-grid{grid-template-columns:1fr}}
+</style><style id="ronny-about-disclosures-v38">.ronny-about-root{display:grid;gap:12px;direction:rtl}.ronny-about-section{border:1px solid #dbe7e4;border-radius:14px;background:#fff;overflow:hidden}.ronny-about-section>summary{list-style:none;cursor:pointer;padding:16px 17px;font-weight:800;color:#2e4c55}.ronny-about-section>summary::-webkit-details-marker,.ronny-about-archive-entry>summary::-webkit-details-marker{display:none}.ronny-about-section>summary:after{content:'⌄';float:left}.ronny-about-section[open]>summary:after{content:'⌃'}.ronny-about-section[open]>summary{background:#f7fbf9;border-bottom:1px solid #e5eeec}.ronny-about-content{padding:14px 16px}.ronny-about-version-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ronny-about-version-stats>div{padding:13px;border-radius:11px;background:#f1f7f4;display:grid;gap:4px}.ronny-about-version-stats small{color:#6b8380;font-size:11px}.ronny-about-version-stats strong{display:block;font-size:20px;color:#274d44}.ronny-about-content h3{font-size:13px;color:#34574e;margin:20px 0 10px}.ronny-release-notes{padding-inline-start:21px;color:#46665e;font-size:12px;line-height:1.9}.ronny-about-archive-entry{border:1px solid #e0e9e5;border-radius:10px;margin-top:8px}.ronny-about-archive-entry>summary{cursor:pointer;display:flex;justify-content:space-between;padding:11px 12px;font-size:12px;font-weight:750}.ronny-about-archive-entry>summary span{font-weight:400;color:#84918d}.ronny-about-archive-entry>.ronny-release-notes{padding:10px 30px 14px 16px}.ronny-about-root summary:focus-visible{outline:2px solid #287f73}</style>
 </head>
 <body>
 <div class="app">
 <aside class="rail" aria-label="ניווט">
-<button class="rail-btn active" id="rail-plan" title="תכנון מסלול" aria-label="תכנון מסלול"><i data-lucide="route"></i></button>
+<button type="button" class="rail-btn ronny-rail-back" id="ronny-rail-back" title="חזור לחלונית הקודמת" aria-label="חזור" disabled><i data-lucide="arrow-right"></i><span>חזור</span></button><button class="rail-btn active" id="rail-plan" title="תכנון מסלול" aria-label="תכנון מסלול"><i data-lucide="route"></i></button>
 
 <button class="rail-btn" id="rail-saved-places" title="המקומות שלי מגוגל מפות" aria-label="המקומות השמורים שלי"><i data-lucide="book-marked"></i></button>
 <button class="rail-btn" id="rail-budget" title="תקציב" aria-label="תקציב"><i data-lucide="wallet"></i></button>
@@ -3368,7 +3381,7 @@ function clockAt(total){const m=((Math.round(total)%1440)+1440)%1440;return Stri
 function legAt(index,arr=stops()){
  if(index<1||index>=arr.length)return {mode:'auto',label:'',path:[],viaPoints:[],minutes:null};
  const leg=arr[index]?.leg;
- if(!leg||leg.fromId!==arr[index-1].id||!['auto','draw','straight'].includes(leg.mode))return {mode:'auto',label:'',path:[],viaPoints:[],minutes:null};
+ if(!leg||leg.fromId!==arr[index-1].id||!['auto','draw','pencil','straight'].includes(leg.mode))return {mode:'auto',label:'',path:[],viaPoints:[],minutes:null};
  return leg;
 }
 const TRAVEL_MODES={driving:'נסיעה ברכב',walking:'הליכה',hiking:'מסלול הליכה בטבע',cycling:'רכיבה'};
@@ -3389,11 +3402,13 @@ function getLegMutableForDay(dayIndex,index){
 }
 function legCoords(index,arr=stops()){
  const a=arr[index-1],b=arr[index],leg=legAt(index,arr);
- return [[+a.lat,+a.lng],...(leg.mode==='draw'&&Array.isArray(leg.path)?leg.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)):[]),[+b.lat,+b.lng]];
+ const start=[+a.lat,+a.lng],path=Array.isArray(leg.path)?leg.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)):[];
+ if(leg.mode==='pencil')return [start,...path];
+ return [start,...(leg.mode==='draw'?path:[]),[+b.lat,+b.lng]];
 }
 function kmBetween(a,b){const k=Math.PI/180,lat1=a[0]*k,lat2=b[0]*k,dlat=(b[0]-a[0])*k,dlng=(b[1]-a[1])*k;const h=Math.sin(dlat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlng/2)**2;return 6371000*2*Math.atan2(Math.sqrt(Math.min(1,h)),Math.sqrt(Math.max(0,1-h)))}
 function distanceOfCoords(coords){let d=0;for(let i=1;i<coords.length;i++)d+=kmBetween(coords[i-1],coords[i]);return d}
-function routeModeName(mode){return {auto:'מצא נתיב',draw:'שרטט נתיב',straight:'קו אווירי'}[mode]||'מצא נתיב'}
+function routeModeName(mode){return {auto:'מצא נתיב',draw:'שרטט נתיב',pencil:'עיפרון חופשי',straight:'קו אווירי'}[mode]||'מצא נתיב'}
 function routeLegMinutes(leg){return leg.minutes!==null&&leg.minutes!==undefined&&leg.minutes!==''&&Number.isFinite(+leg.minutes)?Math.max(0,+leg.minutes):null}
 function legTimingMode(leg){return leg?.mode==='auto'&&leg?.minutesMode==='extra'?'extra':'total'}
 function resolveLegDuration(leg,baseSeconds){
@@ -3728,7 +3743,7 @@ function drawLegLine(coords,mode,index,unavailable=false){
    if(pointMoveModeId){cancelPointMove();}
    if(drawLegSession&&drawLegSession.day===selectedDay){addDrawVertex(e.latlng.lat,e.latlng.lng);return;}
    if(forcedPointSession?.index===index&&forcedPointSession.day===selectedDay)addForcedPoint(e.latlng);
-   else if(mode==='draw'&&activeDrawEditLeg===index&&$('leg-editor')?.classList.contains('open'))addDrawPointOnLine(index,e.latlng);
+   else if(['draw','pencil'].includes(mode)&&activeDrawEditLeg===index&&$('leg-editor')?.classList.contains('open'))addDrawPointOnLine(index,e.latlng);
    else openLegEditor(index,e.latlng);
   });
  }
@@ -3740,11 +3755,11 @@ function manualLeg(index,arr=stops()){
 }
 function closeLegEditor(){const el=$('leg-editor');if(el){el.classList.remove('open');delete el.dataset.index}forcedHandleLayer?.clearLayers();if(activeDrawEditLeg!==null){activeDrawEditLeg=null;renderViaHandles()}}
 function stopLegDrawing(){drawLegSession=null;$('leg-draw-banner')?.classList.remove('active');updateMapHint();renderViaHandles()}
-function startLegDrawing(index){
- activeDrawEditLeg=null;const leg=getLegMutable(index);if(!leg)return;leg.mode='draw';leg.path=Array.isArray(leg.path)?leg.path:[];drawLegSession={index,day:selectedDay};closeLegEditor();hidePointQuick();hideContext();save();drawRoute();renderSchedule();renderViaHandles();updateMapHint();toast('לחץ לאורך תוואי המעבר כדי לשרטט. לחץ ״סיום שרטוט״ כשתסיים.');
+function startLegDrawing(index,mode='draw'){
+ activeDrawEditLeg=null;const leg=getLegMutable(index);if(!leg)return;leg.mode=mode==='pencil'?'pencil':'draw';leg.path=Array.isArray(leg.path)?leg.path:[];drawLegSession={index,day:selectedDay};closeLegEditor();hidePointQuick();hideContext();save();drawRoute();renderSchedule();renderViaHandles();updateMapHint();toast(mode==='pencil'?'עיפרון חופשי: הוסף נקודות בזו אחר זו. הקו מחובר רק לנקודת המוצא.':'לחץ לאורך תוואי המעבר כדי לשרטט. לחץ ״סיום שרטוט״ כשתסיים.');
 }
 function renderDrawBanner(){const bar=$('leg-draw-banner');if(!bar)return;if(!drawLegSession){bar.classList.remove('active');return}
- const idx=drawLegSession.index,leg=legAt(idx);bar.innerHTML=`<strong>שרטוט מקטע • ${Array.isArray(leg.path)?leg.path.length:0} נקודות</strong><button type="button" id="leg-undo">ביטול אחרונה</button><button type="button" id="leg-finish">סיום שרטוט</button>`;bar.classList.add('active');
+ const idx=drawLegSession.index,leg=legAt(idx);bar.innerHTML=`<strong>${leg.mode==='pencil'?'עיפרון חופשי':'שרטוט מקטע'} • ${Array.isArray(leg.path)?leg.path.length:0} נקודות</strong><button type="button" id="leg-undo">ביטול אחרונה</button><button type="button" id="leg-finish">סיום שרטוט</button>`;bar.classList.add('active');
  $('leg-undo').onclick=()=>{const l=getLegMutable(idx);l?.path?.pop();save();drawRoute();renderViaHandles();renderDrawBanner()};$('leg-finish').onclick=()=>{stopLegDrawing();openLegEditor(idx);toast('התוואי נשמר. ניתן להוסיף כיתוב ומשך מעבר.')};
 }
 function addDrawVertex(lat,lng){
@@ -4096,7 +4111,7 @@ function updateLegDurationPreview(){
 function openLegEditor(index,clickLocation=null){
  const arr=stops();if(index<1||index>=arr.length||!map)return;
  if(drawLegSession)stopLegDrawing();cancelPointMove();hideContext();hidePointQuick();
- const leg=legAt(index,arr);activeDrawEditLeg=leg.mode==='draw'?index:null;renderViaHandles();
+ const leg=legAt(index,arr);activeDrawEditLeg=['draw','pencil'].includes(leg.mode)?index:null;renderViaHandles();
  const coords=paintedLegCoordinates.get(index)||legCoords(index,arr);
  const at=clickLocation&&Number.isFinite(clickLocation.lat)&&Number.isFinite(clickLocation.lng)?clickLocation:L.latLng(coords[Math.floor(coords.length/2)]);
  const clickPoint=map.latLngToContainerPoint(at);
@@ -4105,7 +4120,7 @@ function openLegEditor(index,clickLocation=null){
  const remembered=stayInPlace?{left:el.style.left,top:el.style.top}:null;
  el.dataset.index=String(index);const geo=stayInPlace&&Number.isFinite(+el.dataset.pointLat)?{lat:+el.dataset.pointLat,lng:+el.dataset.pointLng}:at;el.dataset.pointLat=String(geo.lat);el.dataset.pointLng=String(geo.lng);
  el.innerHTML=`<div class="leg-editor-head"><div><strong>אופן מעבר בין נקודות</strong><small>${esc(arr[index-1].name)} ← ${esc(arr[index].name)}</small></div><span class="popup-drag-handle" role="button" tabindex="0" title="גרור כדי להזיז את החלונית" aria-label="ידית לגרירת החלונית">${icon('grip-horizontal','small-icon')}</span><button class="leg-x" type="button" id="leg-close" aria-label="סגור">${icon('x','small-icon')}</button></div>
- <div class="leg-modes">${[['auto','route','מצא נתיב'],['draw','pencil-line','שרטט נתיב'],['straight','move-up-right','קו אווירי']].map(([value,ic,title])=>`<button type="button" class="leg-mode ${leg.mode===value?'selected':''}" data-leg-mode="${value}" aria-pressed="${leg.mode===value}">${icon(ic,'small-icon')} ${title}</button>`).join('')}</div>
+ <div class="leg-modes">${[['auto','route','מצא נתיב'],['draw','pencil-line','שרטט נתיב'],['pencil','pencil','עיפרון חופשי'],['straight','move-up-right','קו אווירי']].map(([value,ic,title])=>`<button type="button" class="leg-mode ${leg.mode===value?'selected':''}" data-leg-mode="${value}" aria-pressed="${leg.mode===value}">${icon(ic,'small-icon')} ${title}</button>`).join('')}</div>
  
  <div class="leg-field"><label for="leg-profile">אמצעי תנועה למקטע זה</label><select id="leg-profile" aria-label="אמצעי תנועה למקטע"> <option value="" ${!leg.profile?'selected':''}>ברירת מחדל מהטיול · ${esc(TRAVEL_MODES[dayDefaultProfile()]||TRAVEL_MODES.driving)}</option>${Object.entries(TRAVEL_MODES).map(([k,v])=>`<option value="${k}" ${leg.profile===k?'selected':''}>${v}</option>`).join('')}</select></div>
  <div class="leg-field"><label for="leg-title">תיאור על הדרך</label><input id="leg-title" type="text" maxlength="90" placeholder="כיתוב לאורך התוואי" value="${esc(leg.label||'')}"><small class="leg-quiet-note">מוצג על קטע ישר כשיש מקום פנוי</small></div>
@@ -4121,7 +4136,7 @@ function openLegEditor(index,clickLocation=null){
  </div>
  ${leg.mode==='auto'?`<div class="leg-waypoints-box"><strong>מעברים הכרחיים (${(leg.viaPoints||[]).length})</strong><div class="leg-waypoints-list">${(leg.viaPoints||[]).map((p,j)=>`<div class="leg-waypoint-row"><span><b class="leg-waypoint-ordinal">${j+1}</b>מעבר הכרחי · ${(+p[0]).toFixed(5)}, ${(+p[1]).toFixed(5)}</span><button type="button" class="waypoint-actions-trigger" data-forced-actions="${j}" title="פעולות מעבר הכרחי ${j+1}" aria-label="פעולות מעבר הכרחי ${j+1}">${icon('ellipsis','small-icon')}</button></div>`).join('')}</div><button type="button" class="leg-waypoints-add" id="leg-forced-add">${icon('map-pin-plus','small-icon')} הוסף מעבר הכרחי במפה</button></div>`:''}
  <div class="leg-extra-actions"><button type="button" id="leg-street-view" title="פותח את Google Maps גם אם אין צילום זמין">${icon('external-link','small-icon')} Street View <span id="leg-sv-status" class="leg-street-status unknown" role="status" aria-live="polite">לא נבדק</span></button><button type="button" id="leg-add-photo">${icon('image-plus','small-icon')} הוסף תמונה</button></div>
- ${leg.mode==='draw'?`<div class="leg-draw-buttons"><button type="button" id="leg-start-draw">${icon('pencil-line','small-icon')} חזור לשרטוט</button>${leg.path?.length?`<button type="button" id="leg-clear-draw">איפוס שרטוט</button>`:''}</div>`:''}
+ ${['draw','pencil'].includes(leg.mode)?`<div class="leg-draw-buttons"><button type="button" id="leg-start-draw">${icon('pencil-line','small-icon')} חזור לשרטוט</button>${leg.path?.length?`<button type="button" id="leg-clear-draw">איפוס שרטוט</button>`:''}</div>`:''}
  `;
  el.classList.toggle('ronny-leg-compact',pane.clientWidth<600);
  el.classList.toggle('ronny-leg-short',pane.clientHeight<520 || pane.clientWidth<600);
@@ -4141,7 +4156,7 @@ function openLegEditor(index,clickLocation=null){
    const base=cachedLegBaseSeconds(index,arr)??approximateLegs(arr)[index-1]?.baseDuration??0;
    l.minutes=Math.round(base/60+routeLegMinutes(l));l.minutesMode='total';
   }
-  if(b.dataset.legMode==='draw'){startLegDrawing(index);retimeAfterOrderChange(selectedDay);return}
+  if(['draw','pencil'].includes(b.dataset.legMode)){startLegDrawing(index,b.dataset.legMode);retimeAfterOrderChange(selectedDay);return}
   l.mode=b.dataset.legMode;l.path=Array.isArray(l.path)?l.path:[];save();invalidate();retimeAfterOrderChange(selectedDay);drawRoute();renderSchedule();openLegEditor(index)
  });
  $('leg-profile').onchange=e=>{const l=getLegMutable(index);l.profile=e.target.value||null;save();invalidate();retimeAfterOrderChange(selectedDay);drawRoute();renderSchedule();toast('אמצעי התנועה של המקטע עודכן')};
@@ -4168,7 +4183,7 @@ function openLegEditor(index,clickLocation=null){
  });
  updateLegDurationPreview();
  requestAnimationFrame(()=>keepMapPopoverVisible(el));
- $('leg-start-draw')?.addEventListener('click',()=>startLegDrawing(index));$('leg-add-draw')?.addEventListener('click',()=>{drawLegSession={index,day:selectedDay};closeLegEditor();renderViaHandles();renderDrawBanner();updateMapHint()});$('leg-clear-draw')?.addEventListener('click',async()=>{if(!await confirmOnMap('לאפס את השרטוט של מקטע זה?',{title:'איפוס שרטוט',accept:'אפס שרטוט'}))return;const l=getLegMutable(index);l.path=[];save();drawRoute();openLegEditor(index)});
+ $('leg-start-draw')?.addEventListener('click',()=>startLegDrawing(index,leg.mode==='pencil'?'pencil':'draw'));$('leg-add-draw')?.addEventListener('click',()=>{drawLegSession={index,day:selectedDay};closeLegEditor();renderViaHandles();renderDrawBanner();updateMapHint()});$('leg-clear-draw')?.addEventListener('click',async()=>{if(!await confirmOnMap('לאפס את השרטוט של מקטע זה?',{title:'איפוס שרטוט',accept:'אפס שרטוט'}))return;const l=getLegMutable(index);l.path=[];save();drawRoute();openLegEditor(index)});
  refreshIcons();
 }
 
@@ -4196,6 +4211,50 @@ function approximateLegs(list,dayIndex=selectedDay){
 }
 // RONNY 30.1 — Arrival anchors define the timeline. Departure at an intermediate
 // stop is calculated from its arrival and dwell, and editing departure edits dwell.
+
+function ronnyFutureWalkingClock(base,value){
+ if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value||''))return null;
+ let result=Math.floor(base/1440)*1440+clockMinutes(value);
+ if(result<base)result+=1440;
+ return result;
+}
+function ronnyApplyWalkingTimeline(arr,absolute,anchorIndex){
+ let durationChanged=false;
+ for(let i=0;i<arr.length;i++){
+  const start=arr[i];if(start?.type!=='walkStart')continue;
+  let end=-1,turn=-1;
+  for(let j=i+1;j<arr.length;j++){
+   if(arr[j].type==='walkStart')break;
+   if(arr[j].type==='walkTurn'&&turn<0)turn=j;
+   if(arr[j].type==='walkEnd'&&arr[j].walkLoopSource===start.id){end=j;break}
+  }
+  if(end<0||(anchorIndex>i&&anchorIndex<=end))continue;
+  const total=Math.max(0,Math.min(3000,Number(start.duration)||0));
+  const explicitTurn=ronnyFutureWalkingClock(absolute[i],start.walkTurnClock);
+  const explicitFinish=ronnyFutureWalkingClock(explicitTurn??absolute[i],start.walkFinishClock);
+  if(total<=0&&explicitTurn===null&&explicitFinish===null)continue;
+  const oldEnd=absolute[end],originalStart=absolute[i],originalTurn=turn>i?absolute[turn]:originalStart;
+  let finish=explicitFinish??(total>0?originalStart+total:oldEnd);
+  let turnTime=turn>i?(explicitTurn??(total>0||explicitFinish!==null?originalStart+Math.round((finish-originalStart)/2):originalTurn)):null;
+  if(turnTime!==null&&turnTime>finish)finish=turnTime;
+  const stretch=(from,to,newEnd)=>{
+   const old=absolute.slice(from,to+1),span=old[to-from]-old[0];
+   for(let k=from+1;k<=to;k++){
+    const pct=span>0?(old[k-from]-old[0])/span:(k-from)/(to-from);
+    absolute[k]=Math.round(absolute[from]+(newEnd-absolute[from])*Math.max(0,Math.min(1,pct)));
+   }
+  };
+  if(turn>i){stretch(i,turn,turnTime);stretch(turn,end,finish)}
+  else stretch(i,end,finish);
+  const delta=absolute[end]-oldEnd;
+  for(let k=end+1;k<absolute.length;k++)absolute[k]+=delta;
+  if(explicitFinish!==null&&Math.round(finish-originalStart)!==total){
+   start.duration=Math.max(0,Math.min(3000,Math.round(finish-originalStart)));durationChanged=true;
+  }
+  i=end;
+ }
+ return durationChanged;
+}
 function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
  const day=state.days[dayIndex],arr=routeStopsForDay(dayIndex);
  if(!arr.length||!Array.isArray(legs)||legs.length!==arr.length-1)return false;
@@ -4216,7 +4275,7 @@ function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
   reference={stopId:referenceStop.id,kind:'arrival',time:referenceStop.time};
   day.timeAnchor=reference;
  }
- const dwell=stop=>stop.type==='start'?0:Math.max(0,Number(stop.duration)||0);
+ const dwell=stop=>['start','walkStart'].includes(stop.type)?0:Math.max(0,Number(stop.duration)||0);
  const hop=i=>dwell(arr[i-1])+Math.ceil(Math.max(0,(Number(legs[i-1]?.duration)||0)/60)/5)*5;
  const absolute=new Array(arr.length);
  // An explicit departure fixes the departure, so subtract the stop's dwell
@@ -4226,7 +4285,7 @@ function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
  absolute[anchorIndex]=baseTime+initialOffset*1440-(reference?.kind==='departure'?dwell(referenceStop):0);
  for(let i=anchorIndex+1;i<arr.length;i++)absolute[i]=absolute[i-1]+hop(i);
  for(let i=anchorIndex-1;i>=0;i--)absolute[i]=absolute[i+1]-hop(i+1);
- let changed=false;
+ let changed=ronnyApplyWalkingTimeline(arr,absolute,anchorIndex);
  for(let i=0;i<arr.length;i++){
   const time=clockAt(absolute[i]);const extra=Math.floor(absolute[i]/1440);
   if(arr[i].time!==time){arr[i].time=time;changed=true}
@@ -4319,8 +4378,8 @@ $('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+list.map(
  const rawLeg=routeData?.day===selectedDay&&routeData.ids?.[i]===s.id?routeData.legs?.[i-1]:null;const leg=rawLeg&&Number.isFinite(rawLeg.duration)&&Number.isFinite(rawLeg.distance)?rawLeg:null;
  const conf=i?legAt(i,list):null;
  const legAdjustment=leg?.manualOverride&&Number.isFinite(leg.baseDuration)?` · בסיס ${minsFmt(leg.baseDuration/60)}, ${leg.adjustmentMinutes>=0?'+':'−'}${minsFmt(Math.abs(leg.adjustmentMinutes))}`:'';
- const travel=i?`<div class="drive-note" style="--leg-color:${pointColor(s,selectedDay)}"><button class="leg-open" data-leg-index="${i}" type="button" title="שנה אופן מעבר או הוסף כיתוב">${icon(conf.mode==='draw'?'pencil-line':conf.mode==='straight'?'move-up-right':effectiveLegProfile(i,list)==='cycling'?'bike':effectiveLegProfile(i,list)==='driving'?'car-front':'footprints')} <span><strong>${esc(conf.label||routeModeName(conf.mode))}</strong> · ${leg?(leg.manualMissing?'משך לא הוגדר':minsFmt(leg.duration/60))+' · '+(leg.distance/1000).toFixed(1)+' ק״מ'+legAdjustment:conf.mode!=='auto'?(routeLegMinutes(conf)===null?'משך לא הוגדר':minsFmt(routeLegMinutes(conf)))+' · מעבר ידני':(conf.mode==='auto'&&routeLegMinutes(conf)!==null?minsFmt(approximateLegs(list)[i-1]?.duration/60)+' · זמני כביש באומדן': 'זמן הנסיעה טרם חושב')}</span>${icon('settings-2','small-icon')}</button></div>`:'';
- return `${segmentHead}<div class="stop ${ronnyBulkStops.has(s.id)?'ronny-bulk-selected':''} ${selectedStop===s.id?'focused':''} ${s.autoLoopEnd?'ronny-shared-loop-end':''}" data-stop="${esc(s.id)}" data-ronny-route-order="${i+1}" draggable="${!s.autoLoopEnd}" role="button" tabindex="0" aria-label="${esc(s.name)} — התמקדות במפה" style="--stop-color:${pointColor(s,selectedDay)}">${travel}${ronnyBulkMode&&!s.autoLoopEnd?`<label class="ronny-bulk-check" title="בחר נקודה למחיקה"><input type="checkbox" data-ronny-select-id="${esc(s.id)}" ${ronnyBulkStops.has(s.id)?'checked':''} aria-label="בחר נקודה ${esc(s.name)}"></label>`:''}<div class="stop-grid"><div class="stop-time">${s.type==='start'?(state.days[selectedDay]?.loop?'<small class="departure-flag">יציאה וסיום</small>':'<small class="departure-flag">יציאה</small>'):s.autoLoopEnd?`<small class="departure-flag">${s.autoTripLoopEnd?'חזרה לתחילת הטיול':'חזרה להתחלה'}</small>`:''}${esc(s.time||'--:--')}${s.dayOffset?`<small style="display:block">+${s.dayOffset} יום</small>`:''}</div><div class="stop-body" style="--stop-color:${pointColor(s,selectedDay)}"><span class="stop-order-badge ${s.type==='via'?'is-number':'is-type-icon'}" aria-label="${esc(s.type==='via'?'נקודת מעבר '+(i+1):types[s.type]?.name||'נקודת דרך')}">${s.type==='via'?i+1:pointSymbol(s.autoLoopEnd||(s.type==='start'&&state.days[selectedDay]?.loop)?'loop':s.type)}</span><div class="stop-main"><div class="stop-emoji point-stop-symbol" style="--symbol-color:${pointColor(s,selectedDay)}" aria-hidden="true">${s.type==='via'?icon('route','small-icon'):''}</div><div class="stop-info"><div class="stop-title" title="${esc(s.name)}">${esc(s.name)}</div><div class="stop-secondary"><span>${esc(types[s.type]?.name||'עצירה')}</span><span class="dot"></span><span>${s.autoLoopEnd?(s.autoTripLoopEnd?'נקודת ההתחלה של הטיול':'אותו מיקום של נקודת היציאה'):s.type==='start'?(state.days[selectedDay]?.loop?'נקודת יציאה וסיום':'שעת יציאה'):s.duration?minsFmt(+s.duration)+(s.type==='rest'?' עצירה':''):'ללא משך'}${s.type!=='start'&&s.type!=='end'&&s.duration?` · יציאה ${quickEndTime(s.time,s.duration).slice(0,5)}`:''}</span>${s.cost?`<span class="dot"></span><span>${money(s.cost)}</span>`:''}</div></div><div class="stop-tools">${s.autoLoopEnd?`<button class="micro" title="הגדרות יום מעגלי" data-loop-day="${esc(s.id)}">${icon('settings-2')}</button>`:`<button class="micro" title="הזז למעלה" data-move="-1" data-id="${esc(s.id)}">${icon('chevron-up')}</button><button class="micro" title="הזז למטה" data-move="1" data-id="${esc(s.id)}">${icon('chevron-down')}</button><button class="micro" title="ערוך" data-edit="${esc(s.id)}">${icon('pencil')}</button>`}</div></div>${s.type==='hotel'?`<div class="mini-hotels">${icon('moon-star')} מקום לינה לאורך המסלול</div>`:''}${(s.description||s.notes)?`<div class="stop-note">${icon('notebook-pen')} ${esc(s.description||s.notes)}</div>`:''}</div></div></div>`
+ const travel=i?`<div class="drive-note" style="--leg-color:${pointColor(s,selectedDay)}"><button class="leg-open" data-leg-index="${i}" type="button" title="שנה אופן מעבר או הוסף כיתוב">${icon(['draw','pencil'].includes(conf.mode)?'pencil-line':conf.mode==='straight'?'move-up-right':effectiveLegProfile(i,list)==='cycling'?'bike':effectiveLegProfile(i,list)==='driving'?'car-front':'footprints')} <span><strong>${esc(conf.label||routeModeName(conf.mode))}</strong> · ${leg?(leg.manualMissing?'משך לא הוגדר':minsFmt(leg.duration/60))+' · '+(leg.distance/1000).toFixed(1)+' ק״מ'+legAdjustment:conf.mode!=='auto'?(routeLegMinutes(conf)===null?'משך לא הוגדר':minsFmt(routeLegMinutes(conf)))+' · מעבר ידני':(conf.mode==='auto'&&routeLegMinutes(conf)!==null?minsFmt(approximateLegs(list)[i-1]?.duration/60)+' · זמני כביש באומדן': 'זמן הנסיעה טרם חושב')}</span>${icon('settings-2','small-icon')}</button></div>`:'';
+ return `${segmentHead}<div class="stop ${ronnyBulkStops.has(s.id)?'ronny-bulk-selected':''} ${selectedStop===s.id?'focused':''} ${s.autoLoopEnd?'ronny-shared-loop-end':''}" data-stop="${esc(s.id)}" data-ronny-route-order="${i+1}" draggable="${!s.autoLoopEnd}" role="button" tabindex="0" aria-label="${esc(s.name)} — התמקדות במפה" style="--stop-color:${pointColor(s,selectedDay)}">${travel}${ronnyBulkMode&&!s.autoLoopEnd?`<label class="ronny-bulk-check" title="בחר נקודה למחיקה"><input type="checkbox" data-ronny-select-id="${esc(s.id)}" ${ronnyBulkStops.has(s.id)?'checked':''} aria-label="בחר נקודה ${esc(s.name)}"></label>`:''}<div class="stop-grid"><div class="stop-time">${s.type==='start'?(state.days[selectedDay]?.loop?'<small class="departure-flag">יציאה וסיום</small>':'<small class="departure-flag">יציאה</small>'):s.autoLoopEnd?`<small class="departure-flag">${s.autoTripLoopEnd?'חזרה לתחילת הטיול':'חזרה להתחלה'}</small>`:''}${esc(s.time||'--:--')}${s.dayOffset?`<small style="display:block">+${s.dayOffset} יום</small>`:''}</div><div class="stop-body" style="--stop-color:${pointColor(s,selectedDay)}"><span class="stop-order-badge ${s.type==='via'?'is-number':'is-type-icon'}" aria-label="${esc(s.type==='via'?'נקודת מעבר '+(i+1):types[s.type]?.name||'נקודת דרך')}">${s.type==='via'?i+1:pointSymbol(s.autoLoopEnd||(s.type==='start'&&state.days[selectedDay]?.loop)?'loop':s.type)}</span><div class="stop-main"><div class="stop-emoji point-stop-symbol" style="--symbol-color:${pointColor(s,selectedDay)}" aria-hidden="true">${s.type==='via'?icon('route','small-icon'):''}</div><div class="stop-info"><div class="stop-title" title="${esc(s.name)}">${esc(s.name)}</div><div class="stop-secondary"><span>${esc(types[s.type]?.name||'עצירה')}</span><span class="dot"></span><span>${s.autoLoopEnd?(s.autoTripLoopEnd?'נקודת ההתחלה של הטיול':'אותו מיקום של נקודת היציאה'):s.type==='walkStart'?(s.duration?minsFmt(+s.duration)+' זמן ההליכה':'זמן הליכה טרם הוגדר'):s.type==='start'?(state.days[selectedDay]?.loop?'נקודת יציאה וסיום':'שעת יציאה'):s.duration?minsFmt(+s.duration)+(s.type==='rest'?' עצירה':''):'ללא משך'}${!['start','end','walkStart'].includes(s.type)&&s.duration?` · יציאה ${quickEndTime(s.time,s.duration).slice(0,5)}`:''}</span>${s.cost?`<span class="dot"></span><span>${money(s.cost)}</span>`:''}</div></div><div class="stop-tools">${s.autoLoopEnd?`<button class="micro" title="הגדרות יום מעגלי" data-loop-day="${esc(s.id)}">${icon('settings-2')}</button>`:`<button class="micro" title="הזז למעלה" data-move="-1" data-id="${esc(s.id)}">${icon('chevron-up')}</button><button class="micro" title="הזז למטה" data-move="1" data-id="${esc(s.id)}">${icon('chevron-down')}</button><button class="micro" title="ערוך" data-edit="${esc(s.id)}">${icon('pencil')}</button>`}</div></div>${s.type==='hotel'?`<div class="mini-hotels">${icon('moon-star')} מקום לינה לאורך המסלול</div>`:''}${(s.description||s.notes)?`<div class="stop-note">${icon('notebook-pen')} ${esc(s.description||s.notes)}</div>`:''}</div></div></div>`
  }).join('')+mapSidePointsHTML();
 $('schedule').querySelectorAll('[data-stop]').forEach(el=>{el.onclick=e=>{if(e.target.closest('input,label,[data-ronny-select-id],[data-move],[data-edit],[data-leg-index]'))return;if(ronnyBulkMode){const id=el.dataset.stop;ronnyBulkStops.has(id)?ronnyBulkStops.delete(id):ronnyBulkStops.add(id);renderSchedule();return}focusStop(el.dataset.stop)};el.addEventListener('keydown',e=>{if(e.target===el&&(e.key==='Enter'||e.key===' ')){e.preventDefault();if(ronnyBulkMode){const id=el.dataset.stop;ronnyBulkStops.has(id)?ronnyBulkStops.delete(id):ronnyBulkStops.add(id);renderSchedule()}else focusStop(el.dataset.stop)}});el.addEventListener('pointerenter',()=>highlightMapPoint(el.dataset.stop,true));el.addEventListener('pointerleave',()=>highlightMapPoint(el.dataset.stop,false));el.addEventListener('focusin',()=>highlightMapPoint(el.dataset.stop,true));el.addEventListener('focusout',()=>highlightMapPoint(el.dataset.stop,false));el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.stop);e.dataTransfer.effectAllowed='move';requestAnimationFrame(()=>el.classList.add('is-dragging'))});el.addEventListener('dragend',()=>{$('schedule').querySelectorAll('.is-dragging,.is-drop-target').forEach(x=>x.classList.remove('is-dragging','is-drop-target'))});el.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';$('schedule').querySelectorAll('.is-drop-target').forEach(x=>{if(x!==el)x.classList.remove('is-drop-target')});if(!el.classList.contains('is-dragging'))el.classList.add('is-drop-target')});el.addEventListener('dragleave',e=>{if(!el.contains(e.relatedTarget))el.classList.remove('is-drop-target')});el.addEventListener('drop',e=>{e.preventDefault();const from=e.dataTransfer.getData('text/plain'),to=el.dataset.stop;$('schedule').querySelectorAll('.is-dragging,.is-drop-target').forEach(x=>x.classList.remove('is-dragging','is-drop-target'));reorder(from,to)})});
 bindRonnyBulkToolbar($('schedule'),'day');bindMapSidePoints();bindDayOutlineBridge();
@@ -4782,7 +4841,9 @@ function renderMarkers(){
    const override=viewScope==='all'?`style="background:${palette[di%palette.length]}"`:'';
    const routeOrder=isMapOnlyPoint(s)?null:routeStopsForDay(di).findIndex(p=>p.id===s.id)+1;
    const tint=s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(routeEdit||pointMoveModeId===s.id||($('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:pointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type)}</span></div>`;
-   const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.time||'')}</div>`;
+   const walkFinish=s.type==='walkStart'?routeStopsForDay(di).find(p=>p.type==='walkEnd'&&p.walkLoopSource===s.id):null;
+    const walkRange=walkFinish&&s.time&&walkFinish.time?s.time+'–'+walkFinish.time:s.time||'';
+    const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
    const canDrag=(routeEdit&&viewScope==='day')||pointMoveModeId===s.id||selectedQuick;
    const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'לחיצה לבחירה · לאחר הבחירה גרור לשינוי מיקום'}).addTo(markerLayer);
@@ -5353,10 +5414,10 @@ function openPointQuick(id){
  <div class="quick-field"><label for="quick-description">תיאור</label><textarea id="quick-description" maxlength="2500" placeholder="תיאור">${esc(s.description||s.notes||'')}</textarea></div>
  <label class="ronny-description-choice"><input id="quick-show-description" type="checkbox" ${s.showMapDescription?'checked':''}><span>${icon('message-square-text','small-icon')} הצג את התיאור באופן קבוע על המפה</span></label>
  <fieldset class="quick-colors"><legend>צבע הנקודה</legend><div class="quick-color-row">${colorSwatches.map(c=>`<button type="button" class="quick-swatch ${c.toLowerCase()===hexColor.toLowerCase()?'selected':''}" style="background:${c}" data-quick-color="${c}" aria-label="צבע ${c}" aria-pressed="${c.toLowerCase()===hexColor.toLowerCase()}"></button>`).join('')}<label class="quick-color-native" title="בחירת צבע חופשי"><input id="quick-color-custom" type="color" value="${hexColor}"> צבע נוסף</label><button type="button" class="quick-color-reset" data-quick-color-auto>אוטומטי</button></div></fieldset>
- <div class="quick-two ${s.type==='start'?'start-departure-only':''}"><div class="quick-field"><label for="quick-time">${s.type==='start'?'שעת יציאה':'שעת הגעה'}</label><div class="ronny-time-control"><input id="quick-time" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעה בפורמט 24 שעות" title="פורמט 24 שעות, למשל 14:30" value="${esc(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00'))}"><button type="button" class="ronny-time-trigger" aria-label="פתח בורר שעות (24 שעות)" title="בחירת שעה, 24 שעות">${icon('clock','small-icon')}</button></div></div>${['start','end'].includes(s.type)?'':`<div class="quick-field"><label for="quick-duration">${s.type==='rest'?'משך עצירה':'משך שהייה'} (בדקות)</label><input id="quick-duration" type="number" min="0" max="3000" step="5" value="${Math.max(0,Number(s.duration)||0)}"></div>`}</div>
- ${['start','end'].includes(s.type)?'':`<div class="quick-field quick-departure-editor"><label for="quick-outbound">${s.type==='rest'?'שעת יציאה (מעדכנת את משך העצירה)':'שעת יציאה'}</label><div class="ronny-time-control"><input id="quick-outbound" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעת יציאה בפורמט 24 שעות" value="${esc(quickEndTime(s.time,s.duration).slice(0,5))}"><button type="button" class="ronny-time-trigger" aria-label="בחירת שעת יציאה" title="בחירת שעת יציאה">${icon('clock','small-icon')}</button></div></div>`}
- <div class="quick-departure"><span>${s.type==='start'?'יציאה':s.type==='end'?'הגעה':'הגעה · עצירה · יציאה'}</span><span class="quick-save-state" id="quick-save-state">שמירה אוטומטית</span></div>
- ${s.type==='walkStart'?`<section class="walk-loop-options" aria-label="מסלול הליכה מעגלי"><div class="walk-loop-head"><div><strong>מסלול רגלי מעגלי</strong><small>נקודת היציאה היא גם נקודת הסיום, בלי סיכה כפולה</small></div><span class="walk-loop-badge">קבוע</span></div><label class="walk-retrace-switch"><input id="walk-retrace-check" type="checkbox" ${s.walkRetrace?'checked':''}><span class="walk-retrace-track" aria-hidden="true"></span><span class="walk-retrace-copy"><strong>הלוך וחזור באותו התוואי</strong><small>כבוי: ניתן לצייר שביל חזרה נפרד</small></span></label><div class="walk-loop-foot"><span class="walk-loop-note">נקודת סיבוב אינה מחייבת חזרה באותו תוואי.</span><button type="button" class="walk-loop-route" id="walk-edit-first-leg">שרטט תוואי על המפה</button></div></section>`:''}
+ <div class="quick-two ${s.type==='start'?'start-departure-only':''}"><div class="quick-field"><label for="quick-time">${s.type==='walkStart'?'שעת יציאה להליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}</label><div class="ronny-time-control"><input id="quick-time" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעה בפורמט 24 שעות" title="פורמט 24 שעות, למשל 14:30" value="${esc(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00'))}"><button type="button" class="ronny-time-trigger" aria-label="פתח בורר שעות (24 שעות)" title="בחירת שעה, 24 שעות">${icon('clock','small-icon')}</button></div></div>${['start','end'].includes(s.type)?'':`<div class="quick-field"><label for="quick-duration">${s.type==='walkStart'?'משך ההליכה הכולל':s.type==='rest'?'משך עצירה':'משך שהייה'} (בדקות)</label><input id="quick-duration" type="number" min="0" max="3000" step="5" value="${Math.max(0,Number(s.duration)||0)}"></div>`}</div>
+ ${['start','end','walkStart'].includes(s.type)?'':`<div class="quick-field quick-departure-editor"><label for="quick-outbound">${s.type==='rest'?'שעת יציאה (מעדכנת את משך העצירה)':'שעת יציאה'}</label><div class="ronny-time-control"><input id="quick-outbound" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעת יציאה בפורמט 24 שעות" value="${esc(quickEndTime(s.time,s.duration).slice(0,5))}"><button type="button" class="ronny-time-trigger" aria-label="בחירת שעת יציאה" title="בחירת שעת יציאה">${icon('clock','small-icon')}</button></div></div>`}
+ <div class="quick-departure"><span>${s.type==='walkStart'?'יציאה להליכה · חזרה בסיום':s.type==='start'?'יציאה':s.type==='end'?'הגעה':'הגעה · עצירה · יציאה'}</span><span class="quick-save-state" id="quick-save-state">שמירה אוטומטית</span></div>
+ ${s.type==='walkStart'?`<section class="walk-loop-options" aria-label="מסלול הליכה מעגלי"><div class="walk-loop-head"><div><strong>מסלול רגלי מעגלי</strong><small>נקודת היציאה היא גם נקודת הסיום, בלי סיכה כפולה</small></div><span class="walk-loop-badge">קבוע</span></div><label class="walk-retrace-switch"><input id="walk-retrace-check" type="checkbox" ${s.walkRetrace?'checked':''}><span class="walk-retrace-track" aria-hidden="true"></span><span class="walk-retrace-copy"><strong>הלוך וחזור באותו התוואי</strong><small>כבוי: ניתן לצייר שביל חזרה נפרד</small></span></label><div class="ronny-walk-clock-grid"><label>הגעה לנקודת הסיבוב<input id="ronny-walk-turn-time" type="time" value="${esc(s.walkTurnClock||'')}" aria-label="שעת הגעה לנקודת הסיבוב; ריק לחישוב"></label><label>חזרה לנקודת ההתחלה<input id="ronny-walk-finish-time" type="time" value="${esc(s.walkFinishClock||'')}" aria-label="שעת סיום ההליכה; ריק לחישוב"></label></div><small class="ronny-walk-clock-hint">השאר שדה ריק לחישוב אוטומטי. משך ההליכה הכולל מתחלק שווה סביב נקודת הסיבוב, אלא אם נקבעה שעה ידנית. זמן הסיום הידני גובר על המשך.</small><div class="walk-loop-foot"><span class="walk-loop-note">נקודת סיבוב אינה מחייבת חזרה באותו תוואי.</span><button type="button" class="walk-loop-route" id="walk-edit-first-leg">שרטט תוואי על המפה</button></div></section>`:''}
  ${quickLegLinks(s,obj.day)}</div>
  <div class="point-quick-actions"><button type="button" data-quick-move>${icon('move','small-icon')} שנה מיקום במפה</button><button type="button" data-quick-street-view class="ronny-point-street-view" title="פתח את תצוגת הרחוב של גוגל ליד הנקודה">${icon('scan-eye','small-icon')} Street View</button><button type="button" data-quick-details>${icon('sliders-horizontal','small-icon')} הגדרות מתקדמות</button><button type="button" class="danger" data-quick-delete>${icon('trash-2','small-icon')} מחיקה</button></div>`;
  if(s.type==='walkStart'){
@@ -5383,7 +5444,7 @@ function openPointQuick(id){
  if(rememberedPosition){el.style.left=rememberedPosition.left;el.style.top=rememberedPosition.top;keepMapPopoverVisible(el)}
  else{el.dataset.wasMoved='no';positionMapPopover(el,pt)}
  let pending=null,timeEditIntent=null;
- const fields=()=>({name:el.querySelector('#quick-name'),description:el.querySelector('#quick-description'),time:el.querySelector('#quick-time'),duration:el.querySelector('#quick-duration'),departure:el.querySelector('#quick-outbound')});
+ const fields=()=>({name:el.querySelector('#quick-name'),description:el.querySelector('#quick-description'),time:el.querySelector('#quick-time'),duration:el.querySelector('#quick-duration'),departure:el.querySelector('#quick-outbound'),walkTurn:el.querySelector('#ronny-walk-turn-time'),walkFinish:el.querySelector('#ronny-walk-finish-time')});
  const commit=()=>{
   clearTimeout(pending);pending=null;
   const target=getStop(id);if(!target)return;
@@ -5407,6 +5468,13 @@ function openPointQuick(id){
    stop.duration=(requestedDeparture-fixedArrival+1440)%1440;
    if(f.duration)f.duration.value=String(stop.duration);
   }
+  const oldTurn=stop.walkTurnClock||'',oldFinish=stop.walkFinishClock||'';
+  if(stop.type==='walkStart'){
+   const t=f.walkTurn?.value||'',z=f.walkFinish?.value||'';
+   if(t===''||validClock(t))stop.walkTurnClock=t;
+   if(z===''||validClock(z))stop.walkFinishClock=z;
+  }
+  const walkClockChanged=oldTurn!==(stop.walkTurnClock||'')||oldFinish!==(stop.walkFinishClock||'');
   const durationChanged=oldDuration!==stop.duration;
   let newAnchor=null;
   const route=routeStopsForDay(target.day),start=route[0];
@@ -5420,7 +5488,7 @@ function openPointQuick(id){
     const index=route.findIndex(p=>p.id===id);
     if(index>0){
      const previous=route[index-1],incoming=getLegMutableForDay(target.day,index);
-     const previousDeparture=clockMinutes(previous.time)+(Number(previous.dayOffset)||0)*1440+Math.max(0,Number(previous.duration)||0);
+     const previousDeparture=clockMinutes(previous.time)+(Number(previous.dayOffset)||0)*1440+(previous.type==='walkStart'?0:Math.max(0,Number(previous.duration)||0));
      let requested=clockMinutes(f.time.value)+Math.floor(previousDeparture/1440)*1440;
      if(requested<previousDeparture)requested+=1440;
      incoming.minutes=Math.min(2880,Math.max(0,Math.round(requested-previousDeparture)));
@@ -5430,7 +5498,7 @@ function openPointQuick(id){
   }
   if(newAnchor){day.timeAnchor=newAnchor;stop.time=newAnchor.time;if(newAnchor.kind==='departure'&&start?.id===id)day.departureUsesDefault=false;}
   else if(arrivalChanged&&validClock(f.time.value)&&timeEditIntent!=='departure'&&!arrivalAdjustedLeg)stop.time=f.time.value;
-  const timingChanged=!!newAnchor||durationChanged||arrivalAdjustedLeg;
+  const timingChanged=!!newAnchor||durationChanged||arrivalAdjustedLeg||walkClockChanged;
   // Dwell-only changes propagate forward from the existing arrival chain;
   // they must not establish a new anchor at this stop or shift preceding legs.
   if(timingChanged){if(arrivalAdjustedLeg)invalidate();retimeAfterOrderChange(target.day,newAnchor?routeStopsForDay(target.day).findIndex(x=>x.id===id):0);}
@@ -5487,8 +5555,26 @@ function focusStop(id){
   });
  },reduced?0:250);
 }
-let pendingPointCommit=null;function closeDrawer(){if(smartGeoAbort)smartGeoAbort.abort();setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if($('drawer')?.classList.contains('open')){const fallback=innerWidth<=760?($('planner').classList.contains('show-mobile')?'plan':'map'):(document.querySelector('.app')?.classList.contains('planner-collapsed')?null:'plan');setRail(fallback)}if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer').classList.remove('open');$('drawer-backdrop').classList.remove('open');currentEdit=null}
-function openDrawer(title,kicker,subtitle,body,footer,resizable=false){if(smartGeoAbort&&$('ronny-geo-results'))smartGeoAbort.abort();setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer-title').textContent=title;$('drawer-kicker').textContent=kicker;$('drawer-subtitle').textContent=subtitle;$('drawer-body').innerHTML=body;$('drawer-footer').innerHTML=footer;$('drawer').dataset.resizable=resizable?'true':'false';$('drawer').classList.add('open');$('drawer-backdrop').classList.add('open');refreshIcons()}
+// Drawer history retains DOM elements, listeners, form state, and scroll offset.
+const ronnyDrawerHistory=[];
+function ronnyBackState(){const btn=$('ronny-rail-back');if(btn)btn.disabled=!ronnyDrawerHistory.length}
+function ronnyGoBack(){
+ const item=ronnyDrawerHistory.pop();
+ if(!item){ronnyBackState();return}
+ $('drawer-title').textContent=item.title;$('drawer-kicker').textContent=item.kicker;
+ $('drawer-subtitle').textContent=item.subtitle;
+ $('drawer-body').replaceChildren(...item.body);$('drawer-footer').replaceChildren(...item.footer);
+ $('drawer').dataset.resizable=item.resizable;
+ $('drawer-body').scrollTop=item.scrollTop;ronnyBackState();refreshIcons();
+}
+let pendingPointCommit=null;function closeDrawer(){ronnyDrawerHistory.length=0;ronnyBackState();setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if($('drawer')?.classList.contains('open')){const fallback=innerWidth<=760?($('planner').classList.contains('show-mobile')?'plan':'map'):(document.querySelector('.app')?.classList.contains('planner-collapsed')?null:'plan');setRail(fallback)}if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer').classList.remove('open');$('drawer-backdrop').classList.remove('open');currentEdit=null}
+function openDrawer(title,kicker,subtitle,body,footer,resizable=false){
+ if($('drawer')?.classList.contains('open')){
+  ronnyDrawerHistory.push({title:$('drawer-title').textContent,kicker:$('drawer-kicker').textContent,subtitle:$('drawer-subtitle').textContent,body:Array.from($('drawer-body').childNodes),footer:Array.from($('drawer-footer').childNodes),resizable:$('drawer').dataset.resizable,scrollTop:$('drawer-body').scrollTop});
+  if(ronnyDrawerHistory.length>16)ronnyDrawerHistory.shift();
+ }
+ ronnyBackState();
+ setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer-title').textContent=title;$('drawer-kicker').textContent=kicker;$('drawer-subtitle').textContent=subtitle;$('drawer-body').innerHTML=body;$('drawer-footer').innerHTML=footer;$('drawer').dataset.resizable=resizable?'true':'false';$('drawer').classList.add('open');$('drawer-backdrop').classList.add('open');refreshIcons()}
 function openGoogleStreetView(lat,lng){window.open(googleLink(lat,lng),'_blank','noopener,noreferrer')}
 function googleLink(lat,lng){return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(lat+','+lng)}`}
 function googleIframe(lat,lng){const k=state.settings.googleKey?.trim();return k?`<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="Google Street View" src="https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(k)}&location=${encodeURIComponent(lat+','+lng)}&heading=0&pitch=0&fov=80"></iframe>`:''}
@@ -5893,7 +5979,7 @@ async function exportTrip(){
  }
 }
 
-function validateTrip(d){if(!d||typeof d.title!=='string'||!Array.isArray(d.days)||d.days.length<1||d.days.length>100)throw Error('מבנה קובץ לא תקין');for(const day of d.days){day.segments=Array.isArray(day.segments)?day.segments.filter(x=>x&&typeof x.id==='string'&&typeof x.label==='string'&&/^\d{2}:\d{2}$/.test(x.start||'')&&/^\d{2}:\d{2}$/.test(x.end||'')).slice(0,32):[];if(!Array.isArray(day.stops)||day.stops.length>300)throw Error('רשימת עצירות לא תקינה');for(const s of day.stops){if(typeof s.name!=='string'||!Number.isFinite(+s.lat)||!Number.isFinite(+s.lng)||Math.abs(+s.lat)>90||Math.abs(+s.lng)>180)throw Error('קואורדינטות או שמות לא תקינים');s.id=typeof s.id==='string'?s.id:uid();s.type=types[s.type]?s.type:'other';s.time=/^\d{2}:\d{2}$/.test(s.time||'')?s.time:'09:00';s.duration=Math.max(0,Number(s.duration)||0);s.cost=Math.max(0,Number(s.cost)||0);s.notes=String(s.notes||'');s.description=String(s.description||'');if(s.leg){const l=s.leg;if(!l||typeof l!=='object'||!['auto','draw','straight'].includes(l.mode)||typeof l.fromId!=='string'){delete s.leg}else{s.leg={fromId:l.fromId,mode:l.mode,label:String(l.label||'').slice(0,90),minutes:routeLegMinutes(l),minutesMode:l.minutesMode==='extra'&&l.mode==='auto'?'extra':'total',profile:Object.hasOwn(TRAVEL_MODES,l.profile)?l.profile:null,viaPoints:Array.isArray(l.viaPoints)?l.viaPoints.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,16).map(p=>[+p[0],+p[1]]):[],path:Array.isArray(l.path)?l.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,120).map(p=>[+p[0],+p[1]]):[]}}}}}if(d.settings){delete d.settings.mapyKey;delete d.settings.routingProvider;}return {...d,photos:Array.isArray(d.photos)?d.photos.filter(p=>p&&typeof p.id==='string'&&validPoint(p)&&typeof p.data==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(p.data)&&p.data.length<600000).slice(0,120):[],settings:{...state.settings,...d.settings,googleKey:'',mapStyle:normalizeMapStyle(d.settings?.mapStyle),layerVisibility:normalizeLayerVisibility(d.settings?.layerVisibility)}}}
+function validateTrip(d){if(!d||typeof d.title!=='string'||!Array.isArray(d.days)||d.days.length<1||d.days.length>100)throw Error('מבנה קובץ לא תקין');for(const day of d.days){day.segments=Array.isArray(day.segments)?day.segments.filter(x=>x&&typeof x.id==='string'&&typeof x.label==='string'&&/^\d{2}:\d{2}$/.test(x.start||'')&&/^\d{2}:\d{2}$/.test(x.end||'')).slice(0,32):[];if(!Array.isArray(day.stops)||day.stops.length>300)throw Error('רשימת עצירות לא תקינה');for(const s of day.stops){if(typeof s.name!=='string'||!Number.isFinite(+s.lat)||!Number.isFinite(+s.lng)||Math.abs(+s.lat)>90||Math.abs(+s.lng)>180)throw Error('קואורדינטות או שמות לא תקינים');s.id=typeof s.id==='string'?s.id:uid();s.type=types[s.type]?s.type:'other';s.time=/^\d{2}:\d{2}$/.test(s.time||'')?s.time:'09:00';s.duration=Math.max(0,Number(s.duration)||0);s.cost=Math.max(0,Number(s.cost)||0);s.notes=String(s.notes||'');s.description=String(s.description||'');if(s.leg){const l=s.leg;if(!l||typeof l!=='object'||!['auto','draw','pencil','straight'].includes(l.mode)||typeof l.fromId!=='string'){delete s.leg}else{s.leg={fromId:l.fromId,mode:l.mode,label:String(l.label||'').slice(0,90),minutes:routeLegMinutes(l),minutesMode:l.minutesMode==='extra'&&l.mode==='auto'?'extra':'total',profile:Object.hasOwn(TRAVEL_MODES,l.profile)?l.profile:null,viaPoints:Array.isArray(l.viaPoints)?l.viaPoints.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,16).map(p=>[+p[0],+p[1]]):[],path:Array.isArray(l.path)?l.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,120).map(p=>[+p[0],+p[1]]):[]}}}}}if(d.settings){delete d.settings.mapyKey;delete d.settings.routingProvider;}return {...d,photos:Array.isArray(d.photos)?d.photos.filter(p=>p&&typeof p.id==='string'&&validPoint(p)&&typeof p.data==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(p.data)&&p.data.length<600000).slice(0,120):[],settings:{...state.settings,...d.settings,googleKey:'',mapStyle:normalizeMapStyle(d.settings?.mapStyle),layerVisibility:normalizeLayerVisibility(d.settings?.layerVisibility)}}}
 function setRail(name){document.querySelectorAll('.rail-btn').forEach(e=>e.classList.remove('active'));$('rail-'+name)?.classList.add('active')}
 function setPlannerCollapsed(flag){
  if(innerWidth<=760){if(!flag)showPlan();else showMap();return}
@@ -6018,8 +6104,8 @@ async function ronnyComputeRoadTotal(key){
   for(let i=1;i<arr.length;){
    const conf=legAt(i,arr);
    if(conf.mode==='straight'){missing=true;i++;continue;}
-   if(conf.mode==='draw'){
-    if((conf.path||[]).length>=2)meters+=distanceOfCoords(legCoords(i,arr));
+   if(conf.mode==='draw'||conf.mode==='pencil'){
+    if((conf.path||[]).length>=(conf.mode==='pencil'?1:2))meters+=distanceOfCoords(legCoords(i,arr));
     else missing=true;
     i++;continue;
    }
@@ -6826,7 +6912,7 @@ const GEO_COUNTRIES={
  'קרואטיה':'HR','croatia':'HR','סלובניה':'SI','slovenia':'SI','פורטוגל':'PT','portugal':'PT'
 };
 const GEO_COUNTRY_EN={IT:'Italy',CH:'Switzerland',SK:'Slovakia',AL:'Albania',PL:'Poland',CZ:'Czechia',GB:'United Kingdom',ES:'Spain',NZ:'New Zealand',ME:'Montenegro',GR:'Greece',KZ:'Kazakhstan',US:'United States',FR:'France',AT:'Austria',DE:'Germany',AU:'Australia',IE:'Ireland',IL:'Israel',HU:'Hungary',HR:'Croatia',SI:'Slovenia',PT:'Portugal'};
-let smartGeoBusy=false,smartGeoAbort=null;
+let smartGeoBusy=false,smartGeoAbort=null,smartGeoRunStatus='',smartGeoRunProgress={done:0,total:0},smartGeoAutoApprove=true;
 const SMART_GEO_SUGGESTIONS_KEY='ronny-photon-review-v38';
 function smartGeoLoadSuggestions(){
  try{return new Map(JSON.parse(localStorage.getItem(SMART_GEO_SUGGESTIONS_KEY)||'[]'))}catch(e){return new Map()}
@@ -7022,8 +7108,8 @@ function smartGeoMarkup(){
  <div id="ronny-geo-results" class="ronny-geo-results"></div>
  <button class="btn btn-ghost" type="button" id="ronny-geo-reset">אפשר לבדוק שוב מקומות ללא מיקום</button><p class="footnote">השרת הציבורי Photon מיועד לשימוש סביר בלבד ועלול להגביל עומס. התאמות חסרות או שמות דומים מחייבים אישור ידני. <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></p>`;
 }
-function smartGeoStatus(msg){const e=$('ronny-geo-status');if(e)e.textContent=msg;}
-function smartGeoProgress(done,total){const e=$('ronny-geo-bar');if(e)e.style.width=(total?Math.min(100,Math.round(done/total*100)):0)+'%';}
+function smartGeoStatus(msg){smartGeoRunStatus=msg;const e=$('ronny-geo-status');if(e)e.textContent=msg;}
+function smartGeoProgress(done,total){smartGeoRunProgress={done,total};const e=$('ronny-geo-bar');if(e)e.style.width=(total?Math.min(100,Math.round(done/total*100)):0)+'%';}
 function smartGeoAddRow(place,rank){
  const root=$('ronny-geo-results');if(!root)return;
  const row=document.createElement('section');row.className='ronny-geo-row';row.dataset.geoPlace=place.id;
@@ -7053,20 +7139,20 @@ async function smartGeoScan(){
  if(smartGeoBusy)return;
  const visited=smartGeoVisited(),pending=savedPlaces.places.filter(p=>!validSavedLatLng(p)&&!visited.has(p.id)).slice(0,120);
  if(!pending.length){smartGeoStatus('אין עוד מקומות שלא נבדקו. אפשר לאשר תוצאות קיימות או לאפס את היסטוריית הבדיקה.');return}
- const ctl=new AbortController();smartGeoAbort=ctl;smartGeoBusy=true;
+ const ctl=new AbortController();smartGeoAbort=ctl;smartGeoBusy=true;smartGeoAutoApprove=$('ronny-geo-auto')?.checked!==false;
  $('ronny-geo-next').disabled=true;$('ronny-geo-stop').disabled=false;
  smartGeoProgress(0,pending.length);
  let checked=0,confirmed=0,errors=0,consecutiveErrors=0,rateLimited=false;
  try{
   for(const place of pending){
-   if(ctl.signal.aborted||!$('ronny-geo-results'))break;
+   if(ctl.signal.aborted)break;
    smartGeoStatus(`מחפש ${checked+1} מתוך ${pending.length}: ${place.name}`);
    try{
     const rank=await smartGeoSearchCandidates(place,{signal:ctl.signal});
     smartGeoSuggestions.set(place.id,rank);smartGeoPersistSuggestions();
     visited.add(place.id);smartGeoSaveVisited(visited);consecutiveErrors=0;
     smartGeoAddRow(place,rank);
-    if(rank.reliable&&$('ronny-geo-auto')?.checked){if(await smartGeoApprove(place.id,0,true))confirmed++}
+    if(rank.reliable&&smartGeoAutoApprove){if(await smartGeoApprove(place.id,0,true))confirmed++}
    }catch(err){if(ctl.signal.aborted)break;if(err.rateLimited){rateLimited=true;smartGeoStatus('השירות הציבורי מגביל עומס. הסריקה נעצרה בלי לסמן את הנקודות שלא נבדקו.');break}errors++;consecutiveErrors++;if(consecutiveErrors>=3){smartGeoStatus('האיתור הופסק לאחר שלוש שגיאות רצופות. נסה שוב כשהחיבור יתייצב.');break}smartGeoAddRow(place,{candidates:[],reliable:false,hint:'שגיאת רשת — לא סומן כבדוק'});}
    checked++;smartGeoProgress(checked,pending.length);
    // One modest sequential request at a time, with time to read and cancel.
@@ -7084,18 +7170,21 @@ async function smartGeoScan(){
  }
 }
 function openSmartPlaceRepair(autoStart=false){
- if(savedPlaceBusy||smartGeoBusy)return;
+ if(savedPlaceBusy)return;
  // Extract any precise coordinates before spending requests.
  let direct=0;for(const p of savedPlaces.places){if(validSavedLatLng(p))continue;const exact=googleMapCoordinates(p.url);if(exact){p.lat=exact.lat;p.lng=exact.lng;p.positionSource=exact.positionSource;direct++}}
  if(direct){persistSavedPlaces();renderSavedPlaceMarkers()}
  // Previously found candidates remain reviewable after reopening the drawer.
  openDrawer('תיקון סיכות Google','ללא מפתח API','איתור מיקומים מדורג ובטוח',smartGeoMarkup(),`<button class="btn" type="button" id="ronny-geo-back">חזרה לספריית המקומות</button>`);
  $('ronny-geo-next').onclick=smartGeoScan;
+ if(smartGeoBusy){$('ronny-geo-next').disabled=true;$('ronny-geo-stop').disabled=false;$('ronny-geo-auto').checked=smartGeoAutoApprove;}
+ if(smartGeoRunStatus)smartGeoStatus(smartGeoRunStatus);
+ smartGeoProgress(smartGeoRunProgress.done,smartGeoRunProgress.total);
  for(const [id,rank] of smartGeoSuggestions){const p=savedPlaces.places.find(x=>x.id===id);if(p&&!validSavedLatLng(p))smartGeoAddRow(p,rank)}
  $('ronny-geo-stop').onclick=()=>{smartGeoAbort?.abort();smartGeoStatus('הסריקה נעצרה. התוצאות שכבר נמצאו נשמרו במסך זה.')};
  $('ronny-geo-review').onclick=smartGeoApproveReliable;
  $('ronny-geo-reset').onclick=()=>{if(smartGeoBusy)return;smartGeoSaveVisited(new Set());smartGeoStatus('היסטוריית החיפוש אופסה. כעת אפשר לבדוק שוב מקומות שטרם מוקמו.');};
- $('ronny-geo-back').onclick=()=>{smartGeoAbort?.abort();showSavedPlaceLibrary()};
+ $('ronny-geo-back').onclick=()=>ronnyGoBack();
  if(direct)smartGeoStatus(`שוחזרו ${direct} מיקומים מדויקים מקישורים. אפשר להתחיל באיתור הנותרים.`);
  refreshIcons();
  if(autoStart)smartGeoScan();
@@ -7119,7 +7208,7 @@ function showSavedPlaceLibrary(){
 
 (async()=>{
  try{await initTripLibrary()}catch(e){state=prepareTrip(demo());activeTripId=uid();libraryReady=true;save();toast('טעינת הספרייה נכשלה. ניתן לייצא קובץ גיבוי.')}
- await initSavedPlaces();planningResolution=state.settings.planningResolution==='outline'?'outline':'day';repairExistingSchedules();initMap();enableMapPopupDragging();initDaysManager();initOutsideDismissal();
+ await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';repairExistingSchedules();initMap();enableMapPopupDragging();initDaysManager();initOutsideDismissal();
  window.addEventListener('resize',()=>{for(const id of ['leg-editor','point-quick','map-context','layer-filter-panel'])keepMapPopoverVisible($(id))});
  bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();setTimeout(focusLoadedTrip,360);
  const wasCollapsed=(()=>{try{return localStorage.getItem('ronny-planner-collapsed-v1')==='true'}catch(e){return false}})();
