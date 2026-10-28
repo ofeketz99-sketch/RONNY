@@ -3654,6 +3654,7 @@ function addDrawPointOnLine(index,location){
 }
 function drawLegLine(coords,mode,index,unavailable=false){
  const current=stops(),point=current[index];
+ const walkingAccess=point?.type==='walkStart';
  if(point?.leg?.walkAutoRetrace&&point.walkLoopSource&&coords?.length>1&&map){
   coords=coords.map((coord,i)=>{
    const prev=coords[Math.max(0,i-1)],next=coords[Math.min(coords.length-1,i+1)];
@@ -3668,7 +3669,7 @@ function drawLegLine(coords,mode,index,unavailable=false){
  const baseColor=pointColor(stops()[index],selectedDay),color=routeDisplayColor(baseColor,index),showLine=layerOn('routeLines');
  paintedLegCoordinates.set(index,coords);
  if(showLine){
-  const options={color,weight:mode==='straight'?3:5,opacity:.98,dashArray:mode==='straight'?'7 9':unavailable?'4 9':undefined,lineCap:'round',interactive:false,className:'leg-map-path'};
+  const options={color,weight:mode==='straight'?3:5,opacity:.98,dashArray:walkingAccess?'5 8':mode==='straight'?'7 9':unavailable?'4 9':undefined,lineCap:'round',interactive:false,className:'leg-map-path'};
   L.polyline(coords,{color:'#fff8ec',weight:mode==='straight'?6:9,opacity:.94,interactive:false}).addTo(routeLayer);
   L.polyline(coords,options).addTo(routeLayer);
   const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:0.002,lineCap:'round',lineJoin:'round',interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
@@ -4791,7 +4792,7 @@ function drawLegLineOverview(coords,mode,di,index){
  const color=routeDisplayColor(baseColor,di*11+index);
  if(layerOn('routeLines')){
   L.polyline(coords,{color:'#fff8ec',weight:8,opacity:.9,interactive:false}).addTo(routeLayer);
-  L.polyline(coords,{color,weight:4.6,dashArray:mode==='straight'?'8 9':mode==='auto'?'7 8':undefined,opacity:.94,interactive:false}).addTo(routeLayer);
+  L.polyline(coords,{color,weight:4.6,dashArray:arrival?.type==='walkStart'?'5 8':mode==='straight'?'8 9':mode==='auto'?'7 8':undefined,opacity:.94,interactive:false}).addTo(routeLayer);
   const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
   hit.on('click',e=>{
    if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
@@ -4884,9 +4885,19 @@ function drawRoute(){
 function renderPoiLinks(){
  if(!map||!poiLinkLayer)return;
  poiLinkLayer.clearLayers();
- if(!layerOn('poiLinks'))return;
+ if(!layerOn('poiLinks')&&!layerOn('routeLines'))return;
  const days=ronnyVisibleDayIndices();
  for(const di of days){
+  const route=routeStopsForDay(di);
+  for(let i=0;i<route.length;i++){
+   const start=route[i];if(start.type!=='walkStart'||!validPoint(start)||!layerOn('routeLines'))continue;
+   const previous=[...route.slice(0,i)].reverse().find(p=>!WALK_TYPES.has(p.type)&&validPoint(p));
+   if(!previous)continue;
+   const coords=[[+previous.lat,+previous.lng],[+start.lat,+start.lng]];
+   if(kmBetween(coords[0],coords[1])<1)continue;
+   L.polyline(coords,{pane:'ronnyPoiLinks',color:'#568973',weight:2,dashArray:'3 9',opacity:.72,interactive:false,className:'ronny-walk-access-link'}).addTo(poiLinkLayer);
+  }
+  if(!layerOn('poiLinks'))continue;
   for(const {point,nearest} of poiLinksForDay(di)){
     if((point.type==='note'&&!layerOn('notes'))||(point.type!=='note'&&!layerOn('poi'))||(!layerOn('routeStops')&&!layerOn('routeLines')))continue;
     const coords=[[+point.lat,+point.lng],[+nearest.lat,+nearest.lng]];
@@ -5161,6 +5172,13 @@ function renderOutlineMap(){
   const l=L.polyline([a,b],{color,weight:chosen?6:4.5,opacity:.94,dashArray:'10 8',lineCap:'round',interactive:true,bubblingMouseEvents:false}).addTo(outlineLayer);
   l.on('click',e=>{if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);closeOutlineMapAdd();selectedStageId=s.to.id;renderZoomWorkspace()});
  }
+ // Ideas remain visible in macro planning levels even when route markers are hidden.
+ if(layerOn('ideas'))state.days.forEach((day,di)=>(day.stops||[]).filter(p=>p.type==='idea'&&validPoint(p)).forEach(p=>{
+  const html='<div class="marker point-pin idea" style="--pin-color:#b78a08"><span class="point-pin-inner">'+pointSymbol('idea')+'</span></div>';
+  const marker=L.marker([+p.lat,+p.lng],{icon:L.divIcon({html,className:'',iconSize:[36,36],iconAnchor:[18,34]}),title:p.name}).addTo(outlineLayer);
+  marker.on('click',e=>{if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);planningResolution='day';state.settings.planningResolution='day';selectedDay=di;renderAll();openPointQuick(p.id)});
+  marker.bindTooltip(esc(p.name),{direction:'top'});
+ }));
  points.forEach((p,i)=>{
   const col=i===0?'#222b26':OUTLINE_COLORS[(i-1)%OUTLINE_COLORS.length];
   const html=`<div class="zoom-pin ${p.id===selectedOutlineId?'selected':''}" style="--pin-c:${col}"><span>${i+1}</span></div><div class="zoom-node-label">${esc(p.name)}</div>`;
@@ -5964,7 +5982,7 @@ function ronnyTripMetrics(){const out=currentOutline().points,days=state.days;
 }
 function ronnyElevationKey(){return [...currentOutline().points,...state.days.flatMap(d=>(d.stops||[]).filter(s=>validPoint(s)&&!isMapOnlyPoint(s)))].map(p=>`${(+p.lat).toFixed(4)},${(+p.lng).toFixed(4)}`).join('|')}
 function renderTripDashboard(){const el=$('ronny-trip-dashboard');if(!el)return;const m=ronnyTripMetrics();
- const fmt=x=>Math.round(x).toLocaleString('he-IL');const flags=m.flags.length?m.flags.map(iso=>`<span class="ronny-flag" title="${esc(iso)}">${ronnyFlag(iso)}</span>`).join(''):'<span class="ronny-flags-empty">—</span>';
+ const fmt=x=>Math.round(x).toLocaleString('he-IL');
  el.innerHTML=`<span class="ronny-dash-stat" title="ימי תכנון שהוגדרו"><i data-lucide="calendar-days"></i><strong>${fmt(m.days)}</strong><small>ימים</small></span><button type="button" class="ronny-dash-stat" id="ronny-dashboard-distance" title="מרחק דרך מחושב של כל ימי הטיול" aria-label="חשב מחדש את מרחק הנסיעה"><i data-lucide="route"></i><strong>${ronnyDistanceResultUI().value}</strong><small>${ronnyDistanceResultUI().label}</small></button><span class="ronny-dash-stat" title="נקודות בתכנון"><i data-lucide="map-pin"></i><strong>${fmt(m.points)}</strong><small>נקודות</small></span><button type="button" class="ronny-dash-stat ronny-elevation-trigger" id="ronny-elevation-trigger" title="אומדן טיפוס על פי דגימות גובה בקו ישר בין הנקודות — אינו מייצג מסלול הליכה או נסיעה בפועל"><i data-lucide="mountain"></i><strong>${m.climb!==null?fmt(m.climb):'—'}</strong><small>${m.climb!==null?'מ׳ טיפוס (אומדן)':'חשב טיפוס'}</small></button>`;
  el.querySelector('#ronny-elevation-trigger')?.addEventListener('click',estimateRouteClimb);
  const dist=el.querySelector('#ronny-dashboard-distance');
