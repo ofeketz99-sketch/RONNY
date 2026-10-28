@@ -1,5 +1,5 @@
 # RONNY — repository editing safeguards
-
+All development must take place on the `dev` branch. Never commit, push, or merge changes into `main` unless explicitly authorized by the user. Verify the active branch before making changes.
 These instructions apply to all edits in this repository, including Codex-driven edits.
 
 ## Mandatory backup before modifying an existing file
