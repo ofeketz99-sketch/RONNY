@@ -1,0 +1,10 @@
+{
+  "version": "46",
+  "date": "2026-10-28",
+  "notes": [
+    "קוד JavaScript אורגן ל־18 קובצי מקור לפי מערכות כדי להקל על עריכה ותחזוקה.",
+    "נוסף כלי בנייה ובדיקה שמוודא שהסקריפט שמגיע לדפדפן זהה לקוד המקורי.",
+    "לא שונתה לוגיקת האתר; בדיקת דפדפן מלאה עדיין לא בוצעה."
+  ],
+  "technical": "Source partitions under scripts/src, deterministic no-dependency Node build/check. scripts/app.js and index.html remain unchanged. Backup: backups/2026-10-28_pre-js-source-split_8a725207f054."
+}
