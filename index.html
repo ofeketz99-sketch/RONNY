@@ -4932,6 +4932,11 @@ function drawRoute(){
  if(arr.length<2){forcedHandleLayer?.clearLayers();$('route-msg').textContent='הוסף שתי נקודות לפחות לחישוב מסלול';return}
  const token=++routeToken,ids=arr.map(s=>s.id),results=Array(arr.length-1).fill(null),groups=[];
  for(let i=1;i<arr.length;){
+   // Walking access is represented by a dashed connector, not a routed segment.
+   if(arr[i].type==='walkStart'){
+    results[i-1]={duration:0,baseDuration:0,distance:0,mode:'access-link',estimated:false,manualMissing:false};
+    i++;continue;
+   }
   const conf=legAt(i,arr);
   // A newly created circular hike has coincident start/end until a path is drawn.
   // Never request a routing service with two identical geographic coordinates.
@@ -5596,7 +5601,7 @@ function openDrawer(title,kicker,subtitle,body,footer,resizable=false){
   if(ronnyDrawerHistory.length>16)ronnyDrawerHistory.shift();
  }
  ronnyBackState();
- setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer-title').textContent=title;$('drawer-kicker').textContent=kicker;$('drawer-subtitle').textContent=subtitle;$('drawer-body').innerHTML=body;$('drawer-footer').innerHTML=footer;$('drawer').dataset.resizable=resizable?'true':'false';$('drawer').classList.add('open');$('drawer-backdrop').classList.add('open');refreshIcons()}
+ setSavedPreviewMode(false);savedPlacePreviewLayer?.clearLayers();if(pendingPointCommit){const flush=pendingPointCommit;pendingPointCommit=null;flush()}$('drawer-title').textContent=title;$('drawer-kicker').textContent=kicker;$('drawer-subtitle').textContent=subtitle;$('drawer-body').innerHTML=body;$('drawer-footer').innerHTML=footer;$('drawer').dataset.resizable=resizable?'true':'false';$('drawer').classList.add('open');$('drawer-backdrop').classList.add('open');ronnyBackState();refreshIcons()}
 function openGoogleStreetView(lat,lng){window.open(googleLink(lat,lng),'_blank','noopener,noreferrer')}
 function googleLink(lat,lng){return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${encodeURIComponent(lat+','+lng)}`}
 function googleIframe(lat,lng){const k=state.settings.googleKey?.trim();return k?`<iframe loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="Google Street View" src="https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(k)}&location=${encodeURIComponent(lat+','+lng)}&heading=0&pitch=0&fov=80"></iframe>`:''}
