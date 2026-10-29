@@ -1,0 +1,12 @@
+{
+  "version": "101",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה תאימות כרטיסי הימים לאחר הוספת פס צבע המקטע: מבנה הכרטיס נשאר ללא שינוי והפס מוחל לאחר ציורו.",
+    "אין שינוי בהתנהגות סקירת המקטעים, בצבע המסלולים או בסיכום המרחק."
+  ],
+  "technical": [
+    "Preserves existing day-card markup contract and applies stage-band class/CSS variable after DOM render.",
+    "Fixes failed legacy day-card regression assertion introduced by patch 100."
+  ]
+}
