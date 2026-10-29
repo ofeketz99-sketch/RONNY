@@ -338,18 +338,23 @@ function selectSearchResult(p){
  if(map){map.flyTo([p.lat,p.lng],Math.max(12,map.getZoom()),{duration:.6});map.once('moveend',()=>showPointTypeTree(p));}
  else showPointTypeTree(p);
 }
+function ronnyLocalSearchMatches(q){
+ const normalized=q.toLocaleLowerCase();
+ return state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+}
 function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
  const q=$('place-search').value.trim();
  if(!q){hideSearch();return}
  const normalized=q.toLocaleLowerCase();
- const local=state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+ const local=ronnyLocalSearchMatches(q);
  if(q.length<2){if(local.length)paintSearchResults(local,q);else{$('search-results').innerHTML='<div class="search-state">המשך להקליד כדי לראות הצעות למקומות.</div>';$('search-results').classList.add('open')}return}
  searchChoices=[];$('search-results').innerHTML='<div class="search-state search-loading">מחפש מקומות…</div>'+externalSearchMarkup(q);$('search-results').classList.add('open');
  searchDebounce=setTimeout(()=>searchPlaces(q,local),420);
 }
 async function searchPlaces(overrideQuery=null,local=[]){
  const q=(overrideQuery??$('place-search').value).trim();if(q.length<2)return;
+ local=ronnyLocalSearchMatches(q);
  const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
  try{
   // Photon search is center-biased; text-only caching returns stale places after moving the map.
@@ -359,7 +364,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
   const cacheKey=q.toLocaleLowerCase()+'|'+bucket;
   let results=searchCache.get(cacheKey);
   if(!results){
-   const params=new URLSearchParams({q,limit:'7',lang:'he'});
+   const params=new URLSearchParams({q,limit:'7'});
    if(near){params.set('lat',near.lat.toFixed(5));params.set('lon',near.lng.toFixed(5));}
    const res=await fetch('https://photon.komoot.io/api/?'+params.toString(),{signal:searchController.signal,headers:{Accept:'application/json'}});
    if(!res.ok)throw Error('שירות החיפוש אינו זמין');
