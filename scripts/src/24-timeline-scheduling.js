@@ -160,7 +160,44 @@ function bindMapSidePoints(){const root=$('schedule');root.querySelectorAll('[da
  el.addEventListener('keydown',e=>{if(e.target===el&&['Enter',' '].includes(e.key)){e.preventDefault();choose()}});
  });root.querySelectorAll('[data-side-edit]').forEach(b=>b.onclick=()=>openPointQuick(b.dataset.sideEdit));
 }
-function renderSchedule(){const b=$('ronny-default-departure');if(b){b.querySelector('span').textContent=tripDefaultDepartureTime();b.onclick=()=>openSettings('trip')}renderSegmentChips();const legacyNotePanel=$('planner-notes');if(legacyNotePanel)legacyNotePanel.hidden=true;let list=stops();$('stop-count').textContent=list.length+' עצירות';$('auto-time').title='תזמון לפי סדר העצירות וזמני הדרך. כשהניתוב אינו זמין, השעות מסומנות כאומדן בלבד';$('day-budget').textContent=money((state.days[selectedDay]?.stops||[]).reduce((a,s)=>a+(Number(s.cost)||0),0));if(!list.length){$('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+mapSidePointsHTML()+`<div class="no-stops"><span style="font-size:32px">🧭</span><strong>${(state.days[selectedDay]?.stops||[]).some(isMapOnlyPoint)?'עדיין אין נקודות דרך':'היום הזה עדיין ריק'}</strong><p>הוסף נקודת התחלה, מעבר, עצירה או סיום כדי ליצור נתיב נסיעה.</p><button class="btn btn-primary" id="empty-add">${icon('plus')} הוספת עצירה</button></div>`;$('empty-add').onclick=()=>openStopForm();bindRonnyBulkToolbar($('schedule'),'day');bindMapSidePoints();bindDayOutlineBridge();refreshIcons();return}
+// Day-at-a-glance: only use confirmed leg values or explicitly entered manual estimates.
+function renderCompactDaySummary(){
+ const panel=$('ronny-day-summary');if(!panel)return;
+ const day=state.days[selectedDay];if(!day){panel.innerHTML='';return}
+ const list=routeStopsForDay(selectedDay).filter(validPoint);
+ const legs=routeLegsForOrder(selectedDay);
+ const moneyTotal=(day.stops||[]).reduce((sum,p)=>sum+(Number(p.cost)||0),0)+
+  (state.extraExpenses||[]).filter(x=>x.dayId===day.dayId).reduce((sum,x)=>sum+(Number(x.amount)||0),0);
+ const stay=list.filter(p=>!['start','end','walkStart','walkEnd','walkTurn','via'].includes(p.type))
+  .reduce((sum,p)=>sum+Math.max(0,Number(p.duration)||0),0);
+ let seconds=0,meters=0,pending=0;
+ for(let i=1;i<list.length;i++){
+  if(list[i].type==='walkStart')continue; // Dotted connector is not a travel leg.
+  const routed=legs?.[i-1],cfg=legAt(i,list);
+  if(Number.isFinite(routed?.duration)&&Number.isFinite(routed?.distance)){
+   seconds+=routed.duration;meters+=routed.distance;
+  }else if(cfg.mode!=='auto'){
+   const m=routeLegMinutes(cfg);
+   if(m===null)pending++;else seconds+=m*60;
+   const geometry=legCoords(i,list);
+   if(geometry?.length>1)meters+=distanceOfCoords(geometry);
+  }else pending++;
+ }
+ const start=list.find(p=>p.type==='start')||list[0];
+ const end=list.findLast(p=>p.type==='end')||list.at(-1);
+ const times=start?.time&&end?.time?start.time.slice(0,5)+'–'+end.time.slice(0,5):'—';
+ const warnings=[];
+ if(!start||start.type!=='start')warnings.push('חסרה נקודת יציאה');
+ if(!end||end.type!=='end')warnings.push('חסרה נקודת סיום');
+ if(pending)warnings.push(pending+' מקטעים ללא נתוני דרך מלאים');
+ const stat=(label,value,extra='')=>'<span class="ronny-day-stat"><small>'+label+'</small><strong>'+value+'</strong>'+(extra?'<em>'+extra+'</em>':'')+'</span>';
+ panel.innerHTML='<div class="ronny-day-summary-main">'+
+  stat('שעות',esc(times))+stat('זמן בדרך',pending&&!seconds?'—':minsFmt(Math.round(seconds/60)),pending?'חלקי':'')+
+  stat('זמן שהייה',minsFmt(stay))+stat('מרחק',pending&&!meters?'—':(meters/1000).toFixed(1)+' ק״מ',pending?'חלקי':'')+
+  stat('עלות היום',money(moneyTotal))+'</div>'+
+  (warnings.length?'<div class="ronny-day-warnings" role="status">'+icon('alert-triangle','small-icon')+warnings.map(esc).join(' · ')+'</div>':'');
+}
+function renderSchedule(){renderCompactDaySummary();const b=$('ronny-default-departure');if(b){b.querySelector('span').textContent=tripDefaultDepartureTime();b.onclick=()=>openSettings('trip')}renderSegmentChips();const legacyNotePanel=$('planner-notes');if(legacyNotePanel)legacyNotePanel.hidden=true;let list=stops();$('stop-count').textContent=list.length+' עצירות';$('auto-time').title='תזמון לפי סדר העצירות וזמני הדרך. כשהניתוב אינו זמין, השעות מסומנות כאומדן בלבד';$('day-budget').textContent=money((state.days[selectedDay]?.stops||[]).reduce((a,s)=>a+(Number(s.cost)||0),0)+(state.extraExpenses||[]).filter(x=>x.dayId===state.days[selectedDay]?.dayId).reduce((a,x)=>a+(Number(x.amount)||0),0));if(!list.length){$('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+mapSidePointsHTML()+`<div class="no-stops"><span style="font-size:32px">🧭</span><strong>${(state.days[selectedDay]?.stops||[]).some(isMapOnlyPoint)?'עדיין אין נקודות דרך':'היום הזה עדיין ריק'}</strong><p>הוסף נקודת התחלה, מעבר, עצירה או סיום כדי ליצור נתיב נסיעה.</p><button class="btn btn-primary" id="empty-add">${icon('plus')} הוספת עצירה</button></div>`;$('empty-add').onclick=()=>openStopForm();bindRonnyBulkToolbar($('schedule'),'day');bindMapSidePoints();bindDayOutlineBridge();refreshIcons();return}
 $('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+list.map((s,i)=>{const seg=segmentFor(s),prev=i?segmentFor(list[i-1]):null;const segmentHead=(seg?.id!==prev?.id)?`<div class="segment-heading" style="--segment-color:${seg?.color||'#a0b1be'}"><span>${esc(seg?.label||'ללא מקטע זמן')}</span><small>${seg?esc(seg.start)+'–'+esc(seg.end):''}</small></div>`:'';
  const rawLeg=routeData?.day===selectedDay&&routeData.ids?.[i]===s.id?routeData.legs?.[i-1]:null;const leg=rawLeg&&Number.isFinite(rawLeg.duration)&&Number.isFinite(rawLeg.distance)?rawLeg:null;
  const conf=i?legAt(i,list):null;
@@ -240,7 +277,7 @@ function commitOrderedDaySlots(dayIndex,ordered){
 function moveStop(id,delta){
  const arr=stops(),idx=arr.findIndex(s=>s.id===id),next=idx+delta;
  if(idx<0||next<0||next>=arr.length)return;
- const before=captureSchedulePositions(),other=arr[next].id;
+ ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions(),other=arr[next].id;
  [arr[idx],arr[next]]=[arr[next],arr[idx]];
  commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
  animateScheduleReorder(before,[id,other]);
@@ -248,7 +285,7 @@ function moveStop(id,delta){
 function reorder(from,to){
  const arr=stops();let a=arr.findIndex(s=>s.id===from),b=arr.findIndex(s=>s.id===to);
  if(a<0||b<0||a===b)return;
- const before=captureSchedulePositions();
+ ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions();
  // Two fixed sequence positions exchange their cards, including their locations.
  [arr[a],arr[b]]=[arr[b],arr[a]];
  commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
