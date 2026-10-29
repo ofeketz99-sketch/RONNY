@@ -328,8 +328,10 @@ function relocatePoint(id,latlng){
  const found=getStop(id);
  if(!found||!Number.isFinite(latlng?.lat)||!Number.isFinite(latlng?.lng))return;
  if(Math.abs(latlng.lat)>90||Math.abs(latlng.lng)>180)return;
+ const original={lat:+found.stop.lat,lng:+found.stop.lng};
  found.stop.lat=+latlng.lat.toFixed(6);found.stop.lng=+latlng.lng.toFixed(6);
- if(found.stop.type==='start'){found.stop.autoInheritedStart=false;delete found.stop.fromPreviousDayEnd}
+ if(found.stop.type==='start')relocateConnectedDayOrigin(found.day,original,{lat:found.stop.lat,lng:found.stop.lng});
+ synchronizeLoopDays();synchronizeDayStarts();synchronizeLoopDays();
  pointMoveModeId=null;
  if($('point-quick')?.classList.contains('open'))hidePointQuick();
  if(!isMapOnlyPoint(found.stop)){invalidate();retimeAfterOrderChange(found.day)}
