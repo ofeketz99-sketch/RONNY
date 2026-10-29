@@ -1,0 +1,9 @@
+{
+  "version": "59",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספה בדיקת דפדפן המציירת בפועל מסלול הליכה מעגלי על מפת Leaflet.",
+    "נוספה בדיקת ייצוא והחזרת טיול דרך ממשק המשתמש, כולל בדיקת ספריית הטיולים ורענון."
+  ],
+  "technical": "DEV only. Playwright E2E tests added, pending CI verification. Mock fixture storage isolated in fresh Chromium context. No product code changed. Backup backups/2026-10-29_before_browser_flows_44288e7b/."
+}
