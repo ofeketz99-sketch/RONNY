@@ -1,0 +1,9 @@
+{
+  "version": "67",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספו בדיקות רגרסיה לשמירת תוואי הלוך־חזור מדויק בשרטוט רגיל ובעיפרון.",
+    "נוספו בדיקות דפדפן לחצי המקטעים, לזום המפה ולשם המסלול."
+  ],
+  "technical": "DEV-only regression additions. New five Node pure-geometry tests + three Playwright desktop tests against isolated trip fixtures. No product code changed. CI verification pending. Backup backups/2026-10-29_pre-retrace-regression_3e3b9f22/."
+}
