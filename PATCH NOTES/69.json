@@ -1,0 +1,9 @@
+{
+  "version": "69",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקן גילוי הבדיקות כדי שלא להריץ בטעות עותקי בדיקות מתיקיית הגיבויים.",
+    "בדיקות ההלוך־חזור ו־16 תרחישי הדפדפן עברו לאחר ייצוב הבדיקות."
+  ],
+  "technical": "DEV only. npm test invokes tools/run-tests.js, passing explicit tests/*.test.cjs filenames to Node across platforms. Backups include immutable copies of prior test files and must never be selected by Node --test auto-discovery. Patch 68 Playwright 16/16 pass run 40882741091; tests/ source 64/64 passed, backup-only test runner failed. CI rerun required. Backup backups/2026-10-29_pre-test-discovery_a485f386/."
+}
