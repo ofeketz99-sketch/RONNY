@@ -275,7 +275,7 @@ function editDay(){
  $('day-delete').onclick=async()=>{if(state.days.length===1)return;
   const msg=day.stops.length?`למחוק את היום ואת ${day.stops.length} הנקודות שבו?`:'למחוק את היום הנבחר?';
   if(!await confirmOnMap(msg,{title:'מחיקת יום',accept:'מחק יום'}))return;
-  state.days.splice(selectedDay,1);renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
+  ronnyRememberUndo('מחיקת יום');state.days.splice(selectedDay,1);renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
   synchronizeDayStarts();invalidate();save();closeDrawer();renderAll();fitMap();toast('היום נמחק')};
 }
 
@@ -424,7 +424,7 @@ async function deleteSelectedManagerDays(){
  if(!ids.size||ids.size>=state.days.length){toast(ids.size?'לא ניתן למחוק את כל הימים — חייב להישאר לפחות יום אחד':'בחר ימים למחיקה');return}
  const former=state.days.map(d=>d.dayId),selectedId=state.days[selectedDay]?.dayId;
  closeDaysManager();const approved=await confirmOnMap(`למחוק ${ids.size} ימים ואת הנקודות שלהם?`,{title:'מחיקת ימים',accept:'מחק '+ids.size+' ימים'});
- if(approved){const surviving=former.filter(id=>!ids.has(id));const oldIdx=new Map(surviving.map((id,i)=>[id,i]));
+ if(approved){ronnyRememberUndo('מחיקת ימים');const surviving=former.filter(id=>!ids.has(id));const oldIdx=new Map(surviving.map((id,i)=>[id,i]));
  state.days=state.days.filter(d=>!ids.has(d.dayId));
  state.photos=(state.photos||[]).flatMap(p=>{const id=former[p.day];return oldIdx.has(id)?[{...p,day:oldIdx.get(id)}]:[]});
  selectedDay=Math.max(0,state.days.findIndex(d=>d.dayId===selectedId));
