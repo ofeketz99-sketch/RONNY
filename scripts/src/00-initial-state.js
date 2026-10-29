@@ -328,6 +328,23 @@ function prepareTrip(t){
  if(center&&!(Number.isFinite(+center.lat)&&Math.abs(+center.lat)<=90&&Number.isFinite(+center.lng)&&Math.abs(+center.lng)<=180&&Number.isFinite(+center.zoom)&&+center.zoom>=2&&+center.zoom<=19))delete cleaned.settings.startCenter;
  cleaned.photos=Array.isArray(cleaned.photos)?cleaned.photos:[];
  cleaned.days.forEach((d,i)=>{d.stops=Array.isArray(d.stops)?d.stops:[];d.label=typeof d.label==='string'?d.label.slice(0,65):'יום '+(i+1);d.description=typeof d.description==='string'?d.description.slice(0,1200):'';d.travelMode=TRAVEL_MODES[d.travelMode]?d.travelMode:'';d.dayId=typeof d.dayId==='string'&&d.dayId?d.dayId:uid();d.loop=d.loop===true;d.color=validDayColor(d.color)?d.color:DAY_ACCENTS[i%DAY_ACCENTS.length];d.stops.forEach(stop=>{if(stop.type==='via'&&stop.notes==='נקודת עיצוב מסלול — אפשר לגרור או למחוק')stop.notes=''});d.segments=Array.isArray(d.segments)?d.segments:[];normalizeSavedEndpoints(d);syncWalkingLoops(d);syncLoopDay(d,{tripLoop:cleaned.settings.tripLoop===true&&i===cleaned.days.length-1,tripOrigin:cleaned.days[0]?.stops?.find(s=>s.type==='start'&&validPoint(s))||cleaned.days[0]?.stops?.find(s=>!isMapOnlyPoint(s)&&validPoint(s))});if(d.timeAnchor&&(!d.stops.some(s=>s.id===d.timeAnchor.stopId&&!isMapOnlyPoint(s))||!['arrival','departure'].includes(d.timeAnchor.kind)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(d.timeAnchor.time||'')))delete d.timeAnchor});
+
+ // Optional, trip-owned budget lines are independent of route points and remain
+ // compatible with older JSON trips that do not contain extraExpenses.
+ const validDayIds=new Set(cleaned.days.map(day=>day.dayId));
+ const expenseIds=new Set();
+ cleaned.extraExpenses=(Array.isArray(cleaned.extraExpenses)?cleaned.extraExpenses:[])
+  .filter(item=>item&&typeof item==='object'&&!Array.isArray(item))
+  .map(item=>{
+   const name=typeof item.name==='string'?item.name.trim().slice(0,90):'';
+   const amount=Number(item.amount);
+   if(!name||!Number.isFinite(amount)||amount<0||amount>1e9)return null;
+   let id=typeof item.id==='string'&&item.id.trim()?item.id.slice(0,100):uid();
+   if(expenseIds.has(id))id=uid();
+   expenseIds.add(id);
+   return {id,name,amount:Math.round(amount*100)/100,
+    dayId:typeof item.dayId==='string'&&validDayIds.has(item.dayId)?item.dayId:null};
+  }).filter(Boolean);
  // Existing trips with manually chosen start times or anchors retain those values.
  cleaned.days.forEach(d=>{
   const start=(d.stops||[]).find(p=>p.type==='start');

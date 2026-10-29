@@ -431,7 +431,114 @@ function setPlannerCollapsed(flag){
 }
 function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.toggle('show-mobile',!open);setRail(open?null:'plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
 function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize(),260)}
-function showBudget(){const byDay=state.days.map((d,i)=>({i,total:d.stops.reduce((a,s)=>a+(+s.cost||0),0)})),total=byDay.reduce((a,s)=>a+s.total,0),categories={};state.days.forEach(d=>d.stops.forEach(s=>categories[s.type]=(categories[s.type]||0)+(+s.cost||0)));const body=`<div style="background:#10283d;color:white;border-radius:17px;padding:23px;margin-bottom:18px"><span style="font-size:12px;color:#9bbaaF">סך עלויות מתוכננות</span><div style="font:900 34px var(--ui-font);margin-top:5px;direction:ltr;text-align:right">${money(total)}</div><span style="font-size:11px;color:#9fb4c5">הוצאות שהוזנו ידנית, ללא אומדן דלק, אגרות או מחירי אמת.</span></div><h3 style="font-size:14px">חלוקה לפי ימים</h3>${byDay.map(o=>`<div style="margin:13px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><strong>יום ${o.i+1}</strong><span>${money(o.total)}</span></div><div style="height:7px;background:#edf2f5;border-radius:20px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${total?o.total/Math.max(...byDay.map(x=>x.total),1)*100:0}%;background:#0bb3a4;border-radius:20px"></div></div></div>`).join('')}<h3 style="margin-top:28px;font-size:14px">חלוקה לפי סוג</h3>${Object.entries(categories).map(([key,val])=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px;border-bottom:1px solid #edf1f3;font-size:12px"><span>${types[key]?.emoji||'📍'} ${types[key]?.name||key}</span><strong>${money(val)}</strong></div>`).join('')||'<p class="footnote">לא הוזנו עלויות.</p>'}`;openDrawer('סקירת תקציב','BUDGET','סיכום התכנון הכספי של הטיול',body,`<button class="btn btn-primary" id="budget-close">סיום</button>`);$('budget-close').onclick=closeDrawer}
+
+function ronnyBudgetExpenses(){
+ if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];
+ return state.extraExpenses;
+}
+function ronnyBudgetAmount(value){
+ if(String(value).trim()==='')return null;
+ const n=Number(value);
+ return Number.isFinite(n)&&n>=0&&n<=1e9?Math.round(n*100)/100:null;
+}
+function ronnyBudgetDayOptions(chosen){
+ return '<option value="">כל הטיול (הוצאה כללית)</option>'+state.days.map((day,i)=>
+  '<option value="'+esc(day.dayId)+'"'+(chosen===day.dayId?' selected':'')+'>יום '+(i+1)+' · '+esc(day.label||'')+'</option>'
+ ).join('');
+}
+function ronnyBudgetModel(){
+ const expenses=ronnyBudgetExpenses();
+ const byDay=state.days.map((day,i)=>({
+  i,dayId:day.dayId,
+  total:(day.stops||[]).reduce((total,stop)=>total+(Number(stop.cost)||0),0)+
+   expenses.filter(item=>item.dayId===day.dayId).reduce((total,item)=>total+item.amount,0)
+ }));
+ const general=expenses.filter(item=>!byDay.some(day=>day.dayId===item.dayId))
+  .reduce((sum,item)=>sum+item.amount,0);
+ return {byDay,general,total:byDay.reduce((sum,day)=>sum+day.total,0)+general};
+}
+function ronnyBudgetMarkup(){
+ const expenses=ronnyBudgetExpenses();
+ const {byDay,general,total}=ronnyBudgetModel();
+ const peak=Math.max(1,...byDay.map(day=>day.total));
+ return '<div class="ronny-budget-summary">'+
+  '<span>סך עלויות מתוכננות</span><strong data-budget-total>'+money(total)+'</strong>'+
+  '<small>עלויות מנקודות המסלול והוצאות שהוספת בעצמך. לא מתבצע אומדן מחירים אוטומטי.</small></div>'+
+  '<section class="ronny-expenses" aria-labelledby="budget-expenses-title">'+
+  '<h3 id="budget-expenses-title">הוצאות חופשיות</h3>'+
+  '<p class="ronny-budget-hint">אפשר להוסיף כל הוצאה, למשל רכב, דלק, חניה או ביטוח, בלי ליצור נקודת מסלול.</p>'+
+  '<div class="ronny-expenses-list">'+(expenses.map(item=>
+   '<div class="ronny-expense-row" data-budget-row="'+esc(item.id)+'">'+
+   '<div class="ronny-expense-pair"><label>שם ההוצאה<input type="text" data-budget-field="name" required maxlength="90" value="'+esc(item.name)+'" aria-label="שם ההוצאה"></label>'+
+   '<label>סכום (₪)<input type="number" data-budget-field="amount" min="0" max="1000000000" step="0.01" required value="'+item.amount+'" aria-label="סכום ההוצאה"></label></div>'+
+   '<div class="ronny-expense-pair"><label>שיוך ליום<select data-budget-field="dayId" aria-label="יום ההוצאה">'+ronnyBudgetDayOptions(item.dayId)+'</select></label>'+
+   '<button type="button" data-budget-delete aria-label="מחק הוצאה '+esc(item.name)+'" title="מחק הוצאה">'+icon('trash-2','small-icon')+' מחיקה</button></div></div>'
+  ).join('')||'<p class="ronny-budget-empty">עדיין לא הוספת הוצאות חופשיות.</p>')+'</div>'+
+  '<form id="ronny-expense-add" class="ronny-expense-add">'+
+  '<div class="ronny-expense-pair"><label>הוצאה חדשה<input name="name" type="text" maxlength="90" placeholder="למשל השכרת רכב" required></label>'+
+  '<label>סכום (₪)<input name="amount" type="number" min="0" max="1000000000" step="0.01" placeholder="0" required></label></div>'+
+  '<label>שיוך ליום<select name="dayId">'+ronnyBudgetDayOptions('')+'</select></label>'+
+  '<button class="btn btn-soft" type="submit">'+icon('plus-circle','small-icon')+' הוסף הוצאה</button></form></section>'+
+  '<section class="ronny-budget-days" aria-labelledby="budget-days-title"><h3 id="budget-days-title">חלוקה לפי ימים</h3>'+
+  byDay.map(day=>'<div class="ronny-budget-day"><div><strong>יום '+(day.i+1)+'</strong><span>'+money(day.total)+'</span></div>'+
+   '<div class="ronny-budget-track"><div style="width:'+Math.min(100,Math.max(0,day.total/peak*100))+'%"></div></div></div>').join('')+
+  (general>0?'<p class="ronny-budget-general">הוצאות כלליות שאינן משויכות ליום: <strong>'+money(general)+'</strong></p>':'')+
+  '</section>';
+}
+function ronnyBudgetBind(){
+ const container=$('drawer-body');
+ const add=container.querySelector('#ronny-expense-add');
+ if(!add)return;
+ const redraw=()=>{
+  const current=container.scrollTop;
+  container.innerHTML=ronnyBudgetMarkup();
+  container.scrollTop=current;
+  ronnyBudgetBind();refreshIcons();
+ };
+ add.addEventListener('submit',event=>{
+  event.preventDefault();
+  if(!add.reportValidity())return;
+  const name=add.elements.namedItem('name').value.trim().slice(0,90);
+  const amount=ronnyBudgetAmount(add.elements.namedItem('amount').value);
+  if(!name||amount===null){toast('נא להזין שם וסכום תקין');return}
+  const dayId=add.elements.namedItem('dayId').value||null;
+  ronnyBudgetExpenses().push({id:uid(),name,amount,
+   dayId:state.days.some(day=>day.dayId===dayId)?dayId:null});
+  save();redraw();
+  container.querySelector('#ronny-expense-add [name="name"]')?.focus();
+ });
+ container.querySelectorAll('[data-budget-row]').forEach(row=>{
+  const id=row.dataset.budgetRow;
+  const getItem=()=>ronnyBudgetExpenses().find(item=>item.id===id);
+  row.querySelectorAll('[data-budget-field]').forEach(field=>field.addEventListener('change',()=>{
+   const item=getItem();if(!item)return;
+   if(!field.reportValidity())return;
+   if(field.dataset.budgetField==='name'){
+    const value=field.value.trim().slice(0,90);
+    if(!value){field.setCustomValidity('יש להזין שם להוצאה');field.reportValidity();return}
+    field.setCustomValidity('');item.name=value;
+   }else if(field.dataset.budgetField==='amount'){
+    const value=ronnyBudgetAmount(field.value);
+    if(value===null){field.setCustomValidity('יש להזין סכום תקין');field.reportValidity();return}
+    field.setCustomValidity('');item.amount=value;
+   }else{
+    item.dayId=state.days.some(day=>day.dayId===field.value)?field.value:null;
+   }
+   save();redraw();
+  }));
+  row.querySelector('[data-budget-delete]')?.addEventListener('click',()=>{
+   const index=ronnyBudgetExpenses().findIndex(item=>item.id===id);
+   if(index<0)return;
+   ronnyBudgetExpenses().splice(index,1);save();redraw();
+  });
+ });
+}
+function showBudget(){
+ openDrawer('סקירת תקציב','BUDGET','סיכום התכנון הכספי של הטיול',
+  ronnyBudgetMarkup(),'<button class="btn btn-primary" id="budget-close">סיום</button>');
+ $('budget-close').onclick=closeDrawer;
+ ronnyBudgetBind();
+}
 function showLodging(){const hotels=state.days.flatMap((d,i)=>{const end=(d.stops||[]).filter(s=>s.type==='hotel'||(s.type==='end'&&!(d.loop&&s.autoLoopEnd)));const start=d.loop?(d.stops||[]).find(s=>s.type==='start'):null;return [...(start?[start]:[]),...end].map(s=>({...s,day:i,ronnyCombined:!!(d.loop&&s===start)}))});const body=`<p class="footnote">רשימת המקומות שהוגדרו כלינה. לחץ על מלון כדי לערוך פרטי הזמנה, תאריכים והערות.</p>${hotels.map(s=>`<button data-lodge="${esc(s.id)}" style="width:100%;display:flex;align-items:center;gap:12px;text-align:right;border:1px solid #e5eef1;padding:15px;border-radius:13px;background:white;margin-bottom:12px;cursor:pointer"><span class="ronny-lodge-symbol">${pointSymbol(s.ronnyCombined?'loop':pointTypeAlias(s.type))}</span><span style="flex:1"><strong style="display:block">${esc(s.ronnyCombined?'נקודת התחלה/סיום יום '+(s.day+1):s.type==='end'?'נקודת סיום יום '+(s.day+1):s.name)}</strong>${!ronnyIsAutoEndpointName(s.name)&&s.type!=='hotel'?`<small class="ronny-lodge-place">${esc(s.name)}</small>`:''}<small style="color:#8194a0">יום ${s.day+1} · ${esc(dayDate(s.day))}</small></span><strong>${money(s.cost)}</strong></button>`).join('')||'<div class="no-stops"><strong>לא הוגדרו מקומות לינה</strong><p>הוסף נקודה מסוג לינה כדי לרכז כאן את מקומות האירוח.</p></div>'}`;openDrawer('מקומות לינה','ACCOMMODATION','כל הלינות לאורך המסלול',body,`<button class="btn btn-primary" id="new-lodge">${icon('plus')} הוספת לינה</button>`);$('new-lodge').onclick=()=>openStopForm(null,null,'end');$('drawer-body').querySelectorAll('[data-lodge]').forEach(b=>b.onclick=()=>openPointQuick(b.dataset.lodge))}
 /* RONNY version history is loaded from PATCH NOTES JSON files in the deployment. */
 const RONNY_PATCH_INDEX_URL='./PATCH%20NOTES/index.json';

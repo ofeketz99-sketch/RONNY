@@ -1,0 +1,10 @@
+{
+  "version": "83",
+  "date": "2026-10-29",
+  "notes": [
+    "הוסרה מסקירת התקציב החלוקה לפי סוגי נקודות.",
+    "נוסף אזור הוצאות חופשיות עם שם, סכום ושיוך אופציונלי ליום, כולל עריכה ומחיקה.",
+    "ההוצאות החופשיות מצטרפות לסך התקציב, ואל התקציב של יום מסוים כאשר שויכו אליו, ונשמרות בטיול גם לאחר ייצוא וייבוא."
+  ],
+  "technical": "Data in trip.extraExpenses; imported data normalized in prepareTrip; budget fields do not create route stops. Backup: backups/2026-10-29_pre-free-budget-costs_cddf675919. Browser verification pending."
+}

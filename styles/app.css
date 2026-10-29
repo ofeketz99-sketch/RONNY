@@ -2282,3 +2282,26 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
   max-height:calc(100% - 40px);
  }
 }
+
+
+/* Patch 83 — user-defined independent trip expenses. */
+.ronny-budget-summary{background:#203a35;color:#fffdf8;border-radius:15px;padding:19px;margin-bottom:20px;display:grid;gap:5px}
+.ronny-budget-summary>span{font-size:12px;color:#c1d8c9}.ronny-budget-summary>strong{font-size:30px;font-weight:900;direction:ltr;text-align:right}
+.ronny-budget-summary>small{color:#d6e5d8;font-size:11px;line-height:1.5}
+.ronny-expenses h3,.ronny-budget-days h3{font-size:15px;color:#395947;margin:0 0 8px}
+.ronny-budget-hint,.ronny-budget-empty{font-size:11px;line-height:1.5;color:#788a7b;margin:0 0 12px}
+.ronny-expenses-list{display:grid;gap:8px}
+.ronny-expense-row{display:grid;gap:9px;border:1px solid #dce6da;border-radius:12px;padding:10px;background:#f8faf6}
+.ronny-expense-pair{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(100px,.75fr);gap:9px;align-items:end}
+.ronny-expense-row label,.ronny-expense-add label{display:grid;gap:5px;min-width:0;font-size:11px;color:#526e58;font-weight:700}
+.ronny-expense-row input,.ronny-expense-add input,.ronny-expense-row select,.ronny-expense-add select{width:100%;min-width:0;box-sizing:border-box;padding:9px 10px;border:1px solid #d8e4d6;background:#fffefa;border-radius:9px;color:#293e31;font:12px var(--ui-font)}
+.ronny-expense-row input:focus,.ronny-expense-add input:focus,.ronny-expense-row select:focus,.ronny-expense-add select:focus{outline:2px solid #a8c7aa;outline-offset:1px}
+.ronny-expense-row [data-budget-delete]{border:1px solid #ead4cc;background:#fff5f0;border-radius:9px;color:#a54e3d;min-height:35px;cursor:pointer;font-size:11px}
+.ronny-expense-add{border:1px dashed #abc7b0;background:#f7faf5;border-radius:12px;padding:12px;margin-top:13px;display:grid;gap:10px}
+.ronny-expense-add .btn{justify-content:center;display:flex;align-items:center;gap:7px}
+.ronny-budget-days{margin-top:24px}
+.ronny-budget-day{margin:13px 0}.ronny-budget-day>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.ronny-budget-day strong{color:#4c6653}.ronny-budget-track{height:7px;background:#e9efed;border-radius:20px;margin-top:6px;overflow:hidden}
+.ronny-budget-track>div{height:100%;background:#91b9a1;border-radius:20px}
+.ronny-budget-general{font-size:12px;color:#506958;border-top:1px solid #e4eae2;padding-top:12px;margin-top:16px}
+@media(max-width:350px){.ronny-expense-pair{grid-template-columns:minmax(0,1fr)}}
