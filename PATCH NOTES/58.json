@@ -1,0 +1,10 @@
+{
+  "version": "58",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספו בדיקות דפדפן אוטומטיות עם Chromium לאתחול המפה וטעינת הגרסאות.",
+    "נוספה בדיקת שמירה וטעינה לאחר רענון, באמצעות IndexedDB אמיתי.",
+    "נוספה בדיקת מסלול הליכה מעגלי מתוך טיול בדיקה מבודד, ללא שינוי בטיולים קיימים."
+  ],
+  "technical": "DEV only. New Playwright runner and GitHub Actions Chromium smoke job. Real browser outcome to be verified after CI. Does not test live navigation service reliability or full end-to-end drawing/import/export. Backup: backups/2026-10-29_before_browser_tests_04547d51/."
+}
