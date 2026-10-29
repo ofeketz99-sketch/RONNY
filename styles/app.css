@@ -2164,3 +2164,87 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 /* Patch 73 — preserve the supplied Glencairn silhouette and legibility on colored map markers. */
 .ronny-icon-choice .ronny-glencairn-icon{width:23px;height:23px}
 .marker.point-pin .ronny-glencairn-icon{filter:brightness(0) invert(1)}
+
+
+/* RONNY 75 — bounded, scrollable point editor with optional disclosure panels. */
+.map-pane #point-quick[data-mode="day"]{
+ width:min(460px,calc(100% - 24px));
+ max-width:none;
+ max-height:calc(100% - 24px);
+ overflow:hidden;
+}
+.map-pane #point-quick[data-mode="day"].open{display:flex;flex-direction:column}
+#point-quick[data-mode="day"] .point-quick-header{flex:0 0 auto;padding:11px 14px 9px}
+#point-quick[data-mode="day"] .point-quick-form,
+#point-quick[data-mode="day"].ronny-point-full .point-quick-form{
+ display:flex;flex-direction:column;
+ flex:1 1 auto;min-height:0;max-height:none;
+ gap:9px;padding:12px 14px;
+ overflow-y:auto;overflow-x:hidden;
+ overscroll-behavior:contain;scrollbar-width:thin;
+}
+#point-quick[data-mode="day"] .point-quick-form>*{
+ width:100%;min-width:0;flex:none;
+ margin:0;grid-column:auto;grid-row:auto;
+}
+#point-quick[data-mode="day"] .point-quick-form>.quick-field{margin:0}
+#point-quick[data-mode="day"] .point-quick-form textarea{min-height:66px;height:74px;max-height:180px}
+#point-quick[data-mode="day"] .point-quick-heading .quick-save-state{
+ display:inline-block;font-size:10px;font-weight:700;color:#66846e;margin-top:1px;
+}
+#point-quick[data-mode="day"] .point-quick-actions,
+#point-quick[data-mode="day"].ronny-point-full .point-quick-actions{
+ flex:0 0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:6px;padding:9px 13px 11px;
+}
+#point-quick[data-mode="day"] .point-quick-actions button{
+ width:100%;min-width:0;min-height:35px;padding:7px 6px;
+}
+#point-quick[data-mode="day"] .point-quick-actions [data-quick-move]{grid-column:auto}
+#point-quick[data-mode="day"] .ronny-point-accordion{
+ border:1px solid #dae3d7;border-radius:11px;
+ background:#f7f9f4;overflow:hidden;min-width:0;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion[open]{
+ border-color:#c3d5c6;background:#fffdfa;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary{
+ list-style:none;display:flex;align-items:center;gap:9px;
+ min-height:39px;padding:9px 11px;cursor:pointer;
+ color:#3e6049;font-size:12px;font-weight:800;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary::-webkit-details-marker{display:none}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary:after{
+ content:'⌄';margin-inline-start:auto;display:block;
+ color:#78917d;font-size:18px;line-height:1;
+ transition:transform .17s ease;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion[open]>summary:after{transform:rotate(180deg)}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary:focus-visible{
+ outline:2px solid #6b9b79;outline-offset:-2px;border-radius:10px;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary>.small-icon,
+#point-quick[data-mode="day"] .ronny-point-accordion>summary>svg{width:17px;height:17px;flex:none}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary strong{flex:0 1 auto}
+#point-quick[data-mode="day"] .ronny-point-accordion>summary small{
+ margin-inline-start:auto;font-size:10px;font-weight:700;
+ color:#788c7b;direction:ltr;
+}
+#point-quick[data-mode="day"] .ronny-point-accordion-body{padding:8px 11px 11px;display:grid;gap:9px}
+#point-quick[data-mode="day"] .ronny-point-accordion-body>*{min-width:0;margin:0}
+#point-quick[data-mode="day"] .ronny-point-accordion-body .quick-two{width:100%;gap:7px}
+#point-quick[data-mode="day"] .ronny-point-accordion-body .quick-field{margin:0}
+#point-quick[data-mode="day"] .ronny-point-accordion-body .point-route-links{border:0;padding:0}
+#point-quick[data-mode="day"] .ronny-point-accordion-body .point-route-links>strong{display:none}
+#point-quick[data-mode="day"] .ronny-icon-grid{
+ max-height:min(190px,30vh);overflow-y:auto;grid-template-columns:repeat(4,minmax(0,1fr));
+}
+#point-quick[data-mode="day"] .quick-departure{margin:0}
+@media(max-height:620px){
+ .map-pane #point-quick[data-mode="day"]{max-height:calc(100% - 12px)}
+ #point-quick[data-mode="day"] .point-quick-form{padding:8px 11px;gap:6px}
+ #point-quick[data-mode="day"] .point-quick-actions{padding:6px 10px}
+}
+@media(prefers-reduced-motion:reduce){
+ #point-quick[data-mode="day"] .ronny-point-accordion>summary:after{transition:none}
+}

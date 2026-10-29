@@ -80,6 +80,35 @@ function openPointQuick(id){
   startLegDrawing(next);
  };
 }
+
+ // Keep the core point fields immediately accessible and place the optional controls in
+ // exclusive, native disclosure panels. Move existing inputs instead of rebuilding them,
+ // so the timing, route, color and icon listeners retain their original DOM targets.
+ const quickForm=el.querySelector('.point-quick-form');
+ const addPointSection=(key,label,symbol,nodes,detail='')=>{
+  const items=nodes.filter(Boolean);if(!items.length)return null;
+  const section=document.createElement('details');
+  section.className='ronny-point-accordion';
+  section.name='ronny-point-details';
+  section.dataset.ronnyPointSection=key;
+  const summary=document.createElement('summary');
+  summary.innerHTML=icon(symbol,'small-icon')+'<strong>'+label+'</strong>'+(detail?'<small>'+esc(detail)+'</small>':'');
+  const content=document.createElement('div');
+  content.className='ronny-point-accordion-body';
+  items.forEach(node=>content.appendChild(node));
+  section.append(summary,content);quickForm.appendChild(section);
+  return section;
+ };
+ const iconSection=quickForm.querySelector('.ronny-icon-editor');
+ if(iconSection){iconSection.name='ronny-point-details';iconSection.dataset.ronnyPointSection='icons';iconSection.classList.add('ronny-point-accordion');quickForm.appendChild(iconSection);}
+ addPointSection('colors','צבע הנקודה','palette',[quickForm.querySelector('.quick-colors')]);
+ const timingNodes=['.quick-two','.quick-departure-editor','.quick-departure','.walk-loop-options'].map(selector=>quickForm.querySelector(selector));
+ addPointSection('timing',s.type==='walkStart'?'זמנים ופרטי ההליכה':'זמנים ושהייה','clock-3',timingNodes,
+  String(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00')).slice(0,5));
+ addPointSection('routes','דרכים אל הנקודה וממנה','route',[quickForm.querySelector('.point-route-links')]);
+ const saveStatus=el.querySelector('#quick-save-state');
+ if(saveStatus)el.querySelector('.point-quick-heading')?.appendChild(saveStatus);
+
  el.dataset.id=id;el.dataset.mode='day';
  const pane=$('map')?.closest('.map-pane');
  const roomy=!!pane&&pane.clientWidth>=560&&pane.clientHeight>=560;

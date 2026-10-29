@@ -1,0 +1,10 @@
+{
+  "version": "75",
+  "date": "2026-10-29",
+  "notes": [
+    "חלונית עריכת נקודה עברה למבנה קומפקטי: אייקונים, צבעים, זמנים ודרכים נמצאים בתפריטים מתקפלים.",
+    "גובה החלונית מוגבל לגודל המפה, וגלילה פנימית מאפשרת שימוש גם בעת פתיחת בנק האייקונים.",
+    "סוג, שם ותיאור נשארים זמינים תמיד; פעולות הנקודה ושמירה אוטומטית נשמרו."
+  ],
+  "technical": "Point editor DOM regrouped into exclusive details; no trip schema changes. Backup: backups/2026-10-29_pre-point-accordion_087d9a0644/. Browser verification pending."
+}
