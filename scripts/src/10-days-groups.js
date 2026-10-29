@@ -201,8 +201,16 @@ function highlightMapPoint(id,on=true){
 }
 
 function renderDays(){
- const html=state.days.map((d,i)=>`<button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button>`).join('');
+ const html=state.days.map((d,i)=>`<div class="ronny-day-card"><button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button><button type="button" class="ronny-day-card-edit" data-day-edit="${i}" title="ערוך את יום ${i+1}" aria-label="ערוך את יום ${i+1}" draggable="false">${icon('pencil','small-icon')}</button></div>`).join('');
  $('days').innerHTML=html;const prev=$('day-prev'),next=$('day-next');if(prev)prev.disabled=selectedDay<=0;if(next)next.disabled=selectedDay>=state.days.length-1;const active=$('days').querySelector('.day-pill.active');if(active){const strip=$('days').getBoundingClientRect(),rect=active.getBoundingClientRect();if(rect.left<strip.left+3||rect.right>strip.right-3)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
+ $('days').querySelectorAll('[data-day-edit]').forEach(button=>button.addEventListener('click',event=>{
+  event.stopPropagation();
+  const dayIndex=Number(button.dataset.dayEdit);
+  if(!Number.isInteger(dayIndex)||dayIndex<0||dayIndex>=state.days.length)return;
+  if(dayIndex!==selectedDay||planningResolution!=='day')selectDay(dayIndex);
+  // A missing endpoint may cancel switching days. Do not edit the wrong day.
+  if(selectedDay===dayIndex)editDay();
+ }));
  $('days').querySelectorAll('[data-day]').forEach(el=>{
   el.onclick=()=>selectDay(+el.dataset.day);
   el.addEventListener('dragstart',e=>{e.dataTransfer.setData('application/x-ronny-day',el.dataset.day);e.dataTransfer.effectAllowed='move';el.classList.add('is-day-dragging')});

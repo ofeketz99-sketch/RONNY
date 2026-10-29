@@ -1,0 +1,14 @@
+{
+  "version": "96",
+  "date": "2026-10-29",
+  "notes": [
+    "לכל כרטיס ברצף הימים נוסף כפתור עריכה קטן שפותח את הגדרות היום ישירות.",
+    "לחיצה רגילה על כרטיס יום עדיין בוחרת את היום, וגרירת הכרטיס לשינוי סדר נשמרת.",
+    "אם מעבר ליום אחר מבוטל בעקבות אזהרת נקודת סיום חסרה, חלונית העריכה לא תיפתח על היום הלא נכון."
+  ],
+  "technical": [
+    "Day card remains a native button, with a separate sibling edit button to avoid nested controls.",
+    "Reuses selectDay and editDay; no changes to trip schema, routes, storage or planner timeline.",
+    "Adds structural and Chromium browser regression tests."
+  ]
+}
