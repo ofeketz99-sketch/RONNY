@@ -129,7 +129,7 @@ function openSettings(focus='trip'){
  <div class="trip-setup-card"><strong>שעת יציאה ברירת מחדל</strong><div class="field"><label for="trip-default-departure">שעת יציאה לכל יום שלא נקבעה בו שעה ידנית</label><div class="ronny-time-control"><input id="trip-default-departure" class="ronny-time-input" type="text" inputmode="numeric" maxlength="5" autocomplete="off" value="${esc(tripDefaultDepartureTime())}" aria-label="שעת יציאה ברירת מחדל"><button class="ronny-time-trigger" type="button" aria-label="בחר שעת יציאה" title="בחר שעה">${icon('clock','small-icon')}</button></div></div><p class="footnote">ימים עם שעת יציאה או עוגן זמן ידניים לא ישתנו.</p></div>
   <div class="trip-setup-card"><strong>סיום המסלול כולו</strong><label class="ronny-loop-setting"><input type="checkbox" id="trip-round-loop" ${state.settings.tripLoop===true?'checked':''}><span class="ronny-loop-setting-icon">${pointSymbol('loop')}</span><span><strong>טיול מעגלי — חזרה לנקודת היציאה בסוף הטיול</strong><small>הדרך חזרה מחושבת רק אחרי התחנה האחרונה ביום האחרון, אל נקודת היציאה של היום הראשון. שונה מ״יום מעגלי״ שמחזיר בסוף יום מסוים.</small></span></label></div>
  <div class="trip-setup-card"><strong>מרכז המפה של הטיול</strong><div class="two-cols"><div class="field"><label for="trip-center-lat">קו רוחב</label><input id="trip-center-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${state.settings.startCenter?.lat??mapPrefs.home.lat}"></div><div class="field"><label for="trip-center-lng">קו אורך</label><input id="trip-center-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${state.settings.startCenter?.lng??mapPrefs.home.lng}"></div></div><div class="field"><label for="trip-center-zoom">רמת זום</label><input id="trip-center-zoom" type="number" min="2" max="19" value="${state.settings.startCenter?.zoom??mapPrefs.home.zoom}"></div><button type="button" class="btn btn-soft" id="trip-use-map-center">${icon('crosshair')} מרכז המפה הנוכחי</button></div></section>
- <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>בחר אילו מפות יופיעו בבורר המפות, סַדר אותן וקבע ברירת מחדל. כל המפות מחוברות לשירותי אריחים חיצוניים ודורשות אינטרנט.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">שינוי בנק המפות ישפיע על כל הטיולים בדפדפן הזה. ניתן להחזיר כל שכבה בכל עת.</div></section>
+ <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>מפת התצ״א והמפה הטופוגרפית זמינות תמיד במתג שעל המפה. כאן אפשר לבחור איזו מהן תהיה ברירת מחדל.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">שינוי בנק המפות ישפיע על כל הטיולים בדפדפן הזה. ניתן להחזיר כל שכבה בכל עת.</div></section>
  <section id="settings-view-home" class="settings-view" role="tabpanel" hidden><div class="api-intro"><strong>נקודת פתיחה קבועה</strong><p>המפה תיפתח במיקום ובזום שתבחר בכל פתיחה של האתר, גם אם לטיול יש עצירות במקומות אחרים. כפתור ״הצג הכול״ עדיין יציג את המסלול.</p></div>
  <div class="two-cols"><div class="field"><label for="home-lat">קו רוחב</label><input id="home-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${draftHome.lat}"></div><div class="field"><label for="home-lng">קו אורך</label><input id="home-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${draftHome.lng}"></div></div>
  <div class="field"><label for="home-zoom">רמת התקרבות (2–19)</label><input id="home-zoom" type="number" min="2" max="19" step="1" value="${draftHome.zoom}"></div>
@@ -138,11 +138,10 @@ function openSettings(focus='trip'){
  openDrawer('הגדרות RONNY','PREFERENCES','בנק מפות, נקודת פתיחה ושירותים אופציונליים',body,`<button class="btn" id="settings-cancel">ביטול</button><button class="btn btn-primary" id="settings-save">${icon('check')} שמירת הגדרות</button>`);
  const activate=which=>{for(const id of ['trip','maps','home','google']){$('settings-view-'+id).hidden=id!==which;$('settings-tab-'+id).classList.toggle('active',id===which);$('settings-tab-'+id).setAttribute('aria-selected',String(id===which))}};
  for(const id of ['trip','maps','home','google'])$('settings-tab-'+id).onclick=()=>activate(id);
- function renderBank(){const list=$('map-bank-list');list.innerHTML=[...draft,...AVAILABLE_MAP_STYLES.filter(k=>!draft.includes(k))].map(k=>{
- const active=draft.includes(k),i=draft.indexOf(k);return `<div class="map-bank-item"><label class="map-bank-main"><input type="checkbox" data-bank-map="${k}" ${active?'checked':''}><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span></label><div class="map-bank-actions"><button type="button" data-bank-up="${k}" aria-label="הזז למעלה: ${esc(MAP_LABELS[k])}" ${!active||i===0?'disabled':''}>↑</button><button type="button" data-bank-down="${k}" aria-label="הזז למטה: ${esc(MAP_LABELS[k])}" ${!active||i===draft.length-1?'disabled':''}>↓</button></div>${active?`<label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> מפה ראשית כברירת מחדל</label>`:''}</div>`}).join('');
- list.querySelectorAll('[data-bank-map]').forEach(el=>el.onchange=()=>{const k=el.dataset.bankMap;if(el.checked){draft.push(k)}else if(draft.length===1){el.checked=true;toast('צריך להשאיר לפחות מפה אחת פעילה');return}else{draft=draft.filter(a=>a!==k);if(defaultStyle===k)defaultStyle=draft[0]}renderBank()});
- list.querySelectorAll('[data-bank-up],[data-bank-down]').forEach(el=>el.onclick=()=>{const k=el.dataset.bankUp||el.dataset.bankDown,i=draft.indexOf(k),j=i+(el.dataset.bankUp?-1:1);if(i<0||j<0||j>=draft.length)return;[draft[i],draft[j]]=[draft[j],draft[i]];renderBank()});
- list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
+ function renderBank(){
+  const list=$('map-bank-list');
+  list.innerHTML=AVAILABLE_MAP_STYLES.map(k=>`<div class="map-bank-item"><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span><label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> מפה ראשית כברירת מחדל</label></div>`).join('');
+  list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
  }
  // Display bank choices in current order rather than the fixed catalog order.
  // An up/down button calls renderBank again after reordering.
@@ -280,25 +279,38 @@ function initPointTree(){
 }
 function showPointTypeTreeExpanded(group){const p=currentContext;if(!p)return;const el=$('map-context'),x=parseFloat(el.style.left),y=parseFloat(el.style.top);el.innerHTML=mapTreeMarkup(group);el.style.left=x+'px';el.style.top=y+'px';keepMapPopoverVisible(el);refreshIcons();}
 
+function syncMapBaseSwitch(){
+ const wrapper=$('map-base-switch');if(!wrapper)return;
+ const selected=state.settings.mapStyle==='topo'?'topo':'satellite';wrapper.dataset.style=selected;
+ wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{const current=btn.dataset.mapBase===selected;btn.setAttribute('aria-checked',String(current));btn.tabIndex=current?0:-1});
+}
+function initMapBaseSwitch(){
+ const wrapper=$('map-base-switch');if(!wrapper)return;
+ wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{
+  btn.onclick=()=>setMapStyle(btn.dataset.mapBase);
+  btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();const other=wrapper.querySelector('[data-map-base]:not([aria-checked="true"])');if(other){setMapStyle(other.dataset.mapBase);other.focus()}};
+ });syncMapBaseSwitch();
+}
 function initMapQuickPickers(){
- const dayTrigger=$('map-day-trigger'),layerTrigger=$('map-layer-trigger'),dayMenu=$('map-day-menu'),layerMenu=$('map-layer-menu');
- if(!dayTrigger||!layerTrigger)return;
- const close=()=>{for(const [btn,menu] of [[dayTrigger,dayMenu],[layerTrigger,layerMenu]]){menu.hidden=true;btn.setAttribute('aria-expanded','false')}};
- const show=(kind)=>{
-  const select=$(kind==='day'?'map-scope':'map-style'),menu=kind==='day'?dayMenu:layerMenu,btn=kind==='day'?dayTrigger:layerTrigger;
-  if(!menu.hidden){close();return}close();
-  menu.innerHTML=`<div class="map-quick-title">${kind==='day'?'בחירת יום ותצוגה':'סוג מפה'}</div>`+Array.from(select.options).map(o=>`<button type="button" class="map-quick-choice" role="menuitemradio" aria-checked="${select.value===o.value}" data-map-pick="${esc(o.value)}">${esc(o.textContent)}${select.value===o.value?`<span class="choice-check">${icon('check')}</span>`:''}</button>`).join('')+(kind==='day'?`<div class="map-quick-title">ימי הטיול</div>${state.days.map((d,i)=>`<button type="button" class="map-quick-choice" data-map-day="${i}" aria-current="${selectedDay===i&&viewScope==='day'?'true':'false'}">יום ${i+1} · ${esc(dayDate(i))}${selectedDay===i&&viewScope==='day'?`<span class="choice-check">${icon('check')}</span>`:''}</button>`).join('')}`:'');
-  menu.hidden=false;btn.setAttribute('aria-expanded','true');refreshIcons();
-  menu.querySelectorAll('[data-map-pick]').forEach(option=>option.onclick=()=>{select.value=option.dataset.mapPick;close();select.dispatchEvent(new Event('change',{bubbles:true}))});
-  menu.querySelectorAll('[data-map-day]').forEach(option=>option.onclick=()=>{close();selectDay(+option.dataset.mapDay)});
+ const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();if(!dayTrigger||!dayMenu)return;
+ const close=()=>{dayMenu.hidden=true;dayTrigger.setAttribute('aria-expanded','false')};
+ dayTrigger.onclick=()=>{
+  if(!dayMenu.hidden){close();return}
+  const select=$('map-scope');
+  dayMenu.innerHTML=`<div class="map-quick-title">בחירת יום ותצוגה</div>`+
+   Array.from(select.options).map(o=>`<button type="button" class="map-quick-choice" role="menuitemradio" aria-checked="${select.value===o.value}" data-map-pick="${esc(o.value)}">${esc(o.textContent)}${select.value===o.value?`<span class="choice-check">${icon('check')}</span>`:''}</button>`).join('')+
+   `<div class="map-quick-title">ימי הטיול</div>`+
+   state.days.map((d,i)=>`<button type="button" class="map-quick-choice" data-map-day="${i}" aria-current="${selectedDay===i&&viewScope==='day'?'true':'false'}">יום ${i+1} · ${esc(dayDate(i))}${selectedDay===i&&viewScope==='day'?`<span class="choice-check">${icon('check')}</span>`:''}</button>`).join('');
+  dayMenu.hidden=false;dayTrigger.setAttribute('aria-expanded','true');refreshIcons();
+  dayMenu.querySelectorAll('[data-map-pick]').forEach(option=>option.onclick=()=>{select.value=option.dataset.mapPick;close();select.dispatchEvent(new Event('change',{bubbles:true}))});
+  dayMenu.querySelectorAll('[data-map-day]').forEach(option=>option.onclick=()=>{close();selectDay(+option.dataset.mapDay)});
  };
- dayTrigger.onclick=()=>show('day');layerTrigger.onclick=()=>show('map');
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#map-quick-views'))close()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 }
 
 function initMapGroupToggles(){const pane=document.querySelector('.map-pane');
- for(const [id,cls] of [['map-controls-toggle','map-controls-expanded'],['map-tools-toggle','map-tools-expanded'],['route-card-toggle','route-card-expanded']]){
+ for(const [id,cls] of [['map-controls-toggle','map-controls-expanded'],['route-card-toggle','route-card-expanded']]){
   const btn=$(id);if(!btn)continue;btn.onclick=()=>{const open=pane.classList.toggle(cls);btn.setAttribute('aria-expanded',String(open));btn.setAttribute('aria-label',(open?'הסתר ':'הצג ')+(id==='map-controls-toggle'?'הגדרות תצוגת מפה':id==='map-tools-toggle'?'כלי מפה':'סיכום מסלול'))};
  }
 }

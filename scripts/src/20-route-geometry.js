@@ -568,26 +568,42 @@ function wireGuideControls(panel){
  panel.querySelector('#ronny-guide-endpoints').onchange=e=>commit('endpoints',e.target.checked);
  panel.querySelector('#ronny-guide-reset').onclick=()=>{state.settings.outlineGuideStyle={...OUTLINE_GUIDE_DEFAULTS};save();redrawOutlineGuideOnly();renderLayerFilterPanel()};
 }
+let ronnyLayerPanelMode='layers';
 function renderLayerFilterPanel(){
  const el=$('layer-filter-panel');if(!el)return;
- const visibility=layerVisibility();
- el.innerHTML=`<div class="layer-filter-panel-head"><div><strong>שכבות במפה</strong><small>אפשר לבחור אילו שכבות ותוויות יוצגו כעת</small></div><button type="button" id="layer-filter-close" aria-label="סגירת חלונית שכבות">${icon('x','small-icon')}</button></div>${guideControlsMarkup()}<div class="layer-filter-list">${LAYER_FILTER_DEFS.map(item=>`<label class="layer-filter-row"><span><strong>${item.label}</strong><small>${item.hint}</small></span><input class="layer-filter-switch" type="checkbox" data-layer-key="${item.key}" ${visibility[item.key]?'checked':''}></label>`).join('')}</div><div class="layer-filter-presets"><button type="button" id="layer-preset-all">הכול</button><button type="button" id="layer-preset-clean">מסלול נקי</button></div>`;
- wireGuideControls(el);
- $('layer-filter-close').onclick=closeLayerFilterPanel;
- el.querySelectorAll('[data-layer-key]').forEach(input=>input.onchange=()=>{const key=input.dataset.layerKey;layerVisibility()[key]=!!input.checked;save();renderMap()});
- $('layer-preset-all').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,routeTimes:true};save();renderMap();renderLayerFilterPanel()};
- $('layer-preset-clean').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,poiLinks:false,routeLabels:false,routeTimes:false,photos:false};save();renderMap();renderLayerFilterPanel()};
- refreshIcons();
+ const guide=ronnyLayerPanelMode==='contours', visibility=layerVisibility();
+ el.innerHTML=`<div class="layer-filter-panel-head"><div><strong>${guide?'קווי מתאר':'שכבות במפה'}</strong><small>${guide?'עיצוב קווי המתאר המחברים בין עוגני התכנון':'בחירת שכבות ותוויות לתצוגה'}</small></div><button type="button" id="layer-filter-close" aria-label="סגירת חלונית">${icon('x','small-icon')}</button></div>`+
+ (guide?guideControlsMarkup():`<div class="layer-filter-list">${LAYER_FILTER_DEFS.map(item=>`<label class="layer-filter-row"><span><strong>${item.label}</strong><small>${item.hint}</small></span><input class="layer-filter-switch" type="checkbox" data-layer-key="${item.key}" ${visibility[item.key]?'checked':''}></label>`).join('')}</div><div class="layer-filter-presets"><button type="button" id="layer-preset-all">הכול</button><button type="button" id="layer-preset-clean">מסלול נקי</button></div>`);
+ if(guide)wireGuideControls(el);
+ else{
+  el.querySelectorAll('[data-layer-key]').forEach(input=>input.onchange=()=>{const key=input.dataset.layerKey;layerVisibility()[key]=!!input.checked;save();renderMap()});
+  $('layer-preset-all').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,routeTimes:true};save();renderMap();renderLayerFilterPanel()};
+  $('layer-preset-clean').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,poiLinks:false,routeLabels:false,routeTimes:false,photos:false};save();renderMap();renderLayerFilterPanel()};
+ }
+ $('layer-filter-close').onclick=closeLayerFilterPanel;refreshIcons();
 }
-function closeLayerFilterPanel(){const el=$('layer-filter-panel');if(!el)return;el.classList.remove('open');$('layer-filter-toggle')?.setAttribute('aria-pressed','false')}
-function openLayerFilterPanel(){
+function closeLayerFilterPanel(){
+ const el=$('layer-filter-panel');if(!el)return;el.classList.remove('open');
+ $('layer-filter-toggle')?.setAttribute('aria-pressed','false');
+ $('map-outline-guide-toggle')?.setAttribute('aria-pressed','false');
+}
+function openLayerFilterPanel(mode='layers'){
  closeLegEditor();hidePointQuick();hideContext();
- const el=$('layer-filter-panel');if(!el)return;renderLayerFilterPanel();el.classList.add('open');$('layer-filter-toggle')?.setAttribute('aria-pressed','true');
- const pane=document.querySelector('.map-pane'),btn=$('layer-filter-toggle');if(!pane||!btn)return;
+ ronnyLayerPanelMode=mode==='contours'?'contours':'layers';
+ const el=$('layer-filter-panel');if(!el)return;
+ renderLayerFilterPanel();el.classList.add('open');
+ const btn=$(ronnyLayerPanelMode==='contours'?'map-outline-guide-toggle':'layer-filter-toggle');
+ $('layer-filter-toggle')?.setAttribute('aria-pressed',String(ronnyLayerPanelMode==='layers'));
+ $('map-outline-guide-toggle')?.setAttribute('aria-pressed',String(ronnyLayerPanelMode==='contours'));
+ const pane=document.querySelector('.map-pane');if(!pane||!btn)return;
  const paneRect=pane.getBoundingClientRect(),box=btn.getBoundingClientRect();
  positionMapPopover(el,{x:box.left-paneRect.left+box.width/2,y:box.top-paneRect.top+box.height/2});
 }
-function toggleLayerFilterPanel(){const el=$('layer-filter-panel');if(!el)return;el.classList.contains('open')?closeLayerFilterPanel():openLayerFilterPanel()}
+function toggleLayerFilterPanel(mode='layers'){
+ const el=$('layer-filter-panel');if(!el)return;
+ if(el.classList.contains('open')&&ronnyLayerPanelMode===mode)closeLayerFilterPanel();
+ else openLayerFilterPanel(mode);
+}
 
 function chooseForcedWaypointAction(number){
  const pane=document.querySelector('.map-pane');if(!pane)return Promise.resolve(null);

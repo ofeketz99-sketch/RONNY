@@ -154,6 +154,7 @@ function setMapStyle(style,persist=true){
   }
  $('map-style').value=style;
  state.settings.mapStyle=style;
+ syncMapBaseSwitch();
  if(persist)save();
 }
 const VIA_COLORS=['#7ea89a','#7d98c8','#c88d84','#9988c9','#caa061','#6fa8a9','#c27e9d','#a4b56d','#b98962','#889f7f','#6ea3c0','#c08fb6','#bca36b','#73a18e','#c47973','#878dbe'];

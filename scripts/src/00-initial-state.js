@@ -102,7 +102,7 @@ function bindPointTypePicker({autoSaveOnPick=false}={}){const picker=$('point-ty
 
 // RONNY library uses IndexedDB to store independent trips (including photo journals).
 // One-time import from the legacy single-trip key keeps previous work intact.
-const AVAILABLE_MAP_STYLES=['streets','topo','esri-topo','satellite','satellite-labels'];
+const AVAILABLE_MAP_STYLES=['satellite','topo'];
 const MAP_LABELS={streets:'מפה כללית · Esri',topo:'מפה טופוגרפית · OpenTopoMap','esri-topo':'מפה טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · שמות, כבישים ואתרים'};
 const DEFAULT_LAYER_VISIBILITY={routeLines:true,routeStops:true,poi:true,notes:true,ideas:true,poiLinks:true,routeLabels:true,routeTimes:false,photos:true};
 const LAYER_FILTER_DEFS=[
@@ -124,9 +124,10 @@ const MAP_PREF_KEY='ronny-global-map-settings-v1';
 const DEFAULT_HOME={lat:46.75,lng:8.12,zoom:9};
 function readMapPrefs(){let obj={};try{obj=JSON.parse(localStorage.getItem(MAP_PREF_KEY)||'{}')||{}}catch(e){}
  const order=Array.isArray(obj.enabledMaps)?obj.enabledMaps.filter((v,i,a)=>AVAILABLE_MAP_STYLES.includes(v)&&a.indexOf(v)===i):AVAILABLE_MAP_STYLES.slice();
- if(!order.length)order.push('streets');
+ if(!order.includes('satellite'))order.unshift('satellite');
+  if(!order.includes('topo'))order.push('topo');
  const home=obj.home||DEFAULT_HOME;
- return {enabledMaps:order,defaultStyle:order.includes(obj.defaultStyle)?obj.defaultStyle:order[0],home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
+ return {enabledMaps:order,defaultStyle:order.includes(obj.defaultStyle)?obj.defaultStyle:'satellite',home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
 }
 let mapPrefs=readMapPrefs(),homePickMode=false;
 function saveMapPrefs(){try{localStorage.setItem(MAP_PREF_KEY,JSON.stringify(mapPrefs));return true}catch(e){toast('לא ניתן לשמור הגדרות מפה בדפדפן');return false}}

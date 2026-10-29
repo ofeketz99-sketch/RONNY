@@ -2305,3 +2305,21 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-budget-track>div{height:100%;background:#91b9a1;border-radius:20px}
 .ronny-budget-general{font-size:12px;color:#506958;border-top:1px solid #e4eae2;padding-top:12px;margin-top:16px}
 @media(max-width:350px){.ronny-expense-pair{grid-template-columns:minmax(0,1fr)}}
+
+/* Patch 84: compact two-state map background switch and separate map tools. */
+.map-quick-views{align-items:flex-start;gap:11px}
+.map-base-switch{position:relative;display:flex;direction:rtl;align-items:stretch;gap:0;width:225px;min-height:43px;padding:4px;border-radius:14px;border:1px solid #d8ddcf;background:#f1efe6;box-shadow:0 5px 18px #26392a25;isolation:isolate}
+.map-base-switch:before{content:"";position:absolute;z-index:-1;top:4px;bottom:4px;right:4px;width:calc((100% - 8px)/2);border-radius:10px;background:#fffdf8;box-shadow:0 2px 8px #253c2d24;transition:transform .23s cubic-bezier(.2,.8,.25,1)}
+.map-base-switch[data-style="topo"]:before{transform:translateX(-100%)}
+.map-base-switch button{position:relative;flex:1 1 50%;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;border:0;background:transparent;padding:8px 5px;color:#718274;font-size:12px;font-weight:750;white-space:nowrap;border-radius:10px}
+.map-base-switch button[aria-checked="true"]{color:#345a43}
+.map-base-switch button:hover{color:#245941}
+.map-base-switch button svg{width:15px;height:15px;stroke-width:1.8}
+.map-mini-tools{display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.map-mini-tool{width:43px;height:43px;display:grid;place-items:center;background:#fffaf2;color:#456b53;border:1px solid #e0ddcf;border-radius:13px;box-shadow:0 4px 16px #24372c26;transition:background-color .2s,transform .2s,border-color .2s}
+.map-mini-tool:hover{transform:translateY(-2px);background:#edf4e9}
+.map-mini-tool[aria-pressed="true"]{background:#dbece0;border-color:#77aa8a;color:#305a42;box-shadow:0 3px 13px #355c4533}
+.map-mini-tool svg{width:20px;height:20px;stroke-width:1.9}
+.map-tools-side[hidden]{display:none!important}
+@media(max-width:760px){.map-quick-views{top:12px;left:12px;gap:8px}.map-base-switch{width:207px;min-height:40px}.map-mini-tool{width:40px;height:40px}.map-mini-tool svg{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.map-base-switch:before,.map-mini-tool{transition:none}}
