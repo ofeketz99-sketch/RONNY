@@ -87,3 +87,28 @@ test('retrace mode is named out-and-back on the walking route editor',async({pag
  await expect(page.locator('#point-quick .walk-loop-head strong')).toHaveText('מסלול הלוך חזור');
  await expect(page.locator('#walk-retrace-check')).toBeChecked();
 });
+
+test('first day and first stage ignore remote map-only pins without changing other fit modes',async({page})=>{
+ const fixture=journey();
+ fixture.days[0].stops.push(s('remote-idea-first-day','idea',60,-5));
+ fixture.days[1].stops=[
+  s('c','start',46.06,7.85),
+  s('d','end',46.07,7.88,{fromId:'c',mode:'straight',minutes:15,path:[]})
+ ];
+ await boot(page,fixture);
+ const zoom=()=>page.evaluate(()=>{
+  const urls=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>i.src);
+  const levels=urls.map(u=>Number(u.split('/tile/')[1]?.split('/')[0])).filter(n=>Number.isFinite(n));
+  return levels.length?Math.max(...levels):0;
+ });
+ // The faraway idea should still be counted in the true whole-trip overview.
+ await page.locator('[data-ronny-group-view=""]').click();
+ await expect.poll(zoom).toBeLessThan(10);
+ // Only the first day and first group use the focused first-entity correction.
+ await page.locator('[data-day="0"].day-pill').click();
+ await expect.poll(zoom).toBeGreaterThan(10);
+ await page.locator('[data-ronny-group-view="stage1"]').click();
+ await expect.poll(zoom).toBeGreaterThan(8);
+ await page.locator('[data-ronny-group-view="stage2"]').click();
+ await expect.poll(zoom).toBeGreaterThan(9);
+});

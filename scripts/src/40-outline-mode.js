@@ -308,11 +308,38 @@ function selectDay(i){if(i<0||i>=state.days.length)return;
   state.days[selectedDay].excludedUntilEnd=true;save();
  }
  ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
+// The first day and the first stage can contain distant, unscheduled ideas.
+// Keep ALL planned route stops and manually drawn geometry in the fit, but don't
+// let a remote map-only pin shrink the initial entity into a tiny map footprint.
+function firstEntityFocusPositions(days){
+ const planned=[],mapOnly=[];
+ const add=(target,p)=>{
+  const q=Array.isArray(p)?{lat:p[0],lng:p[1]}:p;
+  if(validPoint(q))target.push([+q.lat,+q.lng]);
+ };
+ for(const di of days)for(const stop of state.days[di]?.stops||[]){
+  if(!validPoint(stop))continue;
+  if(isMapOnlyPoint(stop))mapOnly.push([+stop.lat,+stop.lng]);
+  else{
+   add(planned,stop);
+   for(const field of ['path','viaPoints'])if(Array.isArray(stop.leg?.[field]))stop.leg[field].forEach(p=>add(planned,p));
+  }
+ }
+ if(!planned.length)return TripQueries.focusMapPositions(state,days);
+ const minLat=Math.min(...planned.map(p=>p[0])),maxLat=Math.max(...planned.map(p=>p[0]));
+ const minLng=Math.min(...planned.map(p=>p[1])),maxLng=Math.max(...planned.map(p=>p[1]));
+ const spread=kmBetween([minLat,minLng],[maxLat,maxLng]);
+ const nearbyLimitKm=Math.max(35,Math.min(100,spread*1.5));
+ return planned.concat(mapOnly.filter(p=>planned.some(anchor=>kmBetween(anchor,p)<=nearbyLimitKm)));
+}
 function fitMap(){
  if(!map)return;
  if(planningResolution!=='day'){fitOutlineMap();return}
- // Only the selected entity defines the viewport; other days' idea markers remain visible separately.
- const coords=TripQueries.focusMapPositions(state,ronnyVisibleDayIndices());
+ // All other days, stages and the full-trip view retain their existing fit.
+ const days=ronnyVisibleDayIndices(),firstGroup=ronnyDayGroups()[0];
+ const isFirstEntity=(viewScope==='day'&&selectedDay===0)||
+  (viewScope==='all'&&!!firstGroup&&ronnyActiveDayGroupId===firstGroup.id);
+ const coords=isFirstEntity?firstEntityFocusPositions(days):TripQueries.focusMapPositions(state,days);
  if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
  if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
  map.fitBounds(L.latLngBounds(coords),{padding:[38,44],maxZoom:16,animate:true,duration:.65});
