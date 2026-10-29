@@ -1,0 +1,10 @@
+{
+  "version": "56",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספו בדיקות זרימה המשלבות מסלול הליכה, חישוב נתיבים, שמירה ותזמון.",
+    "נוסף אימות אוטומטי של קובצי האתר ושלמות היסטוריית הגרסאות.",
+    "הוגדר תהליך בדיקות אוטומטי לענף הפיתוח בלבד."
+  ],
+  "technical": "DEV only. 5 integration scenarios with mocked routing passed in isolated JS runtime; static integrity tests added, Node/npm suite and GitHub Actions results require confirmation. Live browser/Leaflet/IndexedDB routing regression remains pending. Backup backups/2026-10-29_pre-integration-tests_f9bdd0a1/."
+}
