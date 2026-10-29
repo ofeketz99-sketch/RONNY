@@ -597,7 +597,12 @@ function openLayerFilterPanel(mode='layers'){
  $('map-outline-guide-toggle')?.setAttribute('aria-pressed',String(ronnyLayerPanelMode==='contours'));
  const pane=document.querySelector('.map-pane');if(!pane||!btn)return;
  const paneRect=pane.getBoundingClientRect(),box=btn.getBoundingClientRect();
- positionMapPopover(el,{x:box.left-paneRect.left+box.width/2,y:box.top-paneRect.top+box.height/2});
+ // Place this menu to the RIGHT of the fixed icon rail. A general map-popup
+ // collision algorithm may otherwise cover the very next toolbar icon.
+ const left=Math.max(12,Math.min(pane.clientWidth-el.offsetWidth-12,box.right-paneRect.left+14));
+ const top=Math.max(12,Math.min(pane.clientHeight-el.offsetHeight-12,box.top-paneRect.top-14));
+ el.style.left=Math.round(left)+'px';
+ el.style.top=Math.round(top)+'px';
 }
 function toggleLayerFilterPanel(mode='layers'){
  const el=$('layer-filter-panel');if(!el)return;

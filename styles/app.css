@@ -2323,3 +2323,22 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .map-tools-side[hidden]{display:none!important}
 @media(max-width:760px){.map-quick-views{top:12px;left:12px;gap:8px}.map-base-switch{width:207px;min-height:40px}.map-mini-tool{width:40px;height:40px}.map-mini-tool svg{width:19px;height:19px}}
 @media(prefers-reduced-motion:reduce){.map-base-switch:before,.map-mini-tool{transition:none}}
+
+/* Patch 85 — make quick map controls a fixed left rail; prevent the switch from displacing them. */
+.map-pane .map-quick-views{
+ width:43px;direction:ltr;align-items:flex-start;gap:11px;
+}
+.map-pane .map-quick-views>.map-quick-trigger,.map-pane .map-mini-tools{
+ flex:none;align-self:flex-start;
+}
+.map-pane .map-base-switch{
+ position:absolute;top:0;left:54px;margin:0;width:210px;min-height:43px;
+}
+.map-pane .map-mini-tools{width:43px;align-items:flex-start;gap:9px}
+.map-pane #map-day-menu{top:53px;left:53px}
+@media(max-width:760px){
+ .map-pane .map-quick-views{width:40px;gap:9px}
+ .map-pane .map-base-switch{left:49px;width:198px;min-height:40px}
+ .map-pane .map-mini-tools{width:40px;gap:8px}
+ .map-pane #map-day-menu{left:49px;top:49px}
+}

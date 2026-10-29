@@ -64,12 +64,10 @@ async function clickMap(page,x,y){
   await page.mouse.click(box.x+box.width*x,box.y+box.height*y);
 }
 
-test('dragging a route marker in edit mode persists the position after reload',async({page})=>{
+test('dragging a route marker directly persists the position after reload',async({page})=>{
   await open(page);
   await page.locator('#fit-route').click();
-  if(!(await page.locator('#route-edit-toggle').isVisible()))await page.locator('#map-tools-toggle').click();
-  await page.locator('#route-edit-toggle').click();
-  await expect(page.locator('#route-edit-toggle')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#route-edit-toggle')).toHaveAttribute('aria-pressed','false');
   const marker=page.locator('.leaflet-marker-icon[data-ronny-stop-id="finish"]');
   await expect(marker).toBeVisible();
   // The new tight fit animates for 650ms; do not drag while Leaflet is moving markers.
