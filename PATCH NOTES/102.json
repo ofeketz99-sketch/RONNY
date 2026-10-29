@@ -1,0 +1,13 @@
+{
+  "version": "102",
+  "date": "2026-10-29",
+  "notes": [
+    "שופרה קריאות המסלולים בסקירת מקטעים בעזרת קו רציף עם מסגרת בהירה.",
+    "נקודות תחילת ימים בסקירה מוצגות כסמנים עגולים אחידים וממוספרים.",
+    "פס צבע המקטע בכרטיסי הימים הועבר לגבול אנכי למניעת חיתוך בריחוף."
+  ],
+  "technical": [
+    "Visual-only overview change; automatic route geometry and zoom unchanged.",
+    "Live browser visual verification pending."
+  ]
+}

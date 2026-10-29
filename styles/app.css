@@ -2432,3 +2432,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-stage-summary strong{color:#293e32;font-size:12px}
 .ronny-stage-summary [data-stage-distance]{margin-inline-start:auto;font-variant-numeric:tabular-nums}
 @media(max-width:470px){.ronny-stage-summary{gap:5px;padding:6px 8px;font-size:10px}}
+
+/* Patch 102 — clear overview markers and route contrast; integrated stage identity on day cards. */
+#days .ronny-day-card.ronny-in-stage::before{content:none!important}
+#days .ronny-day-card.ronny-in-stage>.day-pill[data-day]{border-inline-start:5px solid var(--stage-color);padding-inline-start:11px;transition:background-color .18s,border-color .18s,box-shadow .18s}
+#days .ronny-day-card.ronny-in-stage>.day-pill[data-day]:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--stage-color) 34%,transparent),0 3px 10px #263b2920}
+.ronny-stage-start-marker{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--pin-color,#587d69);color:#fffdf6;border:3px solid #fffaf0;box-shadow:0 2px 0 #233d32aa,0 3px 10px #122c26a0;font:900 13px/1 var(--ui-font);transform:none}
+.ronny-stage-start-marker span{display:block;direction:ltr;font-variant-numeric:tabular-nums}
+.leaflet-marker-icon:has(.ronny-stage-start-marker){display:grid;place-items:center}
+@media(prefers-reduced-motion:reduce){#days .ronny-day-card.ronny-in-stage>.day-pill[data-day]{transition:none}}
