@@ -342,7 +342,8 @@ function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
  const q=$('place-search').value.trim();
  if(!q){hideSearch();return}
- const local=state.days.flatMap(d=>d.stops).filter(p=>p.name?.toLocaleLowerCase().includes(q.toLocaleLowerCase())).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+ const normalized=q.toLocaleLowerCase();
+ const local=state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
  if(q.length<2){if(local.length)paintSearchResults(local,q);else{$('search-results').innerHTML='<div class="search-state">המשך להקליד כדי לראות הצעות למקומות.</div>';$('search-results').classList.add('open')}return}
  searchChoices=[];$('search-results').innerHTML='<div class="search-state search-loading">מחפש מקומות…</div>'+externalSearchMarkup(q);$('search-results').classList.add('open');
  searchDebounce=setTimeout(()=>searchPlaces(q,local),420);
@@ -351,9 +352,14 @@ async function searchPlaces(overrideQuery=null,local=[]){
  const q=(overrideQuery??$('place-search').value).trim();if(q.length<2)return;
  const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
  try{
-  let results=searchCache.get(q.toLowerCase());
+  // Photon search is center-biased; text-only caching returns stale places after moving the map.
+  const near=map?.getCenter();
+  const bucket=near&&Number.isFinite(near.lat)&&Number.isFinite(near.lng)
+   ?Math.round(near.lat*5)/5+','+Math.round(near.lng*5)/5:'global';
+  const cacheKey=q.toLocaleLowerCase()+'|'+bucket;
+  let results=searchCache.get(cacheKey);
   if(!results){
-   const near=map?.getCenter();const params=new URLSearchParams({q,limit:'7',lang:'he'});
+   const params=new URLSearchParams({q,limit:'7',lang:'he'});
    if(near){params.set('lat',near.lat.toFixed(5));params.set('lon',near.lng.toFixed(5));}
    const res=await fetch('https://photon.komoot.io/api/?'+params.toString(),{signal:searchController.signal,headers:{Accept:'application/json'}});
    if(!res.ok)throw Error('שירות החיפוש אינו זמין');
@@ -371,7 +377,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
     }catch(retryError){if(retryError.name==='AbortError')throw retryError}
    }
    if(searchCache.size>=40)searchCache.delete(searchCache.keys().next().value);
-   searchCache.set(q.toLowerCase(),results);
+   searchCache.set(cacheKey,results);
   }
   if(seq!==searchSeq||q!==$('place-search').value.trim())return;
   const unique=new Set();paintSearchResults([...local,...results].filter(p=>{const key=p.name+'|'+p.lat.toFixed(4);if(unique.has(key))return false;unique.add(key);return true}).slice(0,9),q);

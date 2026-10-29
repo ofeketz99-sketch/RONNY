@@ -274,7 +274,8 @@ function refreshLegTextLabels(){
   const arr=stops();
   for(let i=1;i<arr.length;i++)drawRouteAnnotations(i,paintedLegCoordinates.get(i)||legCoords(i,arr),arr,legLabelLayer);
  }else{
-  state.days.forEach((day,di)=>{
+  // A stage shows labels only for its visible days, even if other ideas remain on the map.
+  ronnyVisibleDayIndices().forEach(di=>{
    const arr=routeStopsForDay(di).filter(validPoint);
    for(let i=1;i<arr.length;i++){
     const conf=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);

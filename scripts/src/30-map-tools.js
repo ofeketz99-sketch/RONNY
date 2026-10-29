@@ -385,13 +385,26 @@ function renderMarkers(){
  if(!map)return;
  markerLayer.clearLayers();
  const palette=['#08a99c','#517bb9','#a269d3','#d08b38','#3b967c','#d36776','#64748b'];
+ // Precompute route order and walking-loop endpoints once per visible day.
+ // Without this, every map marker rescans every stop in its day.
+ const routeIndexByDay=new Map(),walkingEndByDay=new Map();
+ for(const di of ronnyVisibleDayIndices()){
+  const indexes=new Map(),walkEnds=new Map();
+  routeStopsForDay(di).forEach((p,index)=>{
+   if(!indexes.has(p.id))indexes.set(p.id,index+1);
+   if(p.type==='walkEnd'&&p.walkLoopSource&&!walkEnds.has(p.walkLoopSource))
+    walkEnds.set(p.walkLoopSource,p);
+  });
+  routeIndexByDay.set(di,indexes);
+  walkingEndByDay.set(di,walkEnds);
+ }
  currentStopsForMap().forEach(({stop:s,di,si})=>{
    if(!validPoint(s)||!markerVisibleForStop(s)||s.autoLoopEnd||s.autoWalkEnd)return;
    const cls=types[s.type]?.cls||'';
    const override=viewScope==='all'?`style="background:${palette[di%palette.length]}"`:'';
-   const routeOrder=isMapOnlyPoint(s)?null:routeStopsForDay(di).findIndex(p=>p.id===s.id)+1;
+   const routeOrder=isMapOnlyPoint(s)?null:(routeIndexByDay.get(di)?.get(s.id)??0);
    const tint=s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:ronnyPointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type,s)}</span></div>`;
-   const walkFinish=s.type==='walkStart'?routeStopsForDay(di).find(p=>p.type==='walkEnd'&&p.walkLoopSource===s.id):null;
+   const walkFinish=s.type==='walkStart'?walkingEndByDay.get(di)?.get(s.id):null;
     const walkRange=walkFinish&&s.time&&walkFinish.time?s.time+'–'+walkFinish.time:s.time||'';
     const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
