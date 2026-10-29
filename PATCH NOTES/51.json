@@ -1,0 +1,10 @@
+{
+  "version": "51",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקן סדר הטעינה הפנימי של שכבות הקוד כך שיתאים לתהליך הבנייה.",
+    "אומתה התאמה מלאה בין כל 25 קובצי המקור לקובץ JavaScript המוגש לדפדפן.",
+    "לא שונו מנגנוני התכנון, המפה או שמירת הטיולים."
+  ],
+  "technical": "Corrected inherited TripStorage module ordering in generated scripts/app.js; complete 25-part byte-for-byte recomposition and JS syntax verified. Does not imply browser regression tests were run. Backup: backups/2026-10-29_pre-build-order-fix_71040a6e/"
+}
