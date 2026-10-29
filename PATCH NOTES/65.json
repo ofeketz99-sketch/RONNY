@@ -1,0 +1,10 @@
+{
+  "version": "65",
+  "date": "2026-10-29",
+  "notes": [
+    "הושלם שלב בדיקות העומק והסידור המבני לגרסת המחשב, והפרויקט מוכן לפיתוח פיצ׳רים חדשים בענף DEV.",
+    "אומתו 59 בדיקות Node ו־13 בדיקות Chromium, כולל גרירת מסלולים, שרטוט, שמירה וייבוא וייצוא.",
+    "תועדה נקודת הבסיס לפיתוח הבא והוחלט לדחות את ממשק המובייל והאופליין."
+  ],
+  "technical": "Documentation/readiness milestone only. Green GitHub Actions on patch 64: Node https://github.com/ofeketz99-sketch/RONNY/actions/runs/40868374779 ; Chromium https://github.com/ofeketz99-sketch/RONNY/actions/runs/40868374890 . 28 source files match generated bundle exactly. Browser performance smoke 52 stops 904 ms in one CI run. Live external routing and all performance edge cases not exhaustively checked. No main changes. Backup backups/2026-10-29_pre-readiness-milestone_2a2ba121/."
+}
