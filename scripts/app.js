@@ -2784,6 +2784,25 @@ function setMapStyle(style,persist=true){
  syncMapBaseSwitch();
  if(persist)save();
 }
+// The documented Maps URL opens a map viewport, not a Street View panorama.
+// Street View coverage is not supported as a link-controlled Google Maps layer.
+function googleMapsCurrentViewUrl(){
+ if(!map)return null;
+ const center=map.getCenter(),zoom=Math.min(21,Math.max(0,Math.round(map.getZoom())));
+ if(!Number.isFinite(center.lat)||!Number.isFinite(center.lng)||!Number.isFinite(zoom))return null;
+ const coordinates=encodeURIComponent(center.lat.toFixed(6)+','+center.lng.toFixed(6));
+ const basemap=state.settings.mapStyle==='topo'?'terrain':'satellite';
+ return 'https://www.google.com/maps/@?api=1&map_action=map&center='+coordinates+'&zoom='+zoom+'&basemap='+basemap;
+}
+function bindGoogleMapsCurrentView(){
+ const link=$('map-google-view');if(!link)return;
+ link.onclick=e=>{
+  const url=googleMapsCurrentViewUrl();
+  if(!url){e.preventDefault();toast('המפה עדיין לא זמינה');return}
+  link.href=url;
+  toast('כדי להציג קווי Street View כחולים בגוגל: שכבות ← Street View');
+ };
+}
 const VIA_COLORS=['#7ea89a','#7d98c8','#c88d84','#9988c9','#caa061','#6fa8a9','#c27e9d','#a4b56d','#b98962','#889f7f','#6ea3c0','#c08fb6','#bca36b','#73a18e','#c47973','#878dbe'];
 function autoViaColor(day,id){
  const ordinal=viaOrdinal(day,id)-1;
@@ -4051,13 +4070,16 @@ function syncMapBaseSwitch(){
 }
 function initMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
+ const toggle=()=>setMapStyle(state.settings.mapStyle==='topo'?'satellite':'topo');
+ // Click anywhere on the capsule, including the already selected half.
+ wrapper.onclick=toggle;
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{
-  btn.onclick=()=>setMapStyle(btn.dataset.mapBase);
-  btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();const other=wrapper.querySelector('[data-map-base]:not([aria-checked="true"])');if(other){setMapStyle(other.dataset.mapBase);other.focus()}};
- });syncMapBaseSwitch();
+  btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();toggle();wrapper.querySelector('[aria-checked="true"]')?.focus()};
+ });
+ syncMapBaseSwitch();
 }
 function initMapQuickPickers(){
- const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();if(!dayTrigger||!dayMenu)return;
+ const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();bindGoogleMapsCurrentView();if(!dayTrigger||!dayMenu)return;
  const close=()=>{dayMenu.hidden=true;dayTrigger.setAttribute('aria-expanded','false')};
  dayTrigger.onclick=()=>{
   if(!dayMenu.hidden){close();return}

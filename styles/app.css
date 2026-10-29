@@ -2342,3 +2342,11 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
  .map-pane .map-mini-tools{width:40px;gap:8px}
  .map-pane #map-day-menu{left:49px;top:49px}
 }
+
+/* Patch 86 — compact icon-only two-state switch, clickable across its entire surface. */
+.map-pane .map-base-switch{width:108px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.map-pane .map-base-switch button{padding:5px 4px;cursor:pointer}
+.map-pane .map-base-switch button svg{width:19px;height:19px;stroke-width:2}
+.map-pane .map-mini-tool{text-decoration:none}
+.map-pane #map-google-view:hover{color:#245941}
+@media(max-width:760px){.map-pane .map-base-switch{width:102px}}

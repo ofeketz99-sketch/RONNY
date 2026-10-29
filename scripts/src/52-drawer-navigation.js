@@ -286,13 +286,16 @@ function syncMapBaseSwitch(){
 }
 function initMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
+ const toggle=()=>setMapStyle(state.settings.mapStyle==='topo'?'satellite':'topo');
+ // Click anywhere on the capsule, including the already selected half.
+ wrapper.onclick=toggle;
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{
-  btn.onclick=()=>setMapStyle(btn.dataset.mapBase);
-  btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();const other=wrapper.querySelector('[data-map-base]:not([aria-checked="true"])');if(other){setMapStyle(other.dataset.mapBase);other.focus()}};
- });syncMapBaseSwitch();
+  btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();toggle();wrapper.querySelector('[aria-checked="true"]')?.focus()};
+ });
+ syncMapBaseSwitch();
 }
 function initMapQuickPickers(){
- const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();if(!dayTrigger||!dayMenu)return;
+ const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();bindGoogleMapsCurrentView();if(!dayTrigger||!dayMenu)return;
  const close=()=>{dayMenu.hidden=true;dayTrigger.setAttribute('aria-expanded','false')};
  dayTrigger.onclick=()=>{
   if(!dayMenu.hidden){close();return}

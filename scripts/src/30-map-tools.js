@@ -157,6 +157,25 @@ function setMapStyle(style,persist=true){
  syncMapBaseSwitch();
  if(persist)save();
 }
+// The documented Maps URL opens a map viewport, not a Street View panorama.
+// Street View coverage is not supported as a link-controlled Google Maps layer.
+function googleMapsCurrentViewUrl(){
+ if(!map)return null;
+ const center=map.getCenter(),zoom=Math.min(21,Math.max(0,Math.round(map.getZoom())));
+ if(!Number.isFinite(center.lat)||!Number.isFinite(center.lng)||!Number.isFinite(zoom))return null;
+ const coordinates=encodeURIComponent(center.lat.toFixed(6)+','+center.lng.toFixed(6));
+ const basemap=state.settings.mapStyle==='topo'?'terrain':'satellite';
+ return 'https://www.google.com/maps/@?api=1&map_action=map&center='+coordinates+'&zoom='+zoom+'&basemap='+basemap;
+}
+function bindGoogleMapsCurrentView(){
+ const link=$('map-google-view');if(!link)return;
+ link.onclick=e=>{
+  const url=googleMapsCurrentViewUrl();
+  if(!url){e.preventDefault();toast('המפה עדיין לא זמינה');return}
+  link.href=url;
+  toast('כדי להציג קווי Street View כחולים בגוגל: שכבות ← Street View');
+ };
+}
 const VIA_COLORS=['#7ea89a','#7d98c8','#c88d84','#9988c9','#caa061','#6fa8a9','#c27e9d','#a4b56d','#b98962','#889f7f','#6ea3c0','#c08fb6','#bca36b','#73a18e','#c47973','#878dbe'];
 function autoViaColor(day,id){
  const ordinal=viaOrdinal(day,id)-1;
