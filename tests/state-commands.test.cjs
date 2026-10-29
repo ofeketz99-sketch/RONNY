@@ -60,6 +60,15 @@ test('pre-render normalization respects original sequencing and view-dependent s
    synchronizeChronologicalEndpointNames:()=>{called.push('names');return false}};
   const changed=commands.synchronizeForRender({days:[{},{}]},isDay,deps);
   assert.equal(changed,isDay);
-  assert.deepEqual(JSON.parse(JSON.stringify(called)),isDay?['walking','walking','loop','starts','names']:['walking','walking','loop','names']);
+  assert.deepEqual(JSON.parse(JSON.stringify(called)),isDay?['walking','walking','starts','loop','names']:['walking','walking','loop','names']);
  }
+});
+
+test('linked start coordinates are resolved before generated circular endpoints',()=>{
+ const trip={days:[{stops:[{type:'start',lat:1,lng:2}]},{loop:true,stops:[{type:'start',lat:1,lng:2},{type:'end',autoLoopEnd:true,lat:1,lng:2}]}]};
+ const observed=[];
+ const deps={syncWalkingLoops:()=>false,synchronizeDayStarts:()=>{trip.days[1].stops[0].lat=7;observed.push('inherit');return true},synchronizeLoopDays:()=>{trip.days[1].stops[1].lat=trip.days[1].stops[0].lat;observed.push('loop');return true},synchronizeChronologicalEndpointNames:()=>false};
+ assert.equal(commands.synchronizeForRender(trip,true,deps),true);
+ assert.deepEqual(observed,['inherit','loop']);
+ assert.equal(trip.days[1].stops[1].lat,7);
 });
