@@ -1,0 +1,10 @@
+{
+  "version": "71",
+  "date": "2026-10-29",
+  "notes": [
+    "סודר סרגל רצף הימים כך שהחצים וכפתור ההוספה נשארים קבועים גם כשהפאנל צר.",
+    "כרטיסי הימים שומרים על רוחב יציב ונגללים אופקית בלי להידחס.",
+    "כותרת רצף הימים מסתדרת במספר שורות כשאין מקום לכל הפעולות."
+  ],
+  "technical": "CSS-only grid and scroll layout; no JavaScript or trip-data changes. Static structure checks passed; live browser regression remains required. Backup: backups/2026-10-29_pre-day-navigation_68636b6b/."
+}

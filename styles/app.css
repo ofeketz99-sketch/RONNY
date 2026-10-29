@@ -2076,3 +2076,77 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-group-nav:hover:not(:disabled){background:#e0ecdf}
 .ronny-group-nav:disabled{opacity:.28;cursor:default}
 .ronny-group-nav:focus-visible,.ronny-group-chip:focus-visible{outline:2px solid #397c65;outline-offset:2px}
+
+
+/* Patch 71 — stable day navigation at the planner's 315px minimum width.
+   Only the day cards scroll; arrows and add control never shrink or overlap. */
+.planner .ronny-day-navigation{
+ display:grid;
+ grid-template-columns:36px minmax(0,1fr) 36px 36px;
+ align-items:stretch;
+ gap:6px;
+ padding:7px 10px;
+ min-width:0;
+ max-width:100%;
+ box-sizing:border-box;
+}
+.planner .ronny-day-navigation>.day-strip{
+ display:flex;
+ flex:none;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ gap:8px;
+ padding:5px 2px 10px;
+ overflow-x:auto;
+ overflow-y:hidden;
+ scroll-snap-type:x proximity;
+ scrollbar-width:thin;
+ scrollbar-color:#a9bdad transparent;
+ box-sizing:border-box;
+}
+.planner .ronny-day-navigation>.day-strip::-webkit-scrollbar{height:4px}
+.planner .ronny-day-navigation>.day-strip::-webkit-scrollbar-thumb{background:#a9bdad;border-radius:999px}
+.planner .ronny-day-navigation>.day-strip>.day-pill[data-day]{
+ flex:0 0 118px;
+ width:118px;
+ min-width:118px;
+ max-width:118px;
+ min-height:94px;
+ box-sizing:border-box;
+ scroll-snap-align:start;
+ overflow:hidden;
+}
+.planner .ronny-day-navigation>.ronny-day-arrow,
+.planner .ronny-day-navigation>.ronny-fixed-add-day{
+ flex:none!important;
+ width:36px!important;
+ min-width:36px!important;
+ max-width:36px!important;
+ height:auto!important;
+ min-height:94px!important;
+ max-height:none!important;
+ margin:5px 0 10px!important;
+ padding:0!important;
+ align-self:stretch!important;
+ box-sizing:border-box;
+ border-radius:10px;
+}
+.planner .ronny-day-navigation>.ronny-day-arrow svg,
+.planner .ronny-day-navigation>.ronny-fixed-add-day svg{width:19px!important;height:19px!important}
+.planner .day-sequence-heading{
+ flex-wrap:wrap;
+ justify-content:flex-start;
+ column-gap:8px;
+ row-gap:5px;
+ min-width:0;
+}
+.planner .day-sequence-heading>strong{margin-inline-end:auto;white-space:nowrap}
+.planner .day-sequence-heading>button{flex:0 0 auto;max-width:100%}
+.planner .ronny-day-navigation>.day-strip>.day-pill .day-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.planner .ronny-day-navigation>.ronny-day-arrow:focus-visible,
+.planner .ronny-day-navigation>.ronny-fixed-add-day:focus-visible,
+.planner .ronny-day-navigation>.day-strip:focus-visible{outline:2px solid #377b64;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){
+ .planner .ronny-day-navigation>.day-strip{scroll-behavior:auto;scroll-snap-type:none}
+}
