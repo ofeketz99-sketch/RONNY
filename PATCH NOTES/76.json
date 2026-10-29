@@ -1,0 +1,9 @@
+{
+  "version": "76",
+  "date": "2026-10-29",
+  "notes": [
+    "חלונית הנקודה מתאימה מחדש את מיקומה במפה כאשר תפריט מתקפל נפתח, כדי שלא תחרוג מהמסך גם ליד הקצה התחתון.",
+    "הורחבה בדיקת הדפדפן לתרחיש פתיחת בנק האייקונים כשהחלונית קרובה לתחתית."
+  ],
+  "technical": "Follow-up on patch 75. Browser regression for point editor previously passed; one unrelated marker-drag regression test was flaky and requires confirmation. Backup: backups/2026-10-29_pre-point-accordion-reflow_8f0bad6002/."
+}

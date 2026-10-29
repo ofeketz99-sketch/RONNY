@@ -108,6 +108,14 @@ function openPointQuick(id){
  addPointSection('routes','דרכים אל הנקודה וממנה','route',[quickForm.querySelector('.point-route-links')]);
  const saveStatus=el.querySelector('#quick-save-state');
  if(saveStatus)el.querySelector('.point-quick-heading')?.appendChild(saveStatus);
+ // A disclosure changes the actual popup height after positioning. Clamp it
+ // back into the map, including when the editor is near the bottom edge.
+ quickForm.querySelectorAll('details[name="ronny-point-details"]').forEach(section=>{
+  section.addEventListener('toggle',()=>{
+   if(!section.open)return;
+   requestAnimationFrame(()=>{if(el.classList.contains('open'))keepMapPopoverVisible(el)});
+  });
+ });
 
  el.dataset.id=id;el.dataset.mode='day';
  const pane=$('map')?.closest('.map-pane');

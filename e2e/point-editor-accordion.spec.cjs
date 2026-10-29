@@ -49,5 +49,21 @@ test('point editing keeps advanced menus collapsed, scrollable and inside the ma
  await popup.locator('details[data-ronny-point-section="routes"]>summary').click();
  await expect(popup.locator('[data-point-leg]').first()).toBeVisible();
  await expect(popup.locator('[data-quick-close]')).toBeVisible();
+
+ // Expand near the lower edge: the panel must re-clamp as its height grows.
+ await popup.locator('details[data-ronny-point-section="routes"]>summary').click();
+ await expect(popup.locator('details[open]')).toHaveCount(0);
+ const lowerEdge=await popup.evaluate(node=>{
+  const parent=node.closest('.map-pane');
+  const bottomY=parent.clientHeight-node.getBoundingClientRect().height-12;
+  node.style.top=bottomY+'px';
+  return bottomY;
+ });
+ await popup.locator('details[data-ronny-point-section="icons"]>summary').click();
+ await expect.poll(()=>popup.evaluate(node=>{
+  const pane=node.closest('.map-pane').getBoundingClientRect();
+  return pane.bottom-node.getBoundingClientRect().bottom;
+ })).toBeGreaterThanOrEqual(8);
  await expect(popup.locator('[data-quick-delete]')).toBeVisible();
+
 });
