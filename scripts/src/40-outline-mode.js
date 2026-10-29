@@ -310,17 +310,8 @@ function selectDay(i){if(i<0||i>=state.days.length)return;
 function fitMap(){
  if(!map)return;
  if(planningResolution!=='day'){fitOutlineMap();return}
- const coords=[];
- const include=point=>{
-  const lat=Number(Array.isArray(point)?point[0]:point?.lat),lng=Number(Array.isArray(point)?point[1]:point?.lng);
-  if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)coords.push([lat,lng]);
- };
- currentStopsForMap().forEach(({stop})=>{
-  if(!validPoint(stop))return;
-  include(stop);
-  (stop.leg?.path||[]).forEach(include);
-  (stop.leg?.viaPoints||[]).forEach(include);
- });
+ // Only the selected entity defines the viewport; other days' idea markers remain visible separately.
+ const coords=TripQueries.focusMapPositions(state,ronnyVisibleDayIndices());
  if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
  if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
  map.fitBounds(L.latLngBounds(coords),{padding:[38,44],maxZoom:16,animate:true,duration:.65});

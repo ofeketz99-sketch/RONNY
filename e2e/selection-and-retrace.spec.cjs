@@ -47,6 +47,28 @@ test('choosing a compact day fits the map more closely than the former zoom limi
   return levels.length?Math.max(...levels):0;
  })).toBeGreaterThan(12);
 });
+test('day focus ignores distant ideas from another day',async({page})=>{
+ const data=journey();
+ data.days[2].stops.push(s('distant-idea','idea',60,-5));
+ await boot(page,data);
+ await page.locator('[data-day="0"].day-pill').click();
+ await expect(page.locator('#map-scope')).toHaveValue('day');
+ await expect.poll(async()=>page.evaluate(()=>{
+  const levels=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>Number(i.src.split('/tile/')[1]?.split('/')[0])).filter(Number.isFinite);
+  return levels.length?Math.max(...levels):0;
+ })).toBeGreaterThan(12);
+});
+test('stage focus ignores distant ideas outside the stage',async({page})=>{
+ const data=journey();
+ data.days[2].stops.push(s('distant-idea','idea',60,-5));
+ await boot(page,data);
+ await page.locator('[data-ronny-group-view="stage1"]').click();
+ await expect(page.locator('[data-ronny-group-view="stage1"]')).toHaveClass(/selected/);
+ await expect.poll(async()=>page.evaluate(()=>{
+  const levels=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>Number(i.src.split('/tile/')[1]?.split('/')[0])).filter(Number.isFinite);
+  return levels.length?Math.max(...levels):0;
+ })).toBeGreaterThan(6);
+});
 test('retrace mode is named out-and-back on the walking route editor',async({page})=>{
  const data=journey();
  data.settings.dayGroups=[];

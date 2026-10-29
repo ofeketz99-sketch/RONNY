@@ -1,0 +1,10 @@
+{
+  "version": "70",
+  "date": "2026-10-29",
+  "notes": [
+    "בחירת יום מקרבת את המפה לתחום היום, ללא השפעה של רעיונות מימים אחרים.",
+    "בחירת מקטע מקרבת את המפה לתחום ימי המקטע בלבד.",
+    "נקודות תוואי ושרטוט ידני ששייכים לימים הנבחרים ממשיכים להיכלל במיקוד."
+  ],
+  "technical": "DEV only. TripQueries.focusMapPositions excludes extra idea markers of unselected days from fit bounds while preserving currentStopsForMap marker behavior. Added Node and Chromium tests for distant unrelated idea affecting selected day/stage. Pending CI. Backup backups/2026-10-29_pre-selection-fit_4763b6c2/."
+}

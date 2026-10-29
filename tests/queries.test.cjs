@@ -34,6 +34,17 @@ test('map view includes only ideas from nonselected days, preserving ordering',(
  assert.equal(json(Q.currentStopsForMap(trip,[0]).map(x=>[x.stop.id,x.di,x.si])),json([['start',0,0],['poi',0,1],['idea',0,2],['finish',0,3],['other-idea',1,1]]));
  assert.equal(json(Q.currentStopsForMap(trip,[0,1]).map(x=>x.stop.id)),json(['start','poi','idea','finish','s2','other-idea','unlocated']));
 });
+test('focus positions exclude other-day ideas while retaining selected stops and drawn bends',()=>{
+ const trip=sample();
+ trip.days[0].stops[3].leg={mode:'draw',path:[[10.31,20.02],null,[10.32,20.03]],viaPoints:[[10.35,20.06]]};
+ trip.days[1].stops.push({id:'remote',type:'idea',lat:59,lng:-6});
+ const original=json(trip);
+ assert.equal(json(Q.focusMapPositions(trip,[0])),json([[10,20],[10.1,20],[10.2,20],[10.3,20],[10.31,20.02],[10.32,20.03],[10.35,20.06]]));
+ assert.equal(json(Q.focusMapPositions(trip,[1])),json([[11,21],[12,22],[59,-6]]));
+ assert.equal(Q.focusMapPositions(trip,[50]).length,0);
+ assert.ok(Q.currentStopsForMap(trip,[0]).some(x=>x.stop.id==='remote'));
+ assert.equal(json(trip),original);
+});
 test('POI linkage selects nearest route stop, excluding ideas and invalid coordinates',()=>{
  const trip=sample(),dist=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
  const links=Q.poiLinksForDay(trip,0,types,dist);
@@ -62,6 +73,7 @@ test('all queries leave supplied trip unchanged',()=>{
  const trip=sample(),before=json(trip);
  Q.routeStopsForDay(trip,0,types);
  Q.currentStopsForMap(trip,[0]);
+ Q.focusMapPositions(trip,[0]);
  Q.poiLinksForDay(trip,0,types,()=>1);
  Q.getStop(trip,'start');
  Q.tripMapPositions(trip);
