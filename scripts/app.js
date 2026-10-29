@@ -289,6 +289,31 @@ function ronnyIconPickerMarkup(stop){
  const make=(key,label,markup)=>'<button type="button" data-ronny-icon="'+esc(key)+'" class="ronny-icon-choice'+(selected===key?' selected':'')+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
  return '<details class="ronny-icon-editor"><summary>אייקון הנקודה '+ronnyPointSymbol(stop.type,stop)+'</summary><div class="ronny-icon-grid">'+make('','ברירת מחדל',pointSymbol(stop.type))+RONNY_ICON_BANK.map(i=>make(i.id,i.label,ronnyPointSymbol(i.id,{iconId:i.id}))).join('')+'</div></details>';
 }
+
+const RONNY_SECONDARY_ICON_CHOICES=[
+ {id:'ferry',label:'מעבורת'},{id:'viewpoint',label:'תצפית'},{id:'dining',label:'אוכל'},
+ {id:'picnic',label:'פיקניק'},{id:'cablecar',label:'רכבל'},{id:'nature',label:'טבע'},
+ {id:'fuel',label:'דלק'},{id:'walkStart',label:'תחילת הליכה'},
+ {id:'hotel',label:'לינה'},{id:'glencairn',label:'וויסקי'}
+];
+function ronnySecondaryIconKey(stop){
+ if(!stop||!['via','parking'].includes(stop.type))return null;
+ return RONNY_SECONDARY_ICON_CHOICES.some(c=>c.id===stop.secondaryIconId)?stop.secondaryIconId:null;
+}
+function ronnySecondaryIconLabel(stop){
+ const key=ronnySecondaryIconKey(stop);
+ return RONNY_SECONDARY_ICON_CHOICES.find(c=>c.id===key)?.label||'ללא סמל';
+}
+function ronnySecondaryIconMarkerMarkup(stop){
+ const key=ronnySecondaryIconKey(stop);
+ return key?'<span class="ronny-secondary-context-icon" aria-hidden="true">'+ronnyPointSymbol(key,{iconId:key})+'</span>':'';
+}
+function ronnySecondaryIconPickerMarkup(stop){
+ if(!['via','parking'].includes(stop.type))return '';
+ const selected=ronnySecondaryIconKey(stop)||'';
+ const choice=(key,label,markup)=>'<button type="button" class="ronny-secondary-icon-choice'+(selected===key?' selected':'')+'" data-ronny-secondary-icon="'+esc(key)+'" aria-pressed="'+String(selected===key)+'" aria-label="'+esc(label)+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
+ return '<div class="ronny-secondary-icon-editor"><p>הסמל יופיע בקטן מעל הנקודה, בלי לשנות את הסמן הראשי.</p><div class="ronny-secondary-icon-grid">'+choice('','ללא סמל',icon('slash','small-icon'))+RONNY_SECONDARY_ICON_CHOICES.map(c=>choice(c.id,c.label,ronnyPointSymbol(c.id,{iconId:c.id}))).join('')+'</div></div>';
+}
 function endpointChoiceAllowed(type,dayIndex=selectedDay,ignoreId=null){
  if(!['start','end'].includes(type))return true;
  const day=state.days[dayIndex];if(!day)return false;
@@ -3129,7 +3154,7 @@ function renderMarkers(){
     const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
    const canDrag=!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id);
-   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'גרור לשינוי מיקום · לחץ לעריכה'}).addTo(markerLayer);
+   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:ronnySecondaryIconMarkerMarkup(s)+html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'גרור לשינוי מיקום · לחץ לעריכה'}).addTo(markerLayer);
    const element=m.getElement?.();if(element){element.dataset.ronnyStopId=s.id;if(routeOrder!==null)element.dataset.ronnyRouteOrder=String(routeOrder)}
    // Dragging requires no prior click. Hide an existing editor while moving,
    // and leave it closed afterwards so further adjustments are unobstructed.
@@ -3823,6 +3848,7 @@ function openPointQuick(id){
  <div class="quick-field"><label for="quick-description">תיאור</label><textarea id="quick-description" maxlength="2500" placeholder="תיאור">${esc(s.description||s.notes||'')}</textarea></div>
  <label class="ronny-description-choice"><input id="quick-show-description" type="checkbox" ${s.showMapDescription?'checked':''}><span>${icon('message-square-text','small-icon')} הצג את התיאור באופן קבוע על המפה</span></label>
  ${ronnyIconPickerMarkup(s)}
+ ${ronnySecondaryIconPickerMarkup(s)}
  <fieldset class="quick-colors"><legend>צבע הנקודה</legend><div class="quick-color-row">${colorSwatches.map(c=>`<button type="button" class="quick-swatch ${c.toLowerCase()===hexColor.toLowerCase()?'selected':''}" style="background:${c}" data-quick-color="${c}" aria-label="צבע ${c}" aria-pressed="${c.toLowerCase()===hexColor.toLowerCase()}"></button>`).join('')}<label class="quick-color-native" title="בחירת צבע חופשי"><input id="quick-color-custom" type="color" value="${hexColor}"> צבע נוסף</label><button type="button" class="quick-color-reset" data-quick-color-auto>אוטומטי</button></div></fieldset>
  <div class="quick-two ${s.type==='start'?'start-departure-only':''}"><div class="quick-field"><label for="quick-time">${s.type==='walkStart'?'שעת יציאה להליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}</label><div class="ronny-time-control"><input id="quick-time" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעה בפורמט 24 שעות" title="פורמט 24 שעות, למשל 14:30" value="${esc(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00'))}"><button type="button" class="ronny-time-trigger" aria-label="פתח בורר שעות (24 שעות)" title="בחירת שעה, 24 שעות">${icon('clock','small-icon')}</button></div></div>${['start','end'].includes(s.type)?'':`<div class="quick-field"><label for="quick-duration">${s.type==='walkStart'?'משך ההליכה הכולל':s.type==='rest'?'משך עצירה':'משך שהייה'} (בדקות)</label><input id="quick-duration" type="number" min="0" max="3000" step="5" value="${Math.max(0,Number(s.duration)||0)}"></div>`}</div>
  ${['start','end','walkStart'].includes(s.type)?'':`<div class="quick-field quick-departure-editor"><label for="quick-outbound">${s.type==='rest'?'שעת יציאה (מעדכנת את משך העצירה)':'שעת יציאה'}</label><div class="ronny-time-control"><input id="quick-outbound" class="ronny-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="שעת יציאה בפורמט 24 שעות" value="${esc(quickEndTime(s.time,s.duration).slice(0,5))}"><button type="button" class="ronny-time-trigger" aria-label="בחירת שעת יציאה" title="בחירת שעת יציאה">${icon('clock','small-icon')}</button></div></div>`}
@@ -3863,6 +3889,8 @@ function openPointQuick(id){
  };
  const iconSection=quickForm.querySelector('.ronny-icon-editor');
  if(iconSection){iconSection.name='ronny-point-details';iconSection.dataset.ronnyPointSection='icons';iconSection.classList.add('ronny-point-accordion');quickForm.appendChild(iconSection);}
+ const secondaryEditor=quickForm.querySelector('.ronny-secondary-icon-editor');
+ if(secondaryEditor)addPointSection('context','סמל משני מעל הנקודה','layers-2',[secondaryEditor],ronnySecondaryIconLabel(s));
  addPointSection('colors','צבע הנקודה','palette',[quickForm.querySelector('.quick-colors')]);
  const timingNodes=['.quick-two','.quick-departure-editor','.quick-departure','.walk-loop-options'].map(selector=>quickForm.querySelector(selector));
  addPointSection('timing',s.type==='walkStart'?'זמנים ופרטי ההליכה':'זמנים ושהייה','clock-3',timingNodes,
@@ -3965,6 +3993,23 @@ function openPointQuick(id){
   el.querySelector('#quick-show-description')?.addEventListener('change',e=>{const obj=getStop(id);if(!obj)return;commit();obj.stop.showMapDescription=e.target.checked;if(e.target.checked)state.settings.showMapDescriptions=true;save();renderMap();refreshIcons();toast(e.target.checked?'התיאור מוצג על המפה':'התיאור הוסתר מהמפה')});
  el.querySelector('#quick-type').addEventListener('change',e=>changeExistingPointType(id,e.target.value));
  el.querySelectorAll('[data-ronny-icon]').forEach(btn=>btn.addEventListener('click',()=>{commit();const target=getStop(id);if(!target)return;const value=btn.dataset.ronnyIcon;if(value)target.stop.iconId=value;else delete target.stop.iconId;save();renderMarkers();renderSchedule();el.querySelectorAll('[data-ronny-icon]').forEach(item=>item.classList.toggle('selected',item.dataset.ronnyIcon===(target.stop.iconId||'')));const summary=el.querySelector('.ronny-icon-editor summary');if(summary)summary.innerHTML='אייקון הנקודה '+ronnyPointSymbol(target.stop.type,target.stop);refreshIcons()}));
+ el.querySelectorAll('[data-ronny-secondary-icon]').forEach(btn=>btn.addEventListener('click',()=>{
+  commit();
+  const target=getStop(id);if(!target||!['via','parking'].includes(target.stop.type))return;
+  const key=btn.dataset.ronnySecondaryIcon;
+  if(key&&!RONNY_SECONDARY_ICON_CHOICES.some(c=>c.id===key))return;
+  if((ronnySecondaryIconKey(target.stop)||'')===key)return;
+  ronnyRememberUndo('שינוי סמל משני');
+  if(key)target.stop.secondaryIconId=key;else delete target.stop.secondaryIconId;
+  save();renderMarkers();
+  el.querySelectorAll('[data-ronny-secondary-icon]').forEach(item=>{
+   const selected=item.dataset.ronnySecondaryIcon===(ronnySecondaryIconKey(target.stop)||'');
+   item.classList.toggle('selected',selected);item.setAttribute('aria-pressed',String(selected));
+  });
+  const label=el.querySelector('[data-ronny-point-section="context"] summary small');
+  if(label)label.textContent=ronnySecondaryIconLabel(target.stop);
+  const status=el.querySelector('#quick-save-state');if(status)status.textContent='הסמל נשמר';
+ }));
  el.querySelector('#quick-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit();hidePointQuick()}});
  // Colors take effect instantly, unlike text changes which are debounced.
  const setColor=c=>{commit();const target=getStop(id);if(!target)return;target.stop.color=c;ronnyPreferredColorEntity=target.stop.id;try{ensureStableViaColors()}finally{ronnyPreferredColorEntity=null}save();renderMarkers();renderSchedule();el.querySelectorAll('[data-quick-color]').forEach(b=>{const selected=b.dataset.quickColor.toLowerCase()===pointColor(target.stop,target.day).toLowerCase();b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected))});const input=el.querySelector('#quick-color-custom');if(input&&validCustomColor(c))input.value=c;el.querySelector('#quick-save-state').textContent='הצבע נשמר'};

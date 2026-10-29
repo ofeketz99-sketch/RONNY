@@ -1,0 +1,14 @@
+{
+  "version": "94",
+  "date": "2026-10-29",
+  "notes": [
+    "ניתן להוסיף לנקודות מעבר ולחניות סמל משני קטן המופיע מעל הסמן הקיים במפה.",
+    "אפשר לבחור מעבורת, תצפית, אוכל, פיקניק, רכבל וסמלים נוספים או להסיר את הסמל לחלוטין.",
+    "בחירת הסמל נשמרת עם נתוני הנקודה, בלי לשנות את הסמן הראשי, מספרו או אפשרות גרירתו."
+  ],
+  "technical": [
+    "secondaryIconId stored optionally per stop; allowlisted for via/parking rendering; existing icon library reused.",
+    "Secondary map badge is decorative and non-interactive; existing route marker and drag behavior preserved.",
+    "UI and data-shape regression tests added; browser confirmation required before merging to main."
+  ]
+}

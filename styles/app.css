@@ -2364,3 +2364,25 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-day-warnings .small-icon{width:14px;height:14px;flex-shrink:0}
 @media(max-width:1050px){.ronny-day-summary-main{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){#ronny-undo{transition:none}}
+
+/* Patch 94 — passive context badges on via and parking pins. */
+.ronny-secondary-context-icon{
+ position:absolute;top:-25px;left:8px;z-index:4;
+ width:23px;height:23px;box-sizing:border-box;
+ display:grid;place-items:center;border:2px solid #fffaf0;
+ border-radius:8px;background:#e6eee3;color:#304e3a;
+ box-shadow:0 2px 7px #24372855;pointer-events:none;
+}
+.ronny-secondary-context-icon .point-svg,
+.ronny-secondary-context-icon .point-symbol-icon,
+.ronny-secondary-context-icon .small-icon{width:15px;height:15px;display:block}
+.ronny-secondary-context-icon .ronny-glencairn-icon{filter:brightness(.28) sepia(.45) saturate(.65)}
+.ronny-secondary-icon-editor{padding:7px 10px 10px;min-width:0}
+.ronny-secondary-icon-editor p{font-size:11px;color:#667b6a;line-height:1.5;margin:0 0 7px}
+.ronny-secondary-icon-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;max-height:190px;overflow-y:auto}
+.ronny-secondary-icon-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:57px;padding:6px 3px;border:1px solid #dbe5d9;border-radius:9px;background:#fffdf8;color:#3d644c;cursor:pointer}
+.ronny-secondary-icon-choice.selected{border-color:#58866a;background:#e0ebdc;box-shadow:inset 0 0 0 1px #58866a66}
+.ronny-secondary-icon-choice:focus-visible{outline:2px solid #4e8a63;outline-offset:2px}
+.ronny-secondary-icon-choice .point-svg,.ronny-secondary-icon-choice .point-symbol-icon,
+.ronny-secondary-icon-choice .small-icon{width:20px;height:20px}
+.ronny-secondary-icon-choice small{font-size:10px;line-height:1.25;text-align:center;overflow-wrap:anywhere}

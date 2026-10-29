@@ -57,6 +57,31 @@ function ronnyIconPickerMarkup(stop){
  const make=(key,label,markup)=>'<button type="button" data-ronny-icon="'+esc(key)+'" class="ronny-icon-choice'+(selected===key?' selected':'')+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
  return '<details class="ronny-icon-editor"><summary>אייקון הנקודה '+ronnyPointSymbol(stop.type,stop)+'</summary><div class="ronny-icon-grid">'+make('','ברירת מחדל',pointSymbol(stop.type))+RONNY_ICON_BANK.map(i=>make(i.id,i.label,ronnyPointSymbol(i.id,{iconId:i.id}))).join('')+'</div></details>';
 }
+
+const RONNY_SECONDARY_ICON_CHOICES=[
+ {id:'ferry',label:'מעבורת'},{id:'viewpoint',label:'תצפית'},{id:'dining',label:'אוכל'},
+ {id:'picnic',label:'פיקניק'},{id:'cablecar',label:'רכבל'},{id:'nature',label:'טבע'},
+ {id:'fuel',label:'דלק'},{id:'walkStart',label:'תחילת הליכה'},
+ {id:'hotel',label:'לינה'},{id:'glencairn',label:'וויסקי'}
+];
+function ronnySecondaryIconKey(stop){
+ if(!stop||!['via','parking'].includes(stop.type))return null;
+ return RONNY_SECONDARY_ICON_CHOICES.some(c=>c.id===stop.secondaryIconId)?stop.secondaryIconId:null;
+}
+function ronnySecondaryIconLabel(stop){
+ const key=ronnySecondaryIconKey(stop);
+ return RONNY_SECONDARY_ICON_CHOICES.find(c=>c.id===key)?.label||'ללא סמל';
+}
+function ronnySecondaryIconMarkerMarkup(stop){
+ const key=ronnySecondaryIconKey(stop);
+ return key?'<span class="ronny-secondary-context-icon" aria-hidden="true">'+ronnyPointSymbol(key,{iconId:key})+'</span>':'';
+}
+function ronnySecondaryIconPickerMarkup(stop){
+ if(!['via','parking'].includes(stop.type))return '';
+ const selected=ronnySecondaryIconKey(stop)||'';
+ const choice=(key,label,markup)=>'<button type="button" class="ronny-secondary-icon-choice'+(selected===key?' selected':'')+'" data-ronny-secondary-icon="'+esc(key)+'" aria-pressed="'+String(selected===key)+'" aria-label="'+esc(label)+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
+ return '<div class="ronny-secondary-icon-editor"><p>הסמל יופיע בקטן מעל הנקודה, בלי לשנות את הסמן הראשי.</p><div class="ronny-secondary-icon-grid">'+choice('','ללא סמל',icon('slash','small-icon'))+RONNY_SECONDARY_ICON_CHOICES.map(c=>choice(c.id,c.label,ronnyPointSymbol(c.id,{iconId:c.id}))).join('')+'</div></div>';
+}
 function endpointChoiceAllowed(type,dayIndex=selectedDay,ignoreId=null){
  if(!['start','end'].includes(type))return true;
  const day=state.days[dayIndex];if(!day)return false;
