@@ -1,0 +1,10 @@
+{
+  "version": "53",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרד תכנון בקשות הניתוב לשכבה עצמאית מקוד המפה.",
+    "נשמרו תנאי המסלול הרגלי, קיבוץ נתיבים ואפשרויות השרטוט.",
+    "נוספו בדיקות למודול התכנון החדש."
+  ],
+  "technical": "DEV only. 8 focused cases and JavaScript parse verified in JS runtime; Node suite and browser not run. Backup backups/2026-10-29_pre-route-plan_a52b26cb/."
+}
