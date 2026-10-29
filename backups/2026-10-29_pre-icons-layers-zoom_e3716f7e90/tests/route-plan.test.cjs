@@ -1,0 +1,12 @@
+'use strict';
+const{test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const f=vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../scripts/src/00j-route-plan.js'),'utf8')+'\nRoutePlan.build');
+const p=(i,type='stop')=>({id:String(i),lat:i,lng:0,type});
+const b=(points,legs={})=>f(points,{legAt:i=>legs[i]||{mode:'auto'},effectiveLegProfile:i=>legs[i]?.profile||'driving',kmBetween:(a,c)=>Math.hypot(a[0]-c[0],a[1]-c[1]),manualLeg:i=>({mode:legs[i].mode,duration:120,distance:100})});
+test('walking access',()=>assert.equal(b([p(0),p(1,'walkStart'),p(2)]).results[0].mode,'access-link'));
+test('zero-length auto',()=>assert.equal(b([p(0),p(0)]).groups.length,0));
+test('manual modes',()=>{for(const mode of ['draw','pencil','straight'])assert.equal(b([p(0),p(1)],{1:{mode}}).results[0].mode,mode)});
+test('automatic batching',()=>assert.equal(b([p(0),p(1),p(2)]).groups.length,1));
+test('profile separation',()=>assert.equal(b([p(0),p(1),p(2)],{2:{mode:'auto',profile:'hiking'}}).groups.length,2));
+test('forced waypoint',()=>assert.equal(b([p(0),p(1)],{1:{mode:'auto',viaPoints:[[.5,.1]]}}).groups[0].stops.length,3));
+test('existing limit of 23 group legs',()=>assert.equal(b(Array.from({length:30},(_,i)=>p(i))).groups[0].end,23));
