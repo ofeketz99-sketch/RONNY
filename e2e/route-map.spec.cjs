@@ -29,6 +29,19 @@ test('the real Leaflet map paints a walking loop as legs separate from the final
   });
   await expect(page.locator('#route-stops')).toHaveText('5');
   await expect(page.locator('#schedule')).toContainText('סיבוב');
-  await expect.poll(() => page.locator('path.leg-map-path').count()).toBeGreaterThanOrEqual(2);
+  // The map is configured with preferCanvas; verify painted vector pixels.
+  await expect.poll(() => page.evaluate(() => {
+    const canvases = Array.from(document.querySelectorAll('#map .leaflet-overlay-pane canvas'));
+    return canvases.filter(c => {
+      const ctx = c.getContext('2d');
+      if (!ctx || !c.width || !c.height) return false;
+      const pixels = ctx.getImageData(0, 0, c.width, c.height).data;
+      let visible = 0;
+      for (let i = 3; i < pixels.length; i += 64) {
+        if (pixels[i] > 0 && ++visible >= 10) return true;
+      }
+      return false;
+    }).length;
+  })).toBeGreaterThanOrEqual(1);
   await expect(page.locator('#map')).not.toContainText('אירעה שגיאה בהפעלת האתר');
 });

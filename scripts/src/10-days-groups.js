@@ -512,6 +512,7 @@ function interceptOutsidePointer(e){
  e.preventDefault();e.stopImmediatePropagation();
 }
 function interceptOutsideClick(e){
+ if(e.target?.closest?.('a[download]'))return;
  if(document.getElementById('ronny-time-dialog')?.open)return;
  if(suppressOutsideClick&&Date.now()-outsideClickTime<1100){
   suppressOutsideClick=false;e.preventDefault();e.stopImmediatePropagation();return;

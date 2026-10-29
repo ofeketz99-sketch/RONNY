@@ -1,0 +1,9 @@
+{
+  "version": "60",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה הורדת גיבוי JSON מתוך חלונית הייצוא.",
+    "בדיקת ציור המסלולים הותאמה למנוע Canvas של Leaflet."
+  ],
+  "technical": "Root cause: outside-dismiss capture listener cancelled synthetic anchor download click. Guard a[download] clicks. Playwright map test now checks canvas pixels, not SVG. CI verification pending. Backup backups/2026-10-29_before_download_canvas_fix_591d7c71/."
+}
