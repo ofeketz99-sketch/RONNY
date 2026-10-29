@@ -18,9 +18,20 @@ function ronnyGroupCaption(){const g=ronnyDayGroups().find(g=>g.id===ronnyActive
 function ronnySetGroupView(id){
  wholeTripFocusSeq++;
  ronnyActiveDayGroupId=id;
+ // Keep the group overview on the map; only the day chooser follows
+ // the first chronological day of the newly selected group.
+ const group=ronnyDayGroups().find(g=>g.id===id);
+ const firstDay=group?ronnyGroupDays(group)[0]:null;
+ if(Number.isInteger(firstDay))selectedDay=firstDay;
  if(planningResolution!=='day')setPlanningResolution('day',{fit:false});
  viewScope='all';$('map-scope').value='all';selectedStop=null;
  closeLegEditor();hidePointQuick();renderAll();fitMap();
+ if(Number.isInteger(firstDay)){
+  requestAnimationFrame(()=>{
+   if(ronnyActiveDayGroupId!==id||viewScope!=='all')return;
+   $('days')?.querySelector('[data-day="'+firstDay+'"]')?.scrollIntoView({block:'nearest',inline:'start',behavior:'smooth'});
+  });
+ }
 }
 function currentStopsForMap(){return TripQueries.currentStopsForMap(state,ronnyVisibleDayIndices())}
 function makeDate(i){let d=new Date((state.startDate||'2026-10-26')+'T12:00:00');d.setDate(d.getDate()+i);return d}

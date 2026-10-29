@@ -1,0 +1,14 @@
+{
+  "version": "97",
+  "date": "2026-10-29",
+  "notes": [
+    "בחירת מקטע טיול מקפיצה את בורר הימים ליום הראשון שלו ומסמנת אותו כיום הנבחר.",
+    "תצוגת המפה ממשיכה להציג את המקטע כולו באותה התנהגות זום וניתוב קיימת; לא מבוצע מעבר לתצוגת יום יחיד.",
+    "הסנכרון עובד גם בלחיצה על שם מקטע וגם בחיצי הניווט בין המקטעים. בחירת ״כל הטיול״ משאירה את היום הנבחר ללא שינוי."
+  ],
+  "technical": [
+    "Scoped only to ronnySetGroupView; reuse ronnyGroupDays ordering and align day-card via requestAnimationFrame.",
+    "No route geometry, map-fit implementation, trip data or save schema changes.",
+    "Added isolated function regression checks plus browser coverage."
+  ]
+}
