@@ -1,0 +1,9 @@
+{
+  "version": "79",
+  "date": "2026-10-29",
+  "notes": [
+    "ייצוב אתחול המפה: בעת פתיחת טיול ללא תצוגה שמורה, ההתאמה האוטומטית מתבצעת לאחר טעינת הממשק ולא מתחרה עם פעולות ראשונות במפה.",
+    "בחירת יום מהירה עדיין מפעילה את שמירת מצב העבודה גם אם התבטלה התאמת הזום הראשונית."
+  ],
+  "technical": "Preserves patch 78 restore of saved view; delays only first-fit for new workspace; pre-change backup backups/2026-10-29_pre-no-view-focus_2628686e8b. Browser regression pending."
+}

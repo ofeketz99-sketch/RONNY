@@ -88,6 +88,8 @@ function ronnyRestoreWorkspaceViewport(view){
  ronnyRememberWorkspace();
 }
 function ronnyQueueWorkspaceViewport(view){
+ // A rapid day switch may cancel the queued fit; the new selection must still be savable.
+ ronnyWorkspaceReady=true;
  const seq=++wholeTripFocusSeq;let completed=false;
  const restore=()=>{if(completed||seq!==wholeTripFocusSeq||!map)return;completed=true;ronnyRestoreWorkspaceViewport(view)};
  requestAnimationFrame(()=>requestAnimationFrame(restore));

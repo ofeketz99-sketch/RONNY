@@ -658,6 +658,8 @@ function ronnyRestoreWorkspaceViewport(view){
  ronnyRememberWorkspace();
 }
 function ronnyQueueWorkspaceViewport(view){
+ // A rapid day switch may cancel the queued fit; the new selection must still be savable.
+ ronnyWorkspaceReady=true;
  const seq=++wholeTripFocusSeq;let completed=false;
  const restore=()=>{if(completed||seq!==wholeTripFocusSeq||!map)return;completed=true;ronnyRestoreWorkspaceViewport(view)};
  requestAnimationFrame(()=>requestAnimationFrame(restore));
@@ -5364,9 +5366,20 @@ function showSavedPlaceLibrary(){
  await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';const startupWorkspace=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(startupWorkspace);repairExistingSchedules();initMap();map?.on('moveend zoomend',ronnyRememberWorkspace);enableMapPopupDragging();initDaysManager();initOutsideDismissal();
  window.addEventListener('resize',()=>{for(const id of ['leg-editor','point-quick','map-context','layer-filter-panel'])keepMapPopoverVisible($(id))});
  bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();
- // Activate persistence synchronously: a fast day switch must never cancel the delayed
- // startup focus before workspace saving becomes available.
- ronnyRestoreWorkspaceViewport(startupWorkspace);
+ // Restore an existing view without animation. For a new workspace, keep the
+ // original deferred fit so map controls and gestures are not competing with an
+ // animated flyTo at the instant the initial UI appears.
+ if(startupWorkspace){ronnyRestoreWorkspaceViewport(startupWorkspace)}
+ else{
+  ronnyWorkspaceReady=true;
+  const startupTrip=activeTripId,startupSeq=++wholeTripFocusSeq;
+  const stopForUserMove=()=>{if(activeTripId===startupTrip&&wholeTripFocusSeq===startupSeq)wholeTripFocusSeq++};
+  map?.once('movestart',stopForUserMove);
+  setTimeout(()=>{
+   map?.off('movestart',stopForUserMove);
+   if(activeTripId===startupTrip&&wholeTripFocusSeq===startupSeq)focusLoadedTrip();
+  },360);
+ }
  const wasCollapsed=(()=>{try{return localStorage.getItem('ronny-planner-collapsed-v1')==='true'}catch(e){return false}})();
  if(wasCollapsed)setPlannerCollapsed(true);
 })().catch(e=>{$('map').textContent='אירעה שגיאה בהפעלת האתר. '+e.message});
