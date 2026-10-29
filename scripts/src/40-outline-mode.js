@@ -296,7 +296,12 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
  if(!pts.length)return;const ll=pts.map(p=>[p.lat,p.lng]);if(ll.length===1)map.flyTo(ll[0],15,{duration:.5});else map.fitBounds(L.latLngBounds(ll),{padding:[38,44],maxZoom:16,animate:true,duration:.55});
 }
 
-function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
+function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}if(ronnyStageOverviewMode()){
+  poiLinkLayer?.clearLayers();photoLayer?.clearLayers();viaLayer?.clearLayers();
+  forcedHandleLayer?.clearLayers();savedPlaceLayer?.clearLayers();
+  renderMarkers();drawRoute();if(googleMode)updateGoogleMap();return;
+ }
+ renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
 function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save();ronnyRememberWorkspace()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}

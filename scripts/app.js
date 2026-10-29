@@ -1037,6 +1037,30 @@ function ronnyVisibleDayIndices(){
  const selected=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);
  return selected?ronnyGroupDays(selected):state.days.map((_,i)=>i);
 }
+// Stage overview is a summary, not an editing mode.
+function ronnyGroupForDay(dayIndex){
+ return ronnyDayGroups().find(g=>ronnyGroupDays(g).includes(dayIndex))||null;
+}
+function ronnyGroupColorForDay(di){
+ const color=ronnyGroupForDay(di)?.color;
+ return validDayColor(color)?color:null;
+}
+function ronnyStageOverviewMode(){
+ return planningResolution==='day'&&viewScope==='all'&&ronnyDayGroups().length>0;
+}
+function ronnyRefreshStageSummary(metres=null,missing=null){
+ const el=$('ronny-stage-summary');if(!el)return;
+ const group=viewScope==='all'?ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId):null;
+ if(!group){el.hidden=true;el.innerHTML='';return;}
+ const color=validDayColor(group.color)?group.color:'#87a695';
+ const count=ronnyGroupDays(group).length;
+ const distance=metres===null?'מרחק בחישוב':missing>0?
+  (metres>0?'לפחות '+(metres/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ · חלקי':'מרחק בחישוב'):
+  (metres/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ';
+ el.style.setProperty('--stage-color',color);
+ el.innerHTML='<span class="ronny-stage-summary-color" aria-hidden="true"></span><strong>'+esc(group.name||'מקטע טיול')+'</strong><span>'+count+' ימים</span><span data-stage-distance>'+esc(distance)+'</span>';
+ el.hidden=false;
+}
 function ronnyGroupCaption(){const g=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);return g?.name||'כל הטיול'}
 function ronnySetGroupView(id){
  wholeTripFocusSeq++;
@@ -1235,7 +1259,12 @@ function highlightMapPoint(id,on=true){
 }
 
 function renderDays(){
- const html=state.days.map((d,i)=>`<div class="ronny-day-card"><button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button><button type="button" class="ronny-day-card-edit" data-day-edit="${i}" title="ערוך את יום ${i+1}" aria-label="ערוך את יום ${i+1}" draggable="false">${icon('pencil','small-icon')}</button></div>`).join('');
+ const stageColors=new Map();
+ for(const group of ronnyDayGroups()){
+  const color=validDayColor(group.color)?group.color:'#87a695';
+  for(const di of ronnyGroupDays(group))if(!stageColors.has(di))stageColors.set(di,color);
+ }
+ const html=state.days.map((d,i)=>`<div class="ronny-day-card${stageColors.has(i)?' ronny-in-stage':''}"${stageColors.has(i)?' style="--stage-color:'+esc(stageColors.get(i))+'"':''}><button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button><button type="button" class="ronny-day-card-edit" data-day-edit="${i}" title="ערוך את יום ${i+1}" aria-label="ערוך את יום ${i+1}" draggable="false">${icon('pencil','small-icon')}</button></div>`).join('');
  $('days').innerHTML=html;const prev=$('day-prev'),next=$('day-next');if(prev)prev.disabled=selectedDay<=0;if(next)next.disabled=selectedDay>=state.days.length-1;const active=$('days').querySelector('.day-pill.active');if(active){const strip=$('days').getBoundingClientRect(),rect=active.getBoundingClientRect();if(rect.left<strip.left+3||rect.right>strip.right-3)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
  $('days').querySelectorAll('[data-day-edit]').forEach(button=>button.addEventListener('click',event=>{
   event.stopPropagation();
@@ -1593,6 +1622,7 @@ function ronnyCleanDayGroups(){
 function ronnyRenderGroupBar(){
  const bar=$('ronny-day-groups-bar');if(!bar)return;
  const groups=ronnyCleanDayGroups(),ids=[null,...groups.map(g=>g.id)];
+ ronnyRefreshStageSummary();
  const position=viewScope==='all'?Math.max(0,ids.indexOf(ronnyActiveDayGroupId)):0;
  const chip=(id,label,selected,color)=>'<button type="button" class="ronny-group-chip'+(selected?' selected':'')+'" data-ronny-group-view="'+esc(id||'')+'" style="--group-c:'+esc(color||'#87a695')+'">'+label+'</button>';
  bar.innerHTML=groups.length?
@@ -3177,6 +3207,7 @@ function renderMarkers(){
  if(!map)return;
  markerLayer.clearLayers();
  const palette=['#08a99c','#517bb9','#a269d3','#d08b38','#3b967c','#d36776','#64748b'];
+ const stageOverview=ronnyStageOverviewMode(),stageDays=new Set(ronnyVisibleDayIndices());
  // Precompute route order and walking-loop endpoints once per visible day.
  // Without this, every map marker rescans every stop in its day.
  const routeIndexByDay=new Map(),walkingEndByDay=new Map(),linkedWalkParkingByDay=new Map();
@@ -3194,10 +3225,11 @@ function renderMarkers(){
  }
  currentStopsForMap().forEach(({stop:s,di,si})=>{
    if(!validPoint(s)||!markerVisibleForStop(s)||s.autoLoopEnd||s.autoWalkEnd)return;
+   if(stageOverview&&(s.type!=='start'||!stageDays.has(di)))return;
    const cls=types[s.type]?.cls||'';
    const override=viewScope==='all'?`style="background:${palette[di%palette.length]}"`:'';
    const routeOrder=isMapOnlyPoint(s)?null:(routeIndexByDay.get(di)?.get(s.id)??0);
-   const tint=s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:ronnyPointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type,s)}</span></div>`;
+   const tint=stageOverview?(ronnyGroupColorForDay(di)||pointColor(s,di)):s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:ronnyPointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type,s)}</span></div>`;
    const walkFinish=s.type==='walkStart'?walkingEndByDay.get(di)?.get(s.id):null;
     const walkRange=walkFinish&&s.time&&walkFinish.time?s.time+'–'+walkFinish.time:s.time||'';
     const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
@@ -3246,7 +3278,8 @@ let overviewRoadController=null,overviewRoadGeneration=0;
 const overviewRoadFailures=new Map();
 function paintOverviewRoads(){
  routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
- let missing=0;
+ let missing=0,knownMetres=0;
+ const stageOverview=ronnyStageOverviewMode();
  ronnyVisibleDayIndices().forEach(di=>{
   const arr=routeStopsForDay(di).filter(validPoint);
   const shapes=new Map(),unknown=new Set();
@@ -3269,10 +3302,12 @@ function paintOverviewRoads(){
    const coords=retraces.returns.get(i)||shapes.get(i);
    if(!coords||coords.length<2)continue;
    const role=retraces.returns.has(i)?'return':retraces.outbound.has(i)?'outbound':null;
+   knownMetres+=distanceOfCoords(coords);
    drawLegLineOverview(coords,leg.mode,di,i,role);
-   drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer);
+   if(!stageOverview)drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer);
   }
  });
+ ronnyRefreshStageSummary(knownMetres,missing);
  return missing;
 }
 function overviewRoadMessage(missing,loading=false){
@@ -3360,10 +3395,12 @@ function showOverview(){
 }
 function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
  if(state.days[di]?.stops[index]?.type==='walkStart'||!Array.isArray(coords)||coords.length<2)return;
- const color=retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index);
+ const stageOverview=ronnyStageOverviewMode();
+ const color=stageOverview?(ronnyGroupColorForDay(di)||routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index)):
+  retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index);
  const visual=retraceRole?ronnyRetraceShift(coords):coords;
  if(layerOn('routeLines')){
-  L.polyline(visual,{color:'#fff8ec',weight:8,opacity:.9,interactive:false}).addTo(routeLayer);
+  if(!stageOverview)L.polyline(visual,{color:'#fff8ec',weight:8,opacity:.9,interactive:false}).addTo(routeLayer);
   L.polyline(visual,{color,weight:4.6,dashArray:mode==='straight'?'8 9':mode==='auto'?'7 8':undefined,opacity:.94,interactive:false,className:retraceRole?'ronny-retrace-'+retraceRole:''}).addTo(routeLayer);
   const hit=L.polyline(visual,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
   hit.on('click',e=>{
@@ -3782,7 +3819,12 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
  if(!pts.length)return;const ll=pts.map(p=>[p.lat,p.lng]);if(ll.length===1)map.flyTo(ll[0],15,{duration:.5});else map.fitBounds(L.latLngBounds(ll),{padding:[38,44],maxZoom:16,animate:true,duration:.55});
 }
 
-function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
+function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}if(ronnyStageOverviewMode()){
+  poiLinkLayer?.clearLayers();photoLayer?.clearLayers();viaLayer?.clearLayers();
+  forcedHandleLayer?.clearLayers();savedPlaceLayer?.clearLayers();
+  renderMarkers();drawRoute();if(googleMode)updateGoogleMap();return;
+ }
+ renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
 function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save();ronnyRememberWorkspace()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}

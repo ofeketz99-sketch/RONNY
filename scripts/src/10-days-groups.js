@@ -14,6 +14,30 @@ function ronnyVisibleDayIndices(){
  const selected=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);
  return selected?ronnyGroupDays(selected):state.days.map((_,i)=>i);
 }
+// Stage overview is a summary, not an editing mode.
+function ronnyGroupForDay(dayIndex){
+ return ronnyDayGroups().find(g=>ronnyGroupDays(g).includes(dayIndex))||null;
+}
+function ronnyGroupColorForDay(di){
+ const color=ronnyGroupForDay(di)?.color;
+ return validDayColor(color)?color:null;
+}
+function ronnyStageOverviewMode(){
+ return planningResolution==='day'&&viewScope==='all'&&ronnyDayGroups().length>0;
+}
+function ronnyRefreshStageSummary(metres=null,missing=null){
+ const el=$('ronny-stage-summary');if(!el)return;
+ const group=viewScope==='all'?ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId):null;
+ if(!group){el.hidden=true;el.innerHTML='';return;}
+ const color=validDayColor(group.color)?group.color:'#87a695';
+ const count=ronnyGroupDays(group).length;
+ const distance=metres===null?'מרחק בחישוב':missing>0?
+  (metres>0?'לפחות '+(metres/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ · חלקי':'מרחק בחישוב'):
+  (metres/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ';
+ el.style.setProperty('--stage-color',color);
+ el.innerHTML='<span class="ronny-stage-summary-color" aria-hidden="true"></span><strong>'+esc(group.name||'מקטע טיול')+'</strong><span>'+count+' ימים</span><span data-stage-distance>'+esc(distance)+'</span>';
+ el.hidden=false;
+}
 function ronnyGroupCaption(){const g=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);return g?.name||'כל הטיול'}
 function ronnySetGroupView(id){
  wholeTripFocusSeq++;
@@ -212,7 +236,12 @@ function highlightMapPoint(id,on=true){
 }
 
 function renderDays(){
- const html=state.days.map((d,i)=>`<div class="ronny-day-card"><button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button><button type="button" class="ronny-day-card-edit" data-day-edit="${i}" title="ערוך את יום ${i+1}" aria-label="ערוך את יום ${i+1}" draggable="false">${icon('pencil','small-icon')}</button></div>`).join('');
+ const stageColors=new Map();
+ for(const group of ronnyDayGroups()){
+  const color=validDayColor(group.color)?group.color:'#87a695';
+  for(const di of ronnyGroupDays(group))if(!stageColors.has(di))stageColors.set(di,color);
+ }
+ const html=state.days.map((d,i)=>`<div class="ronny-day-card${stageColors.has(i)?' ronny-in-stage':''}"${stageColors.has(i)?' style="--stage-color:'+esc(stageColors.get(i))+'"':''}><button type="button" draggable="true" class="day-pill ${i===selectedDay?'active':''} ${dayExcludedFromTotals(d)?'ronny-incomplete-day':''}" style="--pill-color:${esc(d.color||DAY_ACCENTS[i%DAY_ACCENTS.length])}" data-day-id="${esc(d.dayId)}" data-day="${i}" aria-label="יום ${i+1}: ${esc(d.label||'')}" aria-pressed="${i===selectedDay}" title="לחץ לבחירה · גרור כדי לשנות סדר"><span class="ronny-day-path-kind" title="${d.loop?'יום מעגלי':'יום קווי'}" aria-label="${d.loop?'יום מעגלי':'יום קווי'}">${icon(d.loop?'rotate-cw':'move-left','small-icon')}</span><strong>יום ${i+1}</strong><small>${esc(dayDate(i))}</small><span class="day-label">${/^יום\s+\d+$/u.test(String(d.label||''))?'':esc(d.label||'')}</span></button><button type="button" class="ronny-day-card-edit" data-day-edit="${i}" title="ערוך את יום ${i+1}" aria-label="ערוך את יום ${i+1}" draggable="false">${icon('pencil','small-icon')}</button></div>`).join('');
  $('days').innerHTML=html;const prev=$('day-prev'),next=$('day-next');if(prev)prev.disabled=selectedDay<=0;if(next)next.disabled=selectedDay>=state.days.length-1;const active=$('days').querySelector('.day-pill.active');if(active){const strip=$('days').getBoundingClientRect(),rect=active.getBoundingClientRect();if(rect.left<strip.left+3||rect.right>strip.right-3)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}))}
  $('days').querySelectorAll('[data-day-edit]').forEach(button=>button.addEventListener('click',event=>{
   event.stopPropagation();
@@ -570,6 +599,7 @@ function ronnyCleanDayGroups(){
 function ronnyRenderGroupBar(){
  const bar=$('ronny-day-groups-bar');if(!bar)return;
  const groups=ronnyCleanDayGroups(),ids=[null,...groups.map(g=>g.id)];
+ ronnyRefreshStageSummary();
  const position=viewScope==='all'?Math.max(0,ids.indexOf(ronnyActiveDayGroupId)):0;
  const chip=(id,label,selected,color)=>'<button type="button" class="ronny-group-chip'+(selected?' selected':'')+'" data-ronny-group-view="'+esc(id||'')+'" style="--group-c:'+esc(color||'#87a695')+'">'+label+'</button>';
  bar.innerHTML=groups.length?

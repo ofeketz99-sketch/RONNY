@@ -2423,3 +2423,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
  box-shadow:0 0 7px rgba(15,32,23,.1);
 }
 @media(prefers-reduced-motion:reduce){#days .ronny-day-card-edit{transition:none}}
+
+/* Patch 100: stage strip and overview summary, without altering day colors. */
+#days .ronny-day-card.ronny-in-stage::before{content:"";position:absolute;top:0;inset-inline:2px;z-index:2;height:4px;border-radius:5px 5px 2px 2px;background:var(--stage-color);pointer-events:none}
+.ronny-stage-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:1px 11px 7px;padding:7px 10px;border-radius:10px;background:color-mix(in srgb,var(--stage-color,#87a695) 9%,#fffaf3);border:1px solid color-mix(in srgb,var(--stage-color,#87a695) 32%,#e3e7de);font-size:11px;color:#42594a;direction:rtl}
+.ronny-stage-summary[hidden]{display:none}
+.ronny-stage-summary-color{width:5px;height:22px;flex:none;border-radius:5px;background:var(--stage-color)}
+.ronny-stage-summary strong{color:#293e32;font-size:12px}
+.ronny-stage-summary [data-stage-distance]{margin-inline-start:auto;font-variant-numeric:tabular-nums}
+@media(max-width:470px){.ronny-stage-summary{gap:5px;padding:6px 8px;font-size:10px}}

@@ -1,0 +1,14 @@
+{
+  "version": "100",
+  "date": "2026-10-29",
+  "notes": [
+    "מעל כל כרטיס יום נוסף פס בצבע מקטע הטיול שלו, בלי לשנות את צבעי הימים.",
+    "בסקירת מקטעים וכל הטיול המחולק למקטעים מוצגות רק סיכות תחילת יום ותוואי מסלולים בצבע המקטע, ללא הילה. תצוגת יום נשארת רגילה.",
+    "נוספה תצוגת סיכום מקטע עם שם, מספר ימים ומרחק מצטבר. מרחקים של נתיבים שעדיין לא חושבו מסומנים כחלקיים."
+  ],
+  "technical": [
+    "Reuses existing road geometry cache and manual leg shapes; never substitutes straight lines for missing auto routes.",
+    "Clears point/photo/POI overlays in stage overview, restores standard layers in day mode.",
+    "Distance is computed from available drawn routes and updated after asynchronous overview routing."
+  ]
+}
