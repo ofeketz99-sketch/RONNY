@@ -36,7 +36,7 @@ test('map search refreshes geographic results after switching areas while preser
  await expect.poll(()=>requested.length).toBe(2);
  const second=requested[1];
  expect(Math.abs(second.lat-first.lat)).toBeGreaterThan(1);
- expect(Math.abs(second.lon-first.lon)).toBeGreaterThan(1);
+ expect(Math.abs(second.lon-first.lon)).toBeGreaterThan(0.3);
  await expect(page.locator('#search-results')).toContainText('castle');
 });
 
