@@ -1,0 +1,10 @@
+{
+  "version": "61",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספו בדיקות עומק לממשק המחשב עבור שרטוט עיפרון, ביטול נקודות ושמירת מסלול.",
+    "נוספו בדיקות מדידת מרחק ויציאה מכלי המדידה.",
+    "נוספה בדיקת התאוששות משגיאת ניתוב ומעבר לשרטוט ידני."
+  ],
+  "technical": "DEV only. Playwright browser tests to cover desktop controls with local trip fixture and mocked 503 OSRM routing. No production JS/CSS/HTML changes. CI results pending. Backup backups/2026-10-29_pre-desktop-depth_4cf285e8/."
+}
