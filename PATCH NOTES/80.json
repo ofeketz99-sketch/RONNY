@@ -1,0 +1,10 @@
+{
+  "version": "80",
+  "date": "2026-10-29",
+  "notes": [
+    "גרירת נקודה במפה פועלת ישירות, ללא פתיחת חלונית או הפעלת מצב עריכת מסלול.",
+    "הוגדל אזור הלחיצה הבלתי נראה של הסמן כדי להקל על תפיסתו בעכבר.",
+    "חלונית העריכה לא נפתחת מחדש אחרי גרירה, כדי לאפשר כוונון חוזר ללא הפרעה. האפשרות לבחור מיקום חדש בלחיצה על המפה נשמרה."
+  ],
+  "technical": "Drag excluded during drawing and other map operations; revised marker drag handlers. Added Chromium direct drag regression. Backup: backups/2026-10-29_pre-direct-marker-drag_824723f5d5. Browser validation pending."
+}

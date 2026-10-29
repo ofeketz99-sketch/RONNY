@@ -91,6 +91,23 @@ test('dragging a route marker in edit mode persists the position after reload',a
   }).toBeTruthy();
 });
 
+test('a day point can be repositioned by direct drag without entering edit mode',async({page})=>{
+  await open(page);
+  await expect(page.locator('#route-edit-toggle')).toHaveAttribute('aria-pressed','false');
+  const marker=page.locator('.leaflet-marker-icon[data-ronny-stop-id="finish"]');
+  await expect(marker).toBeVisible();
+  await page.waitForTimeout(800);
+  const before=(await saved(page)).days[0].stops[1];
+  const box=await marker.boundingBox();
+  expect(box).toBeTruthy();
+  await move(page,box,48,-38);
+  await expect.poll(async()=>{
+    const p=(await saved(page))?.days?.[0]?.stops?.[1];
+    return !!p&&Math.abs(p.lng-before.lng)+Math.abs(p.lat-before.lat)>0.00001;
+  }).toBeTruthy();
+  await expect(page.locator('#point-quick')).not.toHaveClass(/open/);
+});
+
 test('ordinary route drawing supports vertex drag and survives reload',async({page})=>{
   await open(page);
   await page.locator('.leg-open[data-leg-index="1"]').click();

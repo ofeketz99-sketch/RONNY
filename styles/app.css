@@ -2253,3 +2253,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #point-quick .walk-loop-route-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
 #point-quick .walk-loop-route-actions .walk-loop-route{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px}
 #point-quick .walk-loop-route-actions svg{width:15px;height:15px;flex:none}
+
+/* Patch 80: comfortably sized interaction target for direct marker dragging.
+   The extra hit area lives on the Leaflet marker itself, not the map layer. */
+.leaflet-marker-icon[data-ronny-stop-id]{cursor:grab!important;touch-action:none}
+.leaflet-marker-icon[data-ronny-stop-id]::before{
+ content:"";position:absolute;inset:-6px;z-index:1;background:transparent;
+}
+.leaflet-marker-icon[data-ronny-stop-id].leaflet-drag-target{cursor:grabbing!important}
+.leaflet-marker-icon[data-ronny-stop-id] .point-pin-inner{pointer-events:none}

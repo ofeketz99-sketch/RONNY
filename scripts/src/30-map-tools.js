@@ -282,7 +282,9 @@ function syncMarkerDragState(){
  markerLayer.eachLayer?.(m=>{
   if(!m.dragging||!m.options?.ronnyStopId)return;
   const selected=selectedId===m.options.ronnyStopId;
-  const canDrag=(routeEdit&&viewScope==='day')||pointMoveModeId===m.options.ronnyStopId||selected;
+  // Direct repositioning is the default. Disable dragging only while another
+  // map gesture (drawing, measuring, choosing a location) owns pointer input.
+  const canDrag=!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===m.options.ronnyStopId);
   if(canDrag&&!m.dragging.enabled())m.dragging.enable();
   else if(!canDrag&&m.dragging.enabled())m.dragging.disable();
   const marker=m.getElement?.()?.querySelector('.point-pin');
@@ -368,29 +370,27 @@ function renderMarkers(){
    const cls=types[s.type]?.cls||'';
    const override=viewScope==='all'?`style="background:${palette[di%palette.length]}"`:'';
    const routeOrder=isMapOnlyPoint(s)?null:routeStopsForDay(di).findIndex(p=>p.id===s.id)+1;
-   const tint=s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(routeEdit||pointMoveModeId===s.id||($('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:ronnyPointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type,s)}</span></div>`;
+   const tint=s.type==='idea'?'#b78a08':['start','end'].includes(s.type)?'#222b26':pointColor(s,di);const html=`<div class="marker point-pin ${s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'ronny-loop-pin':''} ${cls} ${selectedStop===s.id?'active':''} ${(!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id))?'drag-marker':''} ${pointMoveModeId===s.id?'move-armed':''}" style="--pin-color:${tint}"><span class="point-pin-inner">${s.type==='via'?`<span class="via-number ronny-route-ordinal" aria-hidden="true">${routeOrder}</span>`:ronnyPointSymbol(s.type==='start'&&(state.days[di]?.loop||(di===0&&state.settings.tripLoop===true))?'loop':s.type,s)}</span></div>`;
    const walkFinish=s.type==='walkStart'?routeStopsForDay(di).find(p=>p.type==='walkEnd'&&p.walkLoopSource===s.id):null;
     const walkRange=walkFinish&&s.time&&walkFinish.time?s.time+'–'+walkFinish.time:s.time||'';
     const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
-   const canDrag=(routeEdit&&viewScope==='day')||pointMoveModeId===s.id||selectedQuick;
-   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'לחיצה לבחירה · לאחר הבחירה גרור לשינוי מיקום'}).addTo(markerLayer);
+   const canDrag=!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id);
+   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'גרור לשינוי מיקום · לחץ לעריכה'}).addTo(markerLayer);
    const element=m.getElement?.();if(element){element.dataset.ronnyStopId=s.id;if(routeOrder!==null)element.dataset.ronnyRouteOrder=String(routeOrder)}
-   // Temporarily conceal a selected point's editor without disabling the marker's drag handler.
-   let returnEditorAfterDrag=false;
+   // Dragging requires no prior click. Hide an existing editor while moving,
+   // and leave it closed afterwards so further adjustments are unobstructed.
    m.on('dragstart',()=>{
     ronnyMarkerDraggedAt=Date.now();
     const panel=$('point-quick');
-    returnEditorAfterDrag=!!(panel?.classList.contains('open')&&panel.dataset.mode!=='outline'&&panel.dataset.id===s.id);
-    if(returnEditorAfterDrag)panel.classList.add('ronny-point-drag-hidden');
+    if(panel?.classList.contains('open')&&panel.dataset.id===s.id)
+     panel.classList.add('ronny-point-drag-hidden');
    });
    m.on('dragend',e=>{
     ronnyMarkerDraggedAt=Date.now();
-    const ll=e.target.getLatLng(),restore=returnEditorAfterDrag;
-    returnEditorAfterDrag=false;
-    // relocatePoint flushes edits, updates the position and redraws the marker.
+    const ll=e.target.getLatLng();
+    // relocatePoint commits coordinates, rebuilds the route and closes an open editor.
     relocatePoint(s.id,ll);
-    if(restore&&getStop(s.id))openPointQuick(s.id);
    });
    m.on('click',e=>{
     if(Date.now()-ronnyMarkerDraggedAt<450)return;
