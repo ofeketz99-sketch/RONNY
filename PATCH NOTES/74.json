@@ -1,0 +1,9 @@
+{
+  "version": "74",
+  "date": "2026-10-29",
+  "notes": [
+    "אייקון כוס הוויסקי גלנקרן הוחלף בגרסה הסופית והמובלטת שנמסרה, ללא שינוי בצורתו או בקובץ המקורי.",
+    "נשמרה התאימות לנקודות שכבר משתמשות באייקון הגלנקרן."
+  ],
+  "technical": "Exact source asset SHA-256: 621702fed57378fd08f024dc829ec68cd9db63e6f64453e665a3f1beb465cbc6. Path remains assets/glencairn_icon.svg; no JS or CSS code changed. Updated hash regression test. Backup: backups/2026-10-29_pre-final-glencairn_2b59c78c36/."
+}
