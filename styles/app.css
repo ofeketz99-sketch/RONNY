@@ -2160,3 +2160,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-icon-choice.selected{background:#e5f0e3;border-color:#658a69}
 .ronny-icon-choice svg{width:23px;height:23px}
 .ronny-icon-choice small{font-size:9px;text-align:center;overflow-wrap:anywhere}
+
+/* Patch 73 — preserve the supplied Glencairn silhouette and legibility on colored map markers. */
+.ronny-icon-choice .ronny-glencairn-icon{width:23px;height:23px}
+.marker.point-pin .ronny-glencairn-icon{filter:brightness(0) invert(1)}
