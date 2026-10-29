@@ -1,5 +1,15 @@
 function bind(){
 initResolutionUI();initDayNavigation();
+ const undoButton=$('ronny-undo');
+ if(undoButton){undoButton.onclick=ronnyUndoLast;ronnyUpdateUndoButton();}
+ document.addEventListener('keydown',e=>{
+  if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||e.key.toLowerCase()!=='z')return;
+  const target=e.target;
+  if(target?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]'))return;
+  if(ronnyUndoOwner!==activeTripId||!ronnyUndoEntries.length)return;
+  e.preventDefault();ronnyUndoLast();
+ });
+ 
  const descToggle=$('map-description-toggle');if(descToggle){const sync=()=>{const on=state.settings.showMapDescriptions!==false;descToggle.setAttribute('aria-pressed',String(on));descToggle.title=on?'הסתר תיאורים קבועים':'הצג תיאורים שסומנו';};sync();descToggle.addEventListener('click',()=>{state.settings.showMapDescriptions=state.settings.showMapDescriptions===false;sync();save();if(planningResolution==='outline')renderOutlineMap();else renderMarkers()})}
 $('trip-name').value=state.title;$('trip-name').onchange=()=>{state.title=$('trip-name').value.trim()||'הטיול שלי';save();renderTripDashboard()};$('trip-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.title=$('trip-name').value.trim()||'הטיול שלי';$('trip-name').value=state.title;save();$('trip-name').blur();toast('שם הטיול נשמר')}});$('start-date').value=state.startDate;$('start-date-trigger').onclick=()=>{const field=$('start-date');try{field.showPicker()}catch(e){field.focus();field.click()}};$('start-date').onchange=()=>{state.startDate=$('start-date').value||state.startDate;save();renderDays()};$('travel-mode').value=state.settings.travelMode;$('travel-mode').onchange=()=>{closeLegEditor();stopLegDrawing();state.settings.travelMode=$('travel-mode').value;invalidate();retimeAfterOrderChange(selectedDay);save();drawRoute();renderSchedule();renderMarkers()};rebuildMapOptions();
 initMapSelectClickTargets();$('map-scope').onchange=()=>{if(drawLegSession)stopLegDrawing();closeLegEditor();const requested=$('map-scope').value;wholeTripFocusSeq++;ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope=requested;selectedStop=null;renderAll();fitMap()};$('map-style').onchange=()=>setMapStyle($('map-style').value);$('top-add').onclick=$('panel-add').onclick=()=>openStopForm();$('map-add').onclick=()=>{const c=map?.getCenter();if(!c)return;if(planningResolution!=='day')addOutlinePoint(c);else openStopForm(null,{lat:c.lat,lng:c.lng})};$('fit-route').onclick=()=>{ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope='all';$('map-scope').value='all';selectedStop=null;closeLegEditor();hidePointQuick();renderAll();fitMap();};$('auto-time').onclick=autoSchedule;$('close-drawer').onclick=$('drawer-backdrop').onclick=closeDrawer;$('close-planner').onclick=showMap;
