@@ -1,7 +1,7 @@
 {
   "name": "ronny-trip-planner",
   "private": true,
-  "version": "0.0.50",
+  "version": "0.0.52",
   "description": "Developer-only deterministic build for RONNY classic script",
   "scripts": {
     "build": "node tools/build.js",

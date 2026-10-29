@@ -1,8 +1,4 @@
-function ronnyMeasureMeters(points=ronnyMeasure.points){
- let total=0;
- for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
- return total;
-}
+function ronnyMeasureMeters(points=ronnyMeasure.points){return RouteGeometry.ronnyMeasureMeters(points,kmBetween)}
 function ronnyMeasureFormat(m){
  return m>=1000?(m/1000).toLocaleString('he-IL',{maximumFractionDigits:2,minimumFractionDigits:2})+' ק״מ':Math.round(m).toLocaleString('he-IL')+' מ׳';
 }
@@ -438,13 +434,7 @@ function drawLegLineOverview(coords,mode,di,index){
   });
  }
 }
-async function requestRoute(list,profile,signal){
- const service=profile==='driving'?'https://router.project-osrm.org/route/v1/driving/':`https://routing.openstreetmap.de/routed-${profile==='walking'||profile==='hiking'?'foot':'bike'}/route/v1/driving/`;
- const coords=list.map(s=>`${Number(s.lng).toFixed(6)},${Number(s.lat).toFixed(6)}`).join(';');
- const res=await fetch(service+coords+'?overview=full&geometries=geojson&steps=false',{signal});
- if(!res.ok)throw Error('HTTP '+res.status);const data=await res.json();if(data.code!=='Ok'||!data.routes?.length)throw Error(data.message||'אין מסלול');
- const r=data.routes[0];return {distance:r.distance,duration:r.duration,legs:r.legs,geometry:r.geometry,source:'OSRM / OpenStreetMap'};
-}
+async function requestRoute(list,profile,signal){return RoutingService.requestRoute(list,profile,signal,fetch)}
 function drawRoute(){
  if(!map)return;if(viewScope==='all'){showOverview();return}
  invalidate();clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];const arr=stops(),day=selectedDay;

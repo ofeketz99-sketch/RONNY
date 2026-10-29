@@ -108,6 +108,64 @@ function renumberGenericDayLabels(trip){
 function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const loopLinked=synchronizeLoopDays();const linked=isDayView?synchronizeDayStarts():false;const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
 return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,renumberGenericDayLabels,synchronizeForRender});
 })();
+// Geometry and manual-leg calculations; no browser, routing network, UI or trip state.
+const RouteGeometry=(()=>{
+function legCoords(index,arr,legAt){
+ const a=arr[index-1],b=arr[index],leg=legAt(index,arr);
+ const start=[+a.lat,+a.lng],path=Array.isArray(leg.path)?leg.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)):[];
+ if(leg.mode==='pencil')return [start,...path];
+ return [start,...(leg.mode==='draw'?path:[]),[+b.lat,+b.lng]];
+}
+function splitRoutedLegs(coords,waypoints,kmBetween){
+ if(!Array.isArray(coords)||coords.length<2||waypoints.length<2)return [];
+ const parts=[];let start=0;
+ for(let j=1;j<waypoints.length;j++){
+  let end=coords.length-1;
+  if(j<waypoints.length-1){
+   const pt=[+waypoints[j].lat,+waypoints[j].lng];let best=Infinity;
+   for(let k=start+1;k<coords.length-(waypoints.length-j-1);k++){
+    const d=kmBetween(coords[k],pt);if(d<best){best=d;end=k}
+   }
+  }
+  parts.push(coords.slice(start,end+1).length>1?coords.slice(start,end+1):[coords[start],coords[Math.min(start+1,coords.length-1)]]);
+  start=end;
+ }
+ return parts;
+}
+function segmentOfPathNearest(coords,latlng){
+ let best=Infinity,at=0;
+ const scale=Math.cos(latlng.lat*Math.PI/180);
+ for(let j=0;j<coords.length-1;j++){
+  const [ay,ax]=coords[j],[by,bx]=coords[j+1];const x=latlng.lng*scale,y=latlng.lat;
+  const x1=ax*scale,x2=bx*scale,y1=ay,y2=by;
+  const q=Math.max(0,Math.min(1,((x-x1)*(x2-x1)+(y-y1)*(y2-y1))/((x2-x1)**2+(y2-y1)**2||1)));
+  const d=(x-x1-q*(x2-x1))**2+(y-y1-q*(y2-y1))**2;
+  if(d<best){best=d;at=j}
+ }
+ return at;
+}
+function manualLeg(index,arr,{legAt,legCoords,routeLegMinutes,distanceOfCoords}){
+ const leg=legAt(index,arr),coords=legCoords(index,arr),minutes=routeLegMinutes(leg);
+ return {duration:(minutes??0)*60,distance:distanceOfCoords(coords),mode:leg.mode,baseDuration:null,manualMissing:minutes===null};
+}
+function ronnyMeasureMeters(points,kmBetween){
+ let total=0;
+ for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
+ return total;
+}
+return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters});
+})();
+// Routing network boundary. fetch and AbortSignal are supplied by the caller.
+const RoutingService=(()=>{
+async function requestRoute(list,profile,signal,fetchFn){
+ const service=profile==='driving'?'https://router.project-osrm.org/route/v1/driving/':`https://routing.openstreetmap.de/routed-${profile==='walking'||profile==='hiking'?'foot':'bike'}/route/v1/driving/`;
+ const coords=list.map(s=>`${Number(s.lng).toFixed(6)},${Number(s.lat).toFixed(6)}`).join(';');
+ const res=await fetchFn(service+coords+'?overview=full&geometries=geojson&steps=false',{signal});
+ if(!res.ok)throw Error('HTTP '+res.status);const data=await res.json();if(data.code!=='Ok'||!data.routes?.length)throw Error(data.message||'אין מסלול');
+ const r=data.routes[0];return {distance:r.distance,duration:r.duration,legs:r.legs,geometry:r.geometry,source:'OSRM / OpenStreetMap'};
+}
+return Object.freeze({requestRoute});
+})();
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const icon=(name,cls='small-icon')=>`<i data-lucide="${name}" class="${cls}"></i>`;
 const uid=()=> (window.crypto?.randomUUID?.()||('stop'+Date.now().toString(36)+Math.random().toString(36).slice(2)));
@@ -1338,12 +1396,7 @@ function getLegMutableForDay(dayIndex,index){
  if(!target.leg||target.leg.fromId!==arr[index-1].id){target.leg={fromId:arr[index-1].id,mode:'auto',label:'',path:[],viaPoints:[],minutes:null};}
  return target.leg;
 }
-function legCoords(index,arr=stops()){
- const a=arr[index-1],b=arr[index],leg=legAt(index,arr);
- const start=[+a.lat,+a.lng],path=Array.isArray(leg.path)?leg.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)):[];
- if(leg.mode==='pencil')return [start,...path];
- return [start,...(leg.mode==='draw'?path:[]),[+b.lat,+b.lng]];
-}
+function legCoords(index,arr=stops()){return RouteGeometry.legCoords(index,arr,legAt)}
 function kmBetween(a,b){return CoreGeo.kmBetween(a,b)}
 function distanceOfCoords(coords){return CoreGeo.distanceOfCoords(coords)}
 function routeModeName(mode){return CoreLegTiming.routeModeName(mode)}
@@ -1613,34 +1666,8 @@ function spotlightLeg(index,show=true){
 }
 // Match the routed geometry with its ordered waypoints; do not use aerial lines
 // when highlighting an actual road segment.
-function splitRoutedLegs(coords,waypoints){
- if(!Array.isArray(coords)||coords.length<2||waypoints.length<2)return [];
- const parts=[];let start=0;
- for(let j=1;j<waypoints.length;j++){
-  let end=coords.length-1;
-  if(j<waypoints.length-1){
-   const pt=[+waypoints[j].lat,+waypoints[j].lng];let best=Infinity;
-   for(let k=start+1;k<coords.length-(waypoints.length-j-1);k++){
-    const d=kmBetween(coords[k],pt);if(d<best){best=d;end=k}
-   }
-  }
-  parts.push(coords.slice(start,end+1).length>1?coords.slice(start,end+1):[coords[start],coords[Math.min(start+1,coords.length-1)]]);
-  start=end;
- }
- return parts;
-}
-function segmentOfPathNearest(coords,latlng){
- let best=Infinity,at=0;
- const scale=Math.cos(latlng.lat*Math.PI/180);
- for(let j=0;j<coords.length-1;j++){
-  const [ay,ax]=coords[j],[by,bx]=coords[j+1];const x=latlng.lng*scale,y=latlng.lat;
-  const x1=ax*scale,x2=bx*scale,y1=ay,y2=by;
-  const q=Math.max(0,Math.min(1,((x-x1)*(x2-x1)+(y-y1)*(y2-y1))/((x2-x1)**2+(y2-y1)**2||1)));
-  const d=(x-x1-q*(x2-x1))**2+(y-y1-q*(y2-y1))**2;
-  if(d<best){best=d;at=j}
- }
- return at;
-}
+function splitRoutedLegs(coords,waypoints){return RouteGeometry.splitRoutedLegs(coords,waypoints,kmBetween)}
+function segmentOfPathNearest(coords,latlng){return RouteGeometry.segmentOfPathNearest(coords,latlng)}
 function addDrawPointOnLine(index,location){
  const leg=getLegMutable(index);if(!leg||leg.mode!=='draw')return;
  const at=segmentOfPathNearest(legCoords(index),location);
@@ -1682,10 +1709,7 @@ function drawLegLine(coords,mode,index,unavailable=false){
  }
  drawLegLabel(index,coords);
 }
-function manualLeg(index,arr=stops()){
- const leg=legAt(index,arr),coords=legCoords(index,arr),minutes=routeLegMinutes(leg);
- return {duration:(minutes??0)*60,distance:distanceOfCoords(coords),mode:leg.mode,baseDuration:null,manualMissing:minutes===null};
-}
+function manualLeg(index,arr=stops()){return RouteGeometry.manualLeg(index,arr,{legAt,legCoords,routeLegMinutes,distanceOfCoords})}
 function closeLegEditor(){const el=$('leg-editor');if(el){el.classList.remove('open');delete el.dataset.index}forcedHandleLayer?.clearLayers();if(activeDrawEditLeg!==null){activeDrawEditLeg=null;renderViaHandles()}}
 function stopLegDrawing(){drawLegSession=null;$('leg-draw-banner')?.classList.remove('active');updateMapHint();renderViaHandles()}
 function startLegDrawing(index,mode='draw'){
@@ -2408,11 +2432,7 @@ function invalidate(){routeToken++;clearTimeout(routeDebounce);routeController?.
 // RONNY 35.31: temporary map distance measurement, independent of trip data and routing.
 const ronnyMeasure={active:false,points:[],undoLengths:[],hover:null,pointerId:null,dragging:false,prevDragEnabled:true,prevDblClickEnabled:true};
 let ronnyMeasureLayer=null;
-function ronnyMeasureMeters(points=ronnyMeasure.points){
- let total=0;
- for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
- return total;
-}
+function ronnyMeasureMeters(points=ronnyMeasure.points){return RouteGeometry.ronnyMeasureMeters(points,kmBetween)}
 function ronnyMeasureFormat(m){
  return m>=1000?(m/1000).toLocaleString('he-IL',{maximumFractionDigits:2,minimumFractionDigits:2})+' ק״מ':Math.round(m).toLocaleString('he-IL')+' מ׳';
 }
@@ -2848,13 +2868,7 @@ function drawLegLineOverview(coords,mode,di,index){
   });
  }
 }
-async function requestRoute(list,profile,signal){
- const service=profile==='driving'?'https://router.project-osrm.org/route/v1/driving/':`https://routing.openstreetmap.de/routed-${profile==='walking'||profile==='hiking'?'foot':'bike'}/route/v1/driving/`;
- const coords=list.map(s=>`${Number(s.lng).toFixed(6)},${Number(s.lat).toFixed(6)}`).join(';');
- const res=await fetch(service+coords+'?overview=full&geometries=geojson&steps=false',{signal});
- if(!res.ok)throw Error('HTTP '+res.status);const data=await res.json();if(data.code!=='Ok'||!data.routes?.length)throw Error(data.message||'אין מסלול');
- const r=data.routes[0];return {distance:r.distance,duration:r.duration,legs:r.legs,geometry:r.geometry,source:'OSRM / OpenStreetMap'};
-}
+async function requestRoute(list,profile,signal){return RoutingService.requestRoute(list,profile,signal,fetch)}
 function drawRoute(){
  if(!map)return;if(viewScope==='all'){showOverview();return}
  invalidate();clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];const arr=stops(),day=selectedDay;

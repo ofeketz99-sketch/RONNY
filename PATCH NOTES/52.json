@@ -1,0 +1,10 @@
+{
+  "version": "52",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרדו חישובי גאומטריה ומקטעי מסלול מהמפה למודול עצמאי.",
+    "הופרדה שכבת התקשורת עם שירותי הניתוב כדי לאפשר בדיקות ושינויים בלי לערבב קוד מפה.",
+    "נשמרו מנגנוני ציור, מסלולי הליכה מעגליים, תזמון ושמירה כפי שהיו."
+  ],
+  "technical": "Incremental RouteGeometry and RoutingService extraction. 6 original API functions preserved through wrappers. 34 differential cases and script syntax passed; Node tests added but not executed in Node runtime; live map regressions pending. Backup: backups/2026-10-29_pre-routing-boundary_bb839bf2."
+}
