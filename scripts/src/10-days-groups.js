@@ -86,6 +86,20 @@ function ensureDayStart(i){
  if(changed)positionRouteEndpoints(curr);
  return changed;
 }
+// Moving a shared departure also moves the upstream physical arrival and any
+// consecutive circular days. Ordinary intermediate waypoints are never touched.
+function relocateConnectedDayOrigin(dayIndex,previous,next){
+ let i=dayIndex;
+ while(i>0){
+  const prior=state.days[i-1];
+  const end=prior.stops.find(s=>s.type==='end'&&validPoint(s));
+  const source=prior.loop?prior.stops.find(s=>s.type==='start'&&validPoint(s)):end;
+  if(!source||Math.abs(+source.lat-previous.lat)>0.000002||Math.abs(+source.lng-previous.lng)>0.000002)break;
+  source.lat=next.lat;source.lng=next.lng;
+  if(!prior.loop)break;
+  i--;
+ }
+}
 function synchronizeDayStarts(){let modified=false;for(let i=1;i<state.days.length;i++)modified=ensureDayStart(i)||modified;return modified}
 function reverseDayItinerary(day){
  const forward=(day.stops||[]).filter(s=>!isMapOnlyPoint(s));
