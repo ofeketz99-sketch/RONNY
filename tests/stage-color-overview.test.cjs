@@ -21,8 +21,8 @@ test('each day inherits its stage identity without overriding day colors',()=>{
  assert.equal(ctx.ronnyGroupColorForDay(1),'#72947b');
  assert.equal(ctx.ronnyGroupColorForDay(2),'#bd977a');
  assert.match(source,/ronny-in-stage/);
- assert.match(css,/ronny-day-card\.ronny-in-stage::before/);
- assert.match(css,/background:var\(--stage-color\)/);
+ assert.match(css,/#days \.ronny-day-card\.ronny-in-stage>\.day-pill\[data-day\]/);
+ assert.match(css,/border-inline-start:5px solid var\(--stage-color\)/);
 });
 test('stage summary counts days and marks incomplete route distance accurately',()=>{
  const {ctx,el}=harness();
@@ -42,7 +42,10 @@ test('overview suppresses point overlays and only shows daily starts, preserving
  assert.match(map,/stageOverview&&\(s\.type!=='start'\|\|!stageDays\.has\(di\)\)/);
  assert.match(map,/ronnyGroupColorForDay\(di\)/);
  assert.match(map,/if\(!stageOverview\)drawRouteAnnotations/);
- assert.match(map,/if\(!stageOverview\)L\.polyline\(visual,\{color:'#fff8ec'/);
+ assert.match(map,/L\.polyline\(visual,\{color:'#fffaf0'/);
+ assert.match(map,/dashArray:mode==='straight'\?'9 7':undefined/);
+ assert.match(map,/const canDrag=!stageOverview/);
+ assert.match(map,/retraceRole&&!stageOverview\?ronnyRetraceShift/);
  assert.match(mapView,/if\(ronnyStageOverviewMode\(\)\)/);
  assert.match(mapView,/poiLinkLayer\?\.clearLayers\(\);photoLayer\?\.clearLayers\(\)/);
  assert.match(html,/id="ronny-stage-summary"/);
