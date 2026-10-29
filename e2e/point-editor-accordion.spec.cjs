@@ -25,6 +25,16 @@ test('point editing keeps advanced menus collapsed, scrollable and inside the ma
  await marker.evaluate(node=>node.click());
  const popup=page.locator('#point-quick[data-mode="day"]');
  await expect(popup).toHaveClass(/open/);
+ // Large desktop maps must not trigger the old 738px two-column popup.
+ const popupSize=await popup.evaluate(node=>({width:node.getBoundingClientRect().width,
+   maxWidth:node.closest('.map-pane').clientWidth}));
+ expect(popupSize.width).toBeLessThanOrEqual(338);
+ expect(popupSize.width).toBeGreaterThanOrEqual(Math.min(300,popupSize.maxWidth-26));
+ await expect(popup.locator('.point-quick-actions button')).toHaveCount(4);
+ for(const action of await popup.locator('.point-quick-actions button').all()){
+  expect(await action.evaluate(btn=>btn.getBoundingClientRect().width)).toBeGreaterThan(85);
+ }
+
  await expect(popup.locator('#quick-name')).toHaveValue('עצירת בדיקה');
  const menus=popup.locator('details[name="ronny-point-details"]');
  await expect(menus).toHaveCount(4);

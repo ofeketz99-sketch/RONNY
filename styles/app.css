@@ -1912,7 +1912,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 
 /* Desktop point editing: content-sized two-column layout, no nested scrollbar. */
 .map-pane #point-quick.ronny-point-full[data-mode="day"]{
- width:min(738px,calc(100% - 28px)); max-width:none;
+ width:min(336px,calc(100% - 24px)); max-width:none;
  max-height:calc(100% - 28px); height:auto; overflow:hidden;
  border-radius:18px; box-shadow:0 18px 50px #24362b38;
 }
@@ -1949,7 +1949,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #point-quick .ronny-point-street-view{background:#edf2ee;color:#426d61;border-color:#d5e5dc}
 #point-quick .ronny-point-street-view:hover{background:#dcebe4;border-color:#abcbbc}
 /* A narrow or short map cannot physically fit the expanded panel: fall back safely. */
-.map-pane #point-quick.ronny-point-compact[data-mode="day"]{width:min(380px,calc(100% - 18px));max-width:none;max-height:calc(100% - 18px);overflow:hidden}
+.map-pane #point-quick.ronny-point-compact[data-mode="day"]{width:min(336px,calc(100% - 24px));max-width:none;max-height:calc(100% - 18px);overflow:hidden}
 #point-quick.ronny-point-compact .point-quick-form{display:block;overflow-y:auto;min-height:0;overscroll-behavior:contain}
 #point-quick.ronny-point-compact .point-quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;gap:6px}
 #point-quick.ronny-point-compact .point-quick-actions button{min-width:0;min-height:36px}
@@ -2168,7 +2168,7 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 
 /* RONNY 75 — bounded, scrollable point editor with optional disclosure panels. */
 .map-pane #point-quick[data-mode="day"]{
- width:min(460px,calc(100% - 24px));
+ width:min(336px,calc(100% - 24px));
  max-width:none;
  max-height:calc(100% - 24px);
  overflow:hidden;
@@ -2262,3 +2262,8 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 }
 .leaflet-marker-icon[data-ronny-stop-id].leaflet-drag-target{cursor:grabbing!important}
 .leaflet-marker-icon[data-ronny-stop-id] .point-pin-inner{pointer-events:none}
+
+/* Patch 81 — compact editing popover: preserve a usable two-column action grid. */
+#point-quick[data-mode="day"] .point-quick-actions button{
+ min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25;
+}

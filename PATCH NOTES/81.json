@@ -1,0 +1,10 @@
+{
+  "version": "81",
+  "date": "2026-10-29",
+  "notes": [
+    "צומצם רוחב חלונית עריכת הנקודה ל־336 פיקסלים לכל היותר, לעומת עד 738 פיקסלים קודם לכן.",
+    "נפתרה התנגשות כללי CSS שהרחיבה את החלונית למרות שהשדות אורגנו בתפריטים מתקפלים.",
+    "כפתורי הפעולות ושדות העריכה נשארו נגישים; לא בוצעו שינויים בגרירת נקודות או בנתוני הטיול."
+  ],
+  "technical": "Only CSS and browser size regression; no JavaScript behavior changes. Verified source backup: backups/2026-10-29_pre-compact-point-popup_8b63556e3e. Browser CI required."
+}
