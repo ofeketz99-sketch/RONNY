@@ -302,6 +302,7 @@ function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
 function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
 function selectDay(i){if(i<0||i>=state.days.length)return;
+ wholeTripFocusSeq++;
  if(i!==selectedDay&&dayMissingEndpoint(state.days[selectedDay])){
   if(!window.confirm('לא נקבעה נקודת סיום\n\nנתוני היום לא ייספרו עד לקביעת סיום. להמשיך?'))return;
   state.days[selectedDay].excludedUntilEnd=true;save();

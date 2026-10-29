@@ -46,7 +46,7 @@ function fitWholeTrip(){
  map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:[92,96],paddingBottomRight:[90,98],maxZoom:12,animate:true,duration:.65});
 }
 let wholeTripFocusSeq=0;
-function focusLoadedTrip(){if(!map)return;map.invalidateSize({pan:false});fitWholeTrip()}
+function focusLoadedTrip(){if(!map)return;map.invalidateSize({pan:false});fitMap()}
 function queueWholeTripFocus(){
  const seq=++wholeTripFocusSeq;
  const run=()=>{if(seq!==wholeTripFocusSeq||!map)return;focusLoadedTrip()};

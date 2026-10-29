@@ -574,7 +574,7 @@ function renderLayerFilterPanel(){
  el.innerHTML=`<div class="layer-filter-panel-head"><div><strong>שכבות במפה</strong><small>אפשר לבחור אילו שכבות ותוויות יוצגו כעת</small></div><button type="button" id="layer-filter-close" aria-label="סגירת חלונית שכבות">${icon('x','small-icon')}</button></div>${guideControlsMarkup()}<div class="layer-filter-list">${LAYER_FILTER_DEFS.map(item=>`<label class="layer-filter-row"><span><strong>${item.label}</strong><small>${item.hint}</small></span><input class="layer-filter-switch" type="checkbox" data-layer-key="${item.key}" ${visibility[item.key]?'checked':''}></label>`).join('')}</div><div class="layer-filter-presets"><button type="button" id="layer-preset-all">הכול</button><button type="button" id="layer-preset-clean">מסלול נקי</button></div>`;
  wireGuideControls(el);
  $('layer-filter-close').onclick=closeLayerFilterPanel;
- el.querySelectorAll('[data-layer-key]').forEach(input=>input.onchange=()=>{const key=input.dataset.layerKey;layerVisibility()[key]=!!input.checked;save();renderMap();renderLayerFilterPanel()});
+ el.querySelectorAll('[data-layer-key]').forEach(input=>input.onchange=()=>{const key=input.dataset.layerKey;layerVisibility()[key]=!!input.checked;save();renderMap()});
  $('layer-preset-all').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,routeTimes:true};save();renderMap();renderLayerFilterPanel()};
  $('layer-preset-clean').onclick=()=>{state.settings.layerVisibility={...DEFAULT_LAYER_VISIBILITY,poiLinks:false,routeLabels:false,routeTimes:false,photos:false};save();renderMap();renderLayerFilterPanel()};
  refreshIcons();

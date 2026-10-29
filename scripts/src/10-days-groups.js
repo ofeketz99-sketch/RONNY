@@ -16,6 +16,7 @@ function ronnyVisibleDayIndices(){
 }
 function ronnyGroupCaption(){const g=ronnyDayGroups().find(g=>g.id===ronnyActiveDayGroupId);return g?.name||'כל הטיול'}
 function ronnySetGroupView(id){
+ wholeTripFocusSeq++;
  ronnyActiveDayGroupId=id;
  if(planningResolution!=='day')setPlanningResolution('day',{fit:false});
  viewScope='all';$('map-scope').value='all';selectedStop=null;

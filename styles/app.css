@@ -2150,3 +2150,13 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 @media(prefers-reduced-motion:reduce){
  .planner .ronny-day-navigation>.day-strip{scroll-behavior:auto;scroll-snap-type:none}
 }
+
+.tree-quick-points .ronny-poi-wide{grid-column:1/-1;width:100%}
+.ronny-icon-editor{margin:10px 0;border:1px solid #d9e2d4;background:#f8faf5;border-radius:12px;overflow:hidden}
+.ronny-icon-editor summary{display:flex;align-items:center;gap:9px;cursor:pointer;padding:10px;color:#45644d;font-size:12px;font-weight:800}
+.ronny-icon-editor summary svg{width:20px;height:20px}
+.ronny-icon-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px;max-height:220px;overflow:auto}
+.ronny-icon-choice{display:grid;place-items:center;gap:3px;min-height:64px;padding:5px 2px;border:1px solid #dce3d9;border-radius:9px;background:#fffdf8;color:#496952;cursor:pointer}
+.ronny-icon-choice.selected{background:#e5f0e3;border-color:#658a69}
+.ronny-icon-choice svg{width:23px;height:23px}
+.ronny-icon-choice small{font-size:9px;text-align:center;overflow-wrap:anywhere}
