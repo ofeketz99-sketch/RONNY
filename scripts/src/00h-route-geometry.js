@@ -38,10 +38,29 @@ function manualLeg(index,arr,{legAt,legCoords,routeLegMinutes,distanceOfCoords})
  const leg=legAt(index,arr),coords=legCoords(index,arr),minutes=routeLegMinutes(leg);
  return {duration:(minutes??0)*60,distance:distanceOfCoords(coords),mode:leg.mode,baseDuration:null,manualMissing:minutes===null};
 }
+function walkRetraceSegments(arr,shapes){
+ const outbound=new Set(),returns=new Map();
+ for(let end=1;end<arr.length;end++){
+  const finish=arr[end];if(finish?.type!=='walkEnd'||!finish.leg?.walkAutoRetrace)continue;
+  const first=arr.findIndex(p=>p.id===finish.walkLoopSource&&p.type==='walkStart');
+  if(first<0||first>=end-1||!arr[first].walkRetrace)continue;
+  const full=[];
+  for(let i=first+1;i<end;i++){
+   outbound.add(i);
+   const part=shapes.get(i);
+   if(!Array.isArray(part)||part.length<2)continue;
+   const prev=full.at(-1),next=part[0];
+   const connected=prev&&Math.abs(prev[0]-next[0])<1e-7&&Math.abs(prev[1]-next[1])<1e-7;
+   full.push(...(connected?part.slice(1):part));
+  }
+  if(full.length>1)returns.set(end,full.slice().reverse());
+ }
+ return {outbound,returns};
+}
 function ronnyMeasureMeters(points,kmBetween){
  let total=0;
  for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
  return total;
 }
-return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters});
+return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters,walkRetraceSegments});
 })();

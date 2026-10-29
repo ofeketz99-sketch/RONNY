@@ -1,0 +1,10 @@
+{
+  "version": "66",
+  "date": "2026-10-29",
+  "notes": [
+    "הוחזרו חצי הניווט בבורר מקטעי הטיול.",
+    "בחירת יום, מקטע או הטיול כולו ממקדת את המפה בכל הנקודות והשרטוטים בזום המותאם.",
+    "מסלול החוזר בדיוק בתוואי ההלוך נקרא 'מסלול הלוך חזור', ומוצג בשני גוונים מופרדים גם בשרטוט נתיב וגם בעיפרון."
+  ],
+  "technical": "DEV only. Group arrows with step navigation. fitBounds includes points/path/vias and maxZoom 16. RouteGeometry.walkRetraceSegments reverses whole drawn outbound geometry, shifts outbound and return to opposite sides in teal/amber, refreshes derived leg after edits. Browser CI validation pending. Backup backups/2026-10-29_pre-fit-groups-walkretrace_b8a7c913/."
+}

@@ -417,22 +417,36 @@ function showOverview(){
  if(!map)return;
  routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
  let lastStop=null;
- ronnyVisibleDayIndices().forEach(di=>{const day=state.days[di],arr=routeStopsForDay(di).filter(validPoint);if(lastStop&&arr.length&&layerOn('routeLines')&&kmBetween(lastStop,[+arr[0].lat,+arr[0].lng])>0.01)L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
-  for(let i=1;i<arr.length;i++){if(arr[i].type==='walkStart')continue;const config=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);const cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));const coords=config.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(config.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);drawLegLineOverview(coords,config.mode,di,i);drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer)}
+ ronnyVisibleDayIndices().forEach(di=>{
+  const arr=routeStopsForDay(di).filter(validPoint);
+  if(lastStop&&arr.length&&layerOn('routeLines')&&kmBetween(lastStop,[+arr[0].lat,+arr[0].lng])>0.01)L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
+  const shapes=new Map();
+  for(let i=1;i<arr.length;i++){
+   if(arr[i].type==='walkStart')continue;
+   const leg=legAt(i,arr),profile=effectiveLegProfile(i,arr,di),cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));
+   shapes.set(i,leg.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(leg.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr));
+  }
+  const retraces=RouteGeometry.walkRetraceSegments(arr,shapes);
+  for(let i=1;i<arr.length;i++){
+   if(arr[i].type==='walkStart')continue;
+   const leg=legAt(i,arr),coords=retraces.returns.get(i)||shapes.get(i);
+   const role=retraces.returns.has(i)?'return':retraces.outbound.has(i)?'outbound':null;
+   drawLegLineOverview(coords,leg.mode,di,i,role);
+   drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer);
+  }
   if(arr.length)lastStop=[+arr[arr.length-1].lat,+arr[arr.length-1].lng];
  });
  $('route-stops').textContent=ronnyVisibleDayIndices().reduce((n,di)=>n+state.days[di].stops.length,0);$('route-distance').textContent='—';$('route-duration').textContent='—';$('route-msg').textContent='סקירת כל הטיול: נתיבי כביש מוצגים בקירוב; תוואי ידני וקו אווירי נשמרים לכל יום.';
  $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • '+ronnyGroupCaption();renderSchedule();
 }
-function drawLegLineOverview(coords,mode,di,index){
- const arrival=state.days[di]?.stops[index];
- if(arrival?.type==='walkStart')return;
- const baseColor=arrival?pointColor(arrival,di):'#6b8675';
- const color=routeDisplayColor(baseColor,di*11+index);
+function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
+ if(state.days[di]?.stops[index]?.type==='walkStart'||!Array.isArray(coords)||coords.length<2)return;
+ const color=retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index);
+ const visual=retraceRole?ronnyRetraceShift(coords):coords;
  if(layerOn('routeLines')){
-  L.polyline(coords,{color:'#fff8ec',weight:8,opacity:.9,interactive:false}).addTo(routeLayer);
-  L.polyline(coords,{color,weight:4.6,dashArray:arrival?.type==='walkStart'?'5 8':mode==='straight'?'8 9':mode==='auto'?'7 8':undefined,opacity:.94,interactive:false}).addTo(routeLayer);
-  const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
+  L.polyline(visual,{color:'#fff8ec',weight:8,opacity:.9,interactive:false}).addTo(routeLayer);
+  L.polyline(visual,{color,weight:4.6,dashArray:mode==='straight'?'8 9':mode==='auto'?'7 8':undefined,opacity:.94,interactive:false,className:retraceRole?'ronny-retrace-'+retraceRole:''}).addTo(routeLayer);
+  const hit=L.polyline(visual,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
   hit.on('click',e=>{
    if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
    selectedDay=di;viewScope='day';$('map-scope').value='day';selectedStop=null;
@@ -443,6 +457,7 @@ function drawLegLineOverview(coords,mode,di,index){
 async function requestRoute(list,profile,signal){return RoutingService.requestRoute(list,profile,signal,fetch)}
 function drawRoute(){
  if(!map)return;if(viewScope==='all'){showOverview();return}
+ if(syncWalkingLoops(state.days[selectedDay]))save();
  invalidate();clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];const arr=stops(),day=selectedDay;
  $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • יום '+(day+1);$('route-stops').textContent=arr.length;
  $('route-distance').textContent='—';$('route-duration').textContent='—';
@@ -471,21 +486,16 @@ function drawRoute(){
     shapes.set(i,shape||[[+arr[i-1].lat,+arr[i-1].lng],...(conf.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]);
    }else shapes.set(i,legCoords(i,arr));
   }
+  const retraces=RouteGeometry.walkRetraceSegments(arr,shapes);
   for(let i=1;i<arr.length;i++){
    if(arr[i].type==='walkStart')continue;
-   const destination=arr[i],conf=legAt(i,arr);let geometry=shapes.get(i);
-   if(destination.type==='walkEnd'&&destination.leg?.walkAutoRetrace){
-    const first=arr.findIndex(s=>s.id===destination.walkLoopSource),outward=[];
-    if(first>=0&&first<i-1){
-     for(let j=first+1;j<i;j++){
-      const part=shapes.get(j);
-      if(part?.length>1)outward.push(...(!outward.length?part:part.slice(1)));
-      if(uncertain.has(j))uncertain.add(i);
-     }
-     if(outward.length>1)geometry=outward.reverse();
-    }
+   const destination=arr[i],conf=legAt(i,arr);
+   const geometry=retraces.returns.get(i)||shapes.get(i);
+   if(retraces.returns.has(i)){
+    for(let j=arr.findIndex(p=>p.id===destination.walkLoopSource)+1;j<i;j++)if(uncertain.has(j))uncertain.add(i);
    }
-   drawLegLine(geometry,conf.mode,i,uncertain.has(i));
+   const role=retraces.returns.has(i)?'return':retraces.outbound.has(i)?'outbound':null;
+   drawLegLine(geometry,conf.mode,i,uncertain.has(i),role);
   }
  };
  paint();

@@ -535,10 +535,21 @@ function ronnyCleanDayGroups(){
 }
 function ronnyRenderGroupBar(){
  const bar=$('ronny-day-groups-bar');if(!bar)return;
- const groups=ronnyCleanDayGroups();
- bar.innerHTML=groups.length?`<button type="button" data-ronny-group-view="" class="ronny-group-chip ${viewScope==='all'&&!ronnyActiveDayGroupId?'selected':''}">כל הטיול</button>${groups.map(g=>`<button type="button" class="ronny-group-chip ${viewScope==='all'&&ronnyActiveDayGroupId===g.id?'selected':''}" data-ronny-group-view="${esc(g.id)}" title="${esc(g.description||'הצגת כל ימי המקטע במפה')}" style="--group-c:${esc(g.color||'#87a695')}">${esc(g.name||'מקטע')} <small>${ronnyGroupDays(g).length} ימים</small></button>`).join('')}`:'';
+ const groups=ronnyCleanDayGroups(),ids=[null,...groups.map(g=>g.id)];
+ const position=viewScope==='all'?Math.max(0,ids.indexOf(ronnyActiveDayGroupId)):0;
+ const chip=(id,label,selected,color)=>'<button type="button" class="ronny-group-chip'+(selected?' selected':'')+'" data-ronny-group-view="'+esc(id||'')+'" style="--group-c:'+esc(color||'#87a695')+'">'+label+'</button>';
+ bar.innerHTML=groups.length?
+  '<button type="button" class="ronny-group-nav" data-group-step="-1" aria-label="מקטע קודם" title="מקטע קודם" '+(position===0?'disabled':'')+'>'+icon('chevron-right','small-icon')+'</button>'+
+  '<div class="ronny-group-strip">'+chip('','כל הטיול',viewScope==='all'&&!ronnyActiveDayGroupId,'#87a695')+
+  groups.map(g=>chip(g.id,esc(g.name||'מקטע')+' <small>'+ronnyGroupDays(g).length+' ימים</small>',viewScope==='all'&&ronnyActiveDayGroupId===g.id,g.color)).join('')+'</div>'+
+  '<button type="button" class="ronny-group-nav" data-group-step="1" aria-label="מקטע הבא" title="מקטע הבא" '+(position>=ids.length-1?'disabled':'')+'>'+icon('chevron-left','small-icon')+'</button>':'';
  bar.hidden=!groups.length;
- bar.querySelectorAll('[data-ronny-group-view]').forEach(b=>b.onclick=()=>ronnySetGroupView(b.dataset.ronnyGroupView||null));
+ bar.querySelectorAll('[data-ronny-group-view]').forEach(btn=>btn.onclick=()=>ronnySetGroupView(btn.dataset.ronnyGroupView||null));
+ bar.querySelectorAll('[data-group-step]').forEach(btn=>btn.onclick=()=>{
+  const next=ids[position+Number(btn.dataset.groupStep)];if(next===undefined)return;
+  ronnySetGroupView(next);
+  bar.querySelector('.ronny-group-chip.selected')?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+ });
 }
 function ronnyOpenGroups(){
  const shade=$('ronny-day-groups-shade'),panel=$('ronny-day-groups-panel');if(!shade||!panel)return;

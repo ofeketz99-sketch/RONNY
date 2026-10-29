@@ -293,7 +293,7 @@ function renderOutlineMap(){
  });
 }
 function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
- if(!pts.length)return;const ll=pts.map(p=>[p.lat,p.lng]);if(ll.length===1)map.flyTo(ll[0],Math.max(6,map.getZoom()),{duration:.5});else map.fitBounds(L.latLngBounds(ll),{padding:[80,85],maxZoom:11,animate:true,duration:.55});
+ if(!pts.length)return;const ll=pts.map(p=>[p.lat,p.lng]);if(ll.length===1)map.flyTo(ll[0],15,{duration:.5});else map.fitBounds(L.latLngBounds(ll),{padding:[38,44],maxZoom:16,animate:true,duration:.55});
 }
 
 function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
@@ -309,11 +309,21 @@ function selectDay(i){if(i<0||i>=state.days.length)return;
  ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
 function fitMap(){
  if(!map)return;
- if(planningResolution!=='day'){fitOutlineMap();return;}
- const list=currentStopsForMap().map(o=>o.stop).filter(validPoint);
- if(!list.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
- if(list.length===1)map.flyTo([+list[0].lat,+list[0].lng],12,{duration:.65});
- else map.fitBounds(L.latLngBounds(list.map(s=>[+s.lat,+s.lng])),{padding:[70,70],maxZoom:12,animate:true,duration:.75});
+ if(planningResolution!=='day'){fitOutlineMap();return}
+ const coords=[];
+ const include=point=>{
+  const lat=Number(Array.isArray(point)?point[0]:point?.lat),lng=Number(Array.isArray(point)?point[1]:point?.lng);
+  if(Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180)coords.push([lat,lng]);
+ };
+ currentStopsForMap().forEach(({stop})=>{
+  if(!validPoint(stop))return;
+  include(stop);
+  (stop.leg?.path||[]).forEach(include);
+  (stop.leg?.viaPoints||[]).forEach(include);
+ });
+ if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
+ if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
+ map.fitBounds(L.latLngBounds(coords),{padding:[38,44],maxZoom:16,animate:true,duration:.65});
 }
 let activeQuickCommit=null;
 function hidePointQuick(){if(activeQuickCommit){const flush=activeQuickCommit;activeQuickCommit=null;flush()}const el=$('point-quick');if(el){el.classList.remove('ronny-point-drag-hidden');const wasOpen=el.classList.contains('open');el.classList.remove('open');if(wasOpen&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){el.classList.add('ronny-quick-exiting');setTimeout(()=>{if(!el.classList.contains('open'))el.classList.remove('ronny-quick-exiting')},175)}else el.classList.remove('ronny-quick-exiting');el.dataset.id='';el.dataset.mode=''}syncMarkerDragState()}

@@ -304,25 +304,26 @@ function addDrawPointOnLine(index,location){
  leg.path.splice(at,0,[+location.lat.toFixed(6),+location.lng.toFixed(6)]);
  save();drawRoute();renderViaHandles();toast('נוספה נקודת שרטוט. גרור אותה כדי לדייק את התוואי.');
 }
-function drawLegLine(coords,mode,index,unavailable=false){
+function ronnyRetraceShift(coords,pixels=3.4){
+ if(!map||!Array.isArray(coords)||coords.length<2)return coords;
+ return coords.map((point,i)=>{
+  const prev=coords[Math.max(0,i-1)],next=coords[Math.min(coords.length-1,i+1)];
+  const p=map.latLngToLayerPoint(point),a=map.latLngToLayerPoint(prev),b=map.latLngToLayerPoint(next);
+  const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1;
+  const shifted=map.layerPointToLatLng(L.point(p.x-dy*pixels/length,p.y+dx*pixels/length));
+  return [shifted.lat,shifted.lng];
+ });
+}
+function drawLegLine(coords,mode,index,unavailable=false,retraceRole=null){
  const current=stops(),point=current[index];
  if(point?.type==='walkStart')return;
  const walkingAccess=point?.type==='walkStart';const unverified=!!unavailable||!!point?.leg?.walkRetraceUnverified;
- if(point?.leg?.walkAutoRetrace&&point.walkLoopSource&&coords?.length>1&&map){
-  coords=coords.map((coord,i)=>{
-   const prev=coords[Math.max(0,i-1)],next=coords[Math.min(coords.length-1,i+1)];
-   const a=map.latLngToLayerPoint(prev),b=map.latLngToLayerPoint(next),p=map.latLngToLayerPoint(coord);
-   const scale=4/(Math.hypot(b.x-a.x,b.y-a.y)||1);
-   const ll=map.layerPointToLatLng(L.point(p.x-(b.y-a.y)*scale,p.y+(b.x-a.x)*scale));
-   return [ll.lat,ll.lng];
-  });
- }
-
  if(!Array.isArray(coords)||coords.length<2)return;
- const baseColor=pointColor(stops()[index],selectedDay),color=routeDisplayColor(baseColor,index),showLine=layerOn('routeLines');
+ if(retraceRole)coords=ronnyRetraceShift(coords);
+ const color=retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(point,selectedDay),index),showLine=layerOn('routeLines');
  paintedLegCoordinates.set(index,coords);
  if(showLine){
-  const options={color:unverified?'#998d77':color,weight:unverified?3:mode==='straight'?3:5,opacity:unverified?.72:.98,dashArray:unverified?'4 9':walkingAccess?'5 8':mode==='straight'?'7 9':undefined,lineCap:'round',interactive:false,className:unverified?'leg-map-path leg-route-unverified':'leg-map-path'};
+  const options={color:unverified?'#998d77':color,weight:unverified?3:mode==='straight'?3:5,opacity:unverified?.72:.98,dashArray:unverified?'4 9':walkingAccess?'5 8':mode==='straight'?'7 9':undefined,lineCap:'round',interactive:false,className:'leg-map-path'+(unverified?' leg-route-unverified':'')+(retraceRole?' ronny-retrace-'+retraceRole:'')};
   L.polyline(coords,{color:'#fff8ec',weight:mode==='straight'?6:9,opacity:.94,interactive:false}).addTo(routeLayer);
   L.polyline(coords,options).addTo(routeLayer);
   const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:0.002,lineCap:'round',lineJoin:'round',interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
