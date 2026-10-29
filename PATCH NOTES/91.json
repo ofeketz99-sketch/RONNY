@@ -1,0 +1,13 @@
+{
+  "version": "91",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקן סנכרון נקודות התחלה וסיום משותפות בגרירת ימים מעגליים רצופים.",
+    "תוקן סדר ירושת המיקום בין ימים כדי שסיום מעגלי לא יישאר בקואורדינטות ישנות.",
+    "שופר חיפוש שמות ומקומות: התאמות מקומיות זמינות גם בלחיצה, ובקשת Photon אינה כופה שפה לא נתמכת."
+  ],
+  "technical": [
+    "Updated circular day links, render synchronization order, Photon request and local search fallback.",
+    "Browser regression and live Photon verification pending."
+  ]
+}
