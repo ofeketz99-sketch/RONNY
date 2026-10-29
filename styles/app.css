@@ -2350,3 +2350,17 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .map-pane .map-mini-tool{text-decoration:none}
 .map-pane #map-google-view:hover{color:#245941}
 @media(max-width:760px){.map-pane .map-base-switch{width:102px}}
+
+/* UX 92 — compact day overview and single global undo action. */
+#ronny-undo:disabled{opacity:.43;cursor:not-allowed}
+#ronny-undo:not(:disabled):focus-visible{outline:2px solid var(--day-accent,#7ea68d);outline-offset:2px}
+.ronny-day-summary{margin:7px 8px 9px;padding:8px 9px;border:1px solid rgba(92,119,101,.19);border-radius:12px;background:rgba(247,249,242,.79);direction:rtl}
+.ronny-day-summary-main{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}
+.ronny-day-stat{min-width:0;display:flex;flex-direction:column;gap:2px;padding:4px 6px;text-align:center}
+.ronny-day-stat small{font-size:10px;color:#68796e;white-space:nowrap}
+.ronny-day-stat strong{font-size:12px;font-weight:700;color:#283d31;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl}
+.ronny-day-stat em{font-size:9px;font-style:normal;color:#a16e37}
+.ronny-day-warnings{display:flex;align-items:center;gap:6px;border-top:1px solid rgba(92,119,101,.16);margin-top:5px;padding:6px 4px 1px;color:#9b6235;font-size:11px;line-height:1.4}
+.ronny-day-warnings .small-icon{width:14px;height:14px;flex-shrink:0}
+@media(max-width:1050px){.ronny-day-summary-main{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#ronny-undo{transition:none}}
