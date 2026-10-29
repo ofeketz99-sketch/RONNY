@@ -866,8 +866,8 @@ function refreshLegTextLabels(){
    const arr=routeStopsForDay(di).filter(validPoint);
    for(let i=1;i<arr.length;i++){
     const conf=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);
-    const shape=conf.mode==='auto'?(routedLegVisualCache.get(routedShapeKey(arr,i,profile))||[[+arr[i-1].lat,+arr[i-1].lng],...(conf.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);
-    drawRouteAnnotations(i,shape,arr,legLabelLayer);
+    const shape=conf.mode==='auto'?routedLegVisualCache.get(routedShapeKey(arr,i,profile)):legCoords(i,arr);
+    if(shape?.length>1)drawRouteAnnotations(i,shape,arr,legLabelLayer);
    }
   });
  }
@@ -3060,31 +3060,123 @@ function renderMarkers(){
    m.bindTooltip(tip,{direction:'top',offset:[0,permanent?-5:-15],opacity:1,permanent,className:permanent?'ronny-map-description point-info-tooltip':'point-info-tooltip'});
  });refreshIcons();
 }
-function showOverview(){
- if(!map)return;
- routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
- let lastStop=null;
+// Overview routing has its own cancellable lifecycle, independent of day routing.
+// Do not portray a missing road geometry as a real straight-line driving route.
+let overviewRoadController=null,overviewRoadGeneration=0;
+const overviewRoadFailures=new Map();
+function paintOverviewRoads(){
+ routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];
+ let missing=0;
  ronnyVisibleDayIndices().forEach(di=>{
   const arr=routeStopsForDay(di).filter(validPoint);
-  if(lastStop&&arr.length&&layerOn('routeLines')&&kmBetween(lastStop,[+arr[0].lat,+arr[0].lng])>0.01)L.polyline([lastStop,[+arr[0].lat,+arr[0].lng]],{color:'#8795a8',weight:2,dashArray:'3 9',interactive:false}).addTo(routeLayer);
-  const shapes=new Map();
+  const shapes=new Map(),unknown=new Set();
   for(let i=1;i<arr.length;i++){
    if(arr[i].type==='walkStart')continue;
-   const leg=legAt(i,arr),profile=effectiveLegProfile(i,arr,di),cached=routedLegVisualCache.get(routedShapeKey(arr,i,profile));
-   shapes.set(i,leg.mode==='auto'?(cached||[[+arr[i-1].lat,+arr[i-1].lng],...(leg.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr));
+   const leg=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);
+   if(leg.mode==='auto'){
+    const shape=routedLegVisualCache.get(routedShapeKey(arr,i,profile));
+    if(shape?.length>1)shapes.set(i,shape);
+    else{unknown.add(i);missing++}
+   }else shapes.set(i,legCoords(i,arr));
   }
   const retraces=RouteGeometry.walkRetraceSegments(arr,shapes);
   for(let i=1;i<arr.length;i++){
    if(arr[i].type==='walkStart')continue;
-   const leg=legAt(i,arr),coords=retraces.returns.get(i)||shapes.get(i);
+   const leg=legAt(i,arr),from=arr.findIndex(s=>s.id===arr[i].walkLoopSource&&s.type==='walkStart');
+   // Do not manufacture a partial return path from missing outbound segments.
+   const missingRetrace=retraces.returns.has(i)&&from>=0&&[...unknown].some(j=>j>from&&j<i);
+   if(missingRetrace)continue;
+   const coords=retraces.returns.get(i)||shapes.get(i);
+   if(!coords||coords.length<2)continue;
    const role=retraces.returns.has(i)?'return':retraces.outbound.has(i)?'outbound':null;
    drawLegLineOverview(coords,leg.mode,di,i,role);
    drawRouteAnnotations(i,coords,arr,legLabelLayer||routeLayer);
   }
-  if(arr.length)lastStop=[+arr[arr.length-1].lat,+arr[arr.length-1].lng];
  });
- $('route-stops').textContent=ronnyVisibleDayIndices().reduce((n,di)=>n+state.days[di].stops.length,0);$('route-distance').textContent='—';$('route-duration').textContent='—';$('route-msg').textContent='סקירת כל הטיול: נתיבי כביש מוצגים בקירוב; תוואי ידני וקו אווירי נשמרים לכל יום.';
- $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • '+ronnyGroupCaption();renderSchedule();
+ return missing;
+}
+function overviewRoadMessage(missing,loading=false){
+ $('route-msg').textContent=loading
+  ?'מחשב תוואי כבישים עבור '+missing+' מקטעים. מקטע לא מחושב יופיע כשהנתיב יהיה מוכן.'
+  :missing?'לא התקבל תוואי כביש עבור '+missing+' מקטעים. לא מוצג קו ישר כאילו הוא כביש; אפשר לבחור יום או לנסות שוב בהמשך.'
+  :'סקירת כל הטיול: נתיבי כביש מחושבים ותוואי שרטוט ידני מוצגים בצורתם האמיתית.';
+}
+function loadOverviewRoads(generation){
+ if(!layerOn('routeLines'))return;
+ const tasks=[];
+ const now=Date.now();
+ ronnyVisibleDayIndices().forEach(di=>{
+  const arr=routeStopsForDay(di).filter(validPoint);
+  if(arr.length<2)return;
+  const {groups}=RoutePlan.build(arr,{legAt,effectiveLegProfile,kmBetween,manualLeg});
+  for(const group of groups){
+   let missing=false;
+   for(let i=group.start+1;i<=group.end;i++){
+    if(!routedLegVisualCache.has(routedShapeKey(arr,i,group.profile))){missing=true;break}
+   }
+   if(!missing)continue;
+   const key=JSON.stringify([group.profile,group.stops.map(p=>[p.lat,p.lng])]);
+   if(now-(overviewRoadFailures.get(key)||0)<45000)continue;
+   tasks.push({arr,group,key});
+  }
+ });
+ if(!tasks.length){overviewRoadMessage(paintOverviewRoads(),false);return}
+ const controller=new AbortController();overviewRoadController=controller;
+ const timeout=setTimeout(()=>controller.abort(),65000);
+ let next=0;
+ const repaint=()=>{
+  if(controller.signal.aborted||generation!==overviewRoadGeneration||viewScope!=='all'||planningResolution!=='day')return;
+  overviewRoadMessage(paintOverviewRoads(),true);
+ };
+ const worker=async()=>{
+  while(next<tasks.length&&!controller.signal.aborted&&generation===overviewRoadGeneration){
+   const {arr,group,key}=tasks[next++];
+   try{
+    let result=routeCache.get(key);
+    if(!result){
+     result=await requestRoute(group.stops,group.profile,controller.signal);
+     if(routeCache.size>35)routeCache.delete(routeCache.keys().next().value);
+     routeCache.set(key,result);
+    }
+    if(controller.signal.aborted||generation!==overviewRoadGeneration)break;
+    const coords=result.geometry?.coordinates?.map(p=>[p[1],p[0]])||[];
+    const sections=splitRoutedLegs(coords,arr.slice(group.start,group.end+1));
+    if(sections.length!==group.end-group.start)throw Error('Invalid routed geometry');
+    for(let i=group.start+1;i<=group.end;i++){
+     const part=sections[i-group.start-1];
+     if(!part||part.length<2)continue;
+     rememberRoutedShape(arr,i,group.profile,part);
+     const base=group.forced?result.legs.reduce((sum,leg)=>sum+(+leg.duration||0),0):result.legs[i-group.start-1]?.duration;
+     if(Number.isFinite(base))routedLegDurationCache.set(routedShapeKey(arr,i,group.profile),base);
+    }
+    overviewRoadFailures.delete(key);
+    repaint();
+   }catch(err){
+    if(!controller.signal.aborted)overviewRoadFailures.set(key,Date.now());
+   }
+  }
+ };
+ Promise.all(Array.from({length:Math.min(2,tasks.length)},worker)).finally(()=>{
+  clearTimeout(timeout);
+  if(overviewRoadController===controller)overviewRoadController=null;
+  if(generation===overviewRoadGeneration&&viewScope==='all'&&planningResolution==='day'){
+   overviewRoadMessage(paintOverviewRoads(),false);
+  }
+ });
+}
+function showOverview(){
+ if(!map)return;
+ overviewRoadGeneration++;
+ overviewRoadController?.abort();overviewRoadController=null;
+ routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;
+ routeData=null;clearLegSpotlight();paintedLegCoordinates.clear();
+ const missing=paintOverviewRoads();
+ $('route-stops').textContent=ronnyVisibleDayIndices().reduce((n,di)=>n+state.days[di].stops.length,0);
+ $('route-distance').textContent='—';$('route-duration').textContent='—';
+ $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • '+ronnyGroupCaption();
+ overviewRoadMessage(missing,missing>0);
+ renderSchedule();
+ if(missing)loadOverviewRoads(overviewRoadGeneration);
 }
 function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
  if(state.days[di]?.stops[index]?.type==='walkStart'||!Array.isArray(coords)||coords.length<2)return;
@@ -3104,6 +3196,7 @@ function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
 async function requestRoute(list,profile,signal){return RoutingService.requestRoute(list,profile,signal,fetch)}
 function drawRoute(){
  if(!map)return;if(viewScope==='all'){showOverview();return}
+ overviewRoadGeneration++;overviewRoadController?.abort();overviewRoadController=null;
  if(syncWalkingLoops(state.days[selectedDay]))save();
  invalidate();clearLegSpotlight();paintedLegCoordinates.clear();routeLayer.clearLayers();legLabelLayer?.clearLayers();legTextOccupied=[];const arr=stops(),day=selectedDay;
  $('route-card').querySelector('.route-kicker').textContent='סקירת מסלול • יום '+(day+1);$('route-stops').textContent=arr.length;

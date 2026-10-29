@@ -278,8 +278,8 @@ function refreshLegTextLabels(){
    const arr=routeStopsForDay(di).filter(validPoint);
    for(let i=1;i<arr.length;i++){
     const conf=legAt(i,arr),profile=effectiveLegProfile(i,arr,di);
-    const shape=conf.mode==='auto'?(routedLegVisualCache.get(routedShapeKey(arr,i,profile))||[[+arr[i-1].lat,+arr[i-1].lng],...(conf.viaPoints||[]),[+arr[i].lat,+arr[i].lng]]):legCoords(i,arr);
-    drawRouteAnnotations(i,shape,arr,legLabelLayer);
+    const shape=conf.mode==='auto'?routedLegVisualCache.get(routedShapeKey(arr,i,profile)):legCoords(i,arr);
+    if(shape?.length>1)drawRouteAnnotations(i,shape,arr,legLabelLayer);
    }
   });
  }
