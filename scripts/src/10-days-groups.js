@@ -1,4 +1,4 @@
-function validPoint(s){return s?.lat!==null&&s?.lat!==undefined&&s?.lat!==''&&s?.lng!==null&&s?.lng!==undefined&&s?.lng!==''&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lng))&&Math.abs(Number(s.lat))<=90&&Math.abs(Number(s.lng))<=180}
+function validPoint(s){return TripQueries.validPoint(s)}
 let ronnyActiveDayGroupId=null;
 function ronnyDayGroups(){return Array.isArray(state.settings.dayGroups)?state.settings.dayGroups:[]}
 function ronnyGroupDays(group){
@@ -21,7 +21,7 @@ function ronnySetGroupView(id){
  viewScope='all';$('map-scope').value='all';selectedStop=null;
  closeLegEditor();hidePointQuick();renderAll();fitMap();
 }
-function currentStopsForMap(){const selected=ronnyVisibleDayIndices(),r=selected.flatMap(di=>state.days[di].stops.map((stop,si)=>({stop,di,si})));state.days.forEach((d,di)=>{if(!selected.includes(di))(d.stops||[]).forEach((stop,si)=>{if(stop.type==='idea')r.push({stop,di,si})})});return r}
+function currentStopsForMap(){return TripQueries.currentStopsForMap(state,ronnyVisibleDayIndices())}
 function makeDate(i){let d=new Date((state.startDate||'2026-10-26')+'T12:00:00');d.setDate(d.getDate()+i);return d}
 function dayDate(i){return new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short'}).format(makeDate(i))}
 function money(n){return CoreFormat.money(n)}
@@ -29,12 +29,12 @@ function minsFmt(m){return CoreFormat.minsFmt(m)}
 const MAP_ONLY_TYPES=new Set(['poi','note','idea','nature','viewpoint','dining','fuel','other']);
 const WALK_TYPES=new Set(['walkStart','walkTurn','walkEnd']);
 function walkStartIndex(points,index){for(let i=index;i>=0;i--){if(points[i]?.type==='walkEnd')break;if(points[i]?.type==='walkStart')return i;}return -1;}
-function isMapOnlyPoint(s){return MAP_ONLY_TYPES.has(s?.type)}
-function routeStopsForDay(dayIndex){return (state.days[dayIndex]?.stops||[]).filter(s=>!isMapOnlyPoint(s))}
+function isMapOnlyPoint(s){return TripQueries.isMapOnlyPoint(s,MAP_ONLY_TYPES)}
+function routeStopsForDay(dayIndex){return TripQueries.routeStopsForDay(state,dayIndex,MAP_ONLY_TYPES)}
 function stops(){return routeStopsForDay(selectedDay)}
 function commitRouteOrder(dayIndex, ordered){const day=state.days[dayIndex];if(!day)return;day.stops=[...ordered,...day.stops.filter(isMapOnlyPoint)]}
-function poiLinksForDay(dayIndex){const day=state.days[dayIndex];if(!day)return [];const routes=routeStopsForDay(dayIndex).filter(validPoint);if(!routes.length)return [];return day.stops.filter(s=>isMapOnlyPoint(s)&&s.type!=='idea'&&validPoint(s)).map(p=>{let nearest=null,meters=Infinity;for(const r of routes){const distance=kmBetween([+p.lat,+p.lng],[+r.lat,+r.lng]);if(distance<meters){meters=distance;nearest=r}}return {point:p,nearest,meters}}).filter(x=>x.nearest)}
-function getStop(id){for(let i=0;i<state.days.length;i++){const s=state.days[i].stops.find(s=>s.id===id);if(s)return {stop:s,day:i}}return null}
+function poiLinksForDay(dayIndex){return TripQueries.poiLinksForDay(state,dayIndex,MAP_ONLY_TYPES,kmBetween)}
+function getStop(id){return TripQueries.getStop(state,id)}
 function tripDefaultDepartureTime(){const t=state?.settings?.defaultDepartureTime;return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t||'')?t:'09:00'}
 function applyTripDefaultDeparture(){
  let changed=false;

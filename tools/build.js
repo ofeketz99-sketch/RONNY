@@ -10,6 +10,7 @@ const parts=[
   "00c-core-leg-timing",
   "00d-core-format",
   "00e-trip-storage",
+  "00f-trip-queries",
   "00-initial-state",
   "05-storage-trips",
   "10-days-groups",

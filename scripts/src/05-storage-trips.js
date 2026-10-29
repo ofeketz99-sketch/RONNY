@@ -36,13 +36,7 @@ async function initTripLibrary(){
  }
 }
 function freshTrip(){const date=new Date();return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...state.settings,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
-function tripMapPositions(){
- const points=[];
- const add=p=>{if(validPoint(p))points.push([+p.lat,+p.lng])};
- (state.outline?.points||[]).forEach(add);
- (state.days||[]).forEach(day=>(day.stops||[]).forEach(add));
- return points;
-}
+function tripMapPositions(){return TripQueries.tripMapPositions(state)}
 function fitWholeTrip(){
  if(!map||!window.L)return;
  const coords=tripMapPositions();

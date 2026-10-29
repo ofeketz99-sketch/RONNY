@@ -299,8 +299,8 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
 function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
 function renderAll(){ronnyRenderGroupBar();const walkingLinked=state.days.some(day=>syncWalkingLoops(day));const loopLinked=synchronizeLoopDays();const linked=planningResolution==='day'?synchronizeDayStarts():false;const chronoLinked=synchronizeChronologicalEndpointNames();ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(linked||loopLinked||walkingLinked||chronoLinked)save()}
-function dayMissingEndpoint(d){return !!(d?.stops||[]).some(p=>p.type==='start')&&!d.loop&&!(d?.stops||[]).some(p=>p.type==='end')}
-function dayExcludedFromTotals(d){return dayMissingEndpoint(d)&&d.excludedUntilEnd===true}
+function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
+function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
 function selectDay(i){if(i<0||i>=state.days.length)return;
  if(i!==selectedDay&&dayMissingEndpoint(state.days[selectedDay])){
   if(!window.confirm('לא נקבעה נקודת סיום\n\nנתוני היום לא ייספרו עד לקביעת סיום. להמשיך?'))return;

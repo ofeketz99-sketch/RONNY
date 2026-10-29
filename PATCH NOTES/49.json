@@ -1,0 +1,10 @@
+{
+  "version": "49",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרדה שכבת שאילתות של נתוני הטיול מהתצוגה והציור על המפה.",
+    "נשמרו תצוגת נקודות ורעיונות בין ימים, קישורי נקודות עניין ונתוני קצה המסלול.",
+    "נוספו בדיקות יחידה לשאילתות, בלי לשנות מנגנוני עריכה, מסלולים או שמירה."
+  ],
+  "technical": "TripQueries read-only API with 9 functions, explicit trip and view inputs. 31 differential comparisons before commit, syntax verified; Node tests added but not yet executed in Node runtime; browser regression pending."
+}
