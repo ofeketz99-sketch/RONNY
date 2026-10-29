@@ -328,6 +328,8 @@ function relocatePoint(id,latlng){
  const found=getStop(id);
  if(!found||!Number.isFinite(latlng?.lat)||!Number.isFinite(latlng?.lng))return;
  if(Math.abs(latlng.lat)>90||Math.abs(latlng.lng)>180)return;
+ if(Math.abs(+found.stop.lat-latlng.lat)<0.0000005&&Math.abs(+found.stop.lng-latlng.lng)<0.0000005){pointMoveModeId=null;updateMapHint();return;}
+ ronnyRememberUndo('הזזת נקודה');
  const original={lat:+found.stop.lat,lng:+found.stop.lng};
  found.stop.lat=+latlng.lat.toFixed(6);found.stop.lng=+latlng.lng.toFixed(6);
  if(found.stop.type==='start')relocateConnectedDayOrigin(found.day,original,{lat:found.stop.lat,lng:found.stop.lng});
