@@ -598,9 +598,46 @@ function ronnyLocalSaveStatus(kind='saved'){
  const text={saving:'שומר בדפדפן...',saved:'נשמר בדפדפן זה',error:'שמירה נכשלה · ייצא גיבוי'};
  el.dataset.status=kind;el.querySelector('.ronny-local-save-label').textContent=text[kind]||text.saved;
 }
+// Explicit, bounded undo history for structural planner actions. Never persisted
+// or shared across trips; avoids recording asynchronous routing-cache updates.
+const ronnyUndoEntries=[];
+let ronnyUndoOwner=null,ronnyUndoRestoring=false;
+function ronnyUpdateUndoButton(){
+ const b=document.getElementById('ronny-undo');
+ if(!b)return;
+ const available=ronnyUndoOwner===activeTripId&&ronnyUndoEntries.length>0;
+ b.disabled=!available;
+ b.title=available?'בטל: '+ronnyUndoEntries.at(-1).label+' (Ctrl+Z)':'אין פעולה לביטול';
+ b.setAttribute('aria-label',b.title);
+}
+function ronnyRememberUndo(label){
+ if(!libraryReady||!activeTripId||ronnyUndoRestoring)return;
+ if(ronnyUndoOwner!==activeTripId){ronnyUndoOwner=activeTripId;ronnyUndoEntries.length=0;}
+ const data=JSON.stringify(state);
+ if(ronnyUndoEntries.at(-1)?.data===data)return;
+ ronnyUndoEntries.push({data,day:selectedDay,label});
+ if(ronnyUndoEntries.length>20)ronnyUndoEntries.shift();
+ ronnyUpdateUndoButton();
+}
+function ronnyUndoLast(){
+ if(ronnyUndoOwner!==activeTripId||!ronnyUndoEntries.length)return;
+ const entry=ronnyUndoEntries.at(-1);
+ try{
+  const old=prepareTrip(JSON.parse(entry.data));
+  ronnyUndoRestoring=true;
+  if(drawLegSession)stopLegDrawing();
+  closeLegEditor();hidePointQuick();hideContext();
+  pointMoveModeId=null;
+  state=old;selectedDay=Math.min(entry.day,state.days.length-1);selectedStop=null;
+  invalidate();save();renderAll();
+  ronnyUndoEntries.pop();ronnyUpdateUndoButton();
+  toast('בוטלה פעולה: '+entry.label);
+ }catch(e){console.error('RONNY undo failed',e);toast('לא ניתן לבטל את הפעולה. הנתונים הנוכחיים נשמרו.')}
+ finally{ronnyUndoRestoring=false;}
+}
 function save(){
  if(!libraryReady||!activeTripId)return;
- ronnyLocalSaveStatus('saving');
+ ronnyLocalSaveStatus('saving');ronnyUpdateUndoButton();
  const walkingUpdated=state.days.some(day=>syncWalkingLoops(day));const loopsUpdated=synchronizeLoopDays();if(loopsUpdated||walkingUpdated)invalidate();
  ensureStableViaColors();
  const record=libraryRecord();library.set(record.id,record);
@@ -704,7 +741,7 @@ function applyCurrentTrip(){
  document.documentElement.style.setProperty('--drawer-width',(+state.settings.drawerWidth||440)+'px');
  setMapStyle(state.settings.mapStyle,false);renderAll();
  // Restore this trip's own previous map and day view, or fit a trip without a saved workspace.
- ronnyQueueWorkspaceViewport(resume)
+ ronnyQueueWorkspaceViewport(resume);ronnyUpdateUndoButton()
 }
 async function saveTripExplicitly(){save();const ok=await saveQueue;if(ok)toast('הטיול נשמר בספריית RONNY')}
 let newTripSetupDraft=null;
@@ -2970,6 +3007,8 @@ function relocatePoint(id,latlng){
  const found=getStop(id);
  if(!found||!Number.isFinite(latlng?.lat)||!Number.isFinite(latlng?.lng))return;
  if(Math.abs(latlng.lat)>90||Math.abs(latlng.lng)>180)return;
+ if(Math.abs(+found.stop.lat-latlng.lat)<0.0000005&&Math.abs(+found.stop.lng-latlng.lng)<0.0000005){pointMoveModeId=null;updateMapHint();return;}
+ ronnyRememberUndo('הזזת נקודה');
  const original={lat:+found.stop.lat,lng:+found.stop.lng};
  found.stop.lat=+latlng.lat.toFixed(6);found.stop.lng=+latlng.lng.toFixed(6);
  if(found.stop.type==='start')relocateConnectedDayOrigin(found.day,original,{lat:found.stop.lat,lng:found.stop.lng});
@@ -3897,7 +3936,7 @@ function openPointQuick(id){
  el.querySelector('[data-quick-color-auto]').onclick=()=>{commit();const target=getStop(id);if(!target)return;delete target.stop.color;delete target.stop.autoColor;ensureStableViaColors();save();renderMarkers();renderSchedule();const c=pointColor(target.stop,target.day);el.querySelectorAll('[data-quick-color]').forEach(b=>b.classList.toggle('selected',b.dataset.quickColor.toLowerCase()===c.toLowerCase()));el.querySelector('#quick-save-state').textContent='הצבע האוטומטי נשמר'};
  el.querySelectorAll('[data-point-leg]').forEach(btn=>btn.addEventListener('click',()=>{const index=+btn.dataset.pointLeg;hidePointQuick();openLegEditor(index)}));
  el.querySelector('[data-quick-close]').onclick=()=>hidePointQuick();
- el.querySelector('[data-quick-delete]').onclick=async()=>{if(!await confirmOnMap('למחוק את הנקודה ״'+s.name+'״?',{title:'מחיקת נקודה',accept:'מחק נקודה'}))return;clearTimeout(pending);const target=getStop(id);if(!target)return;await animatePlannerRemoval([id],'day');state.days[target.day].stops=state.days[target.day].stops.filter(x=>x.id!==id);positionRouteEndpoints(state.days[target.day]);selectedStop=null;hidePointQuick();if(!isMapOnlyPoint(target.stop)){invalidate();retimeAfterOrderChange(target.day)}save();renderAll();toast('הנקודה נמחקה')};
+ el.querySelector('[data-quick-delete]').onclick=async()=>{if(!await confirmOnMap('למחוק את הנקודה ״'+s.name+'״?',{title:'מחיקת נקודה',accept:'מחק נקודה'}))return;clearTimeout(pending);const target=getStop(id);if(!target)return;await animatePlannerRemoval([id],'day');ronnyRememberUndo('מחיקת נקודה');state.days[target.day].stops=state.days[target.day].stops.filter(x=>x.id!==id);positionRouteEndpoints(state.days[target.day]);selectedStop=null;hidePointQuick();if(!isMapOnlyPoint(target.stop)){invalidate();retimeAfterOrderChange(target.day)}save();renderAll();toast('הנקודה נמחקה')};
  el.querySelector('[data-quick-move]').onclick=()=>armPointMove(id);
  el.querySelector('[data-quick-street-view]').onclick=()=>{const target=getStop(id);if(target&&validPoint(target.stop))openGoogleStreetView(+target.stop.lat,+target.stop.lng);};
  el.querySelector('[data-quick-details]').onclick=()=>{hidePointQuick();openStopForm(id)};
