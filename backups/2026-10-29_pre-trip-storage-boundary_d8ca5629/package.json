@@ -1,0 +1,11 @@
+{
+  "name": "ronny-trip-planner",
+  "private": true,
+  "version": "0.0.47",
+  "description": "Developer-only deterministic build for RONNY classic script",
+  "scripts": {
+    "build": "node tools/build.js",
+    "check": "node tools/build.js --check",
+    "test": "node tools/build.js --check && node --test tests/core.test.cjs"
+  }
+}
