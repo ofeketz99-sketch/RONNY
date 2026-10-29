@@ -5364,8 +5364,9 @@ function showSavedPlaceLibrary(){
  await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';const startupWorkspace=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(startupWorkspace);repairExistingSchedules();initMap();map?.on('moveend zoomend',ronnyRememberWorkspace);enableMapPopupDragging();initDaysManager();initOutsideDismissal();
  window.addEventListener('resize',()=>{for(const id of ['leg-editor','point-quick','map-context','layer-filter-panel'])keepMapPopoverVisible($(id))});
  bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();
- const startupTrip=activeTripId,startupSeq=++wholeTripFocusSeq;
- setTimeout(()=>{if(activeTripId===startupTrip&&wholeTripFocusSeq===startupSeq)ronnyRestoreWorkspaceViewport(startupWorkspace)},360);
+ // Activate persistence synchronously: a fast day switch must never cancel the delayed
+ // startup focus before workspace saving becomes available.
+ ronnyRestoreWorkspaceViewport(startupWorkspace);
  const wasCollapsed=(()=>{try{return localStorage.getItem('ronny-planner-collapsed-v1')==='true'}catch(e){return false}})();
  if(wasCollapsed)setPlannerCollapsed(true);
 })().catch(e=>{$('map').textContent='אירעה שגיאה בהפעלת האתר. '+e.message});

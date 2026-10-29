@@ -1,0 +1,8 @@
+{
+  "version": "78",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקן שחזור מיקום המפה ובחירת היום גם כשמשנים יום מיד לאחר פתיחת האתר, בלי להמתין להתאמת זום מושהית."
+  ],
+  "technical": "Browser test in patch 77 exposed a startup race; workspace persistence is now activated immediately after initial rendering. Backup: backups/2026-10-29_pre-resume-startup_a410babe1a."
+}
