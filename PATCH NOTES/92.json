@@ -1,0 +1,13 @@
+{
+  "version": "92",
+  "date": "2026-10-29",
+  "notes": [
+    "נוסף כפתור 'בטל' לביטול הזזת נקודות, מחיקות ושינוי סדר, עם קיצור Ctrl+Z מחוץ לשדות טקסט.",
+    "נוספה סקירת יום קומפקטית: שעות, זמן בדרך, שהייה, מרחק, עלות ואזהרות נקודתיות.",
+    "הוצאות חופשיות המשויכות ליום נכללות גם בתקציב היום בלוח הזמנים."
+  ],
+  "technical": [
+    "Bounded in-memory per-trip undo snapshots (20), no changes to trip schema.",
+    "Day summary shows partial travel estimates explicitly; live regression pending."
+  ]
+}
