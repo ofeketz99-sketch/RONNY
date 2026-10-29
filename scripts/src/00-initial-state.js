@@ -25,7 +25,7 @@ const types={
  note:{name:'הערה',icon:'asterisk',emoji:'✳',cls:'note',color:'#c29c55',group:'interest'},
  idea:{name:'רעיון',icon:'lightbulb',emoji:'💡',cls:'idea',color:'#b78a08',group:'interest'},
  end:{name:'נקודת סיום',icon:'bed-double',emoji:'▤',cls:'end',color:'#ac7278',group:'route'},
- viewpoint:{name:'תצפית',icon:'binoculars',emoji:'◉',cls:'viewpoint',color:'#65829b',group:'activity'},
+ viewpoint:{name:'צילום',icon:'camera',emoji:'◉',cls:'viewpoint',color:'#65829b',group:'activity'},
  nature:{name:'טבע',icon:'tree-pine',emoji:'♣',cls:'park',color:'#698d71',group:'activity'},
  other:{name:'אחר (ישן)',icon:'balloon-custom',emoji:'◯',cls:'other',color:'#bc8861',group:'activity',legacy:true},
  fuel:{name:'דלק',icon:'fuel',emoji:'⛽',cls:'other',color:'#bc8861',group:'activity'},
@@ -43,9 +43,19 @@ const RONNY_LOOP_ICON='\x64ata:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABI
 function pointSymbol(type){if(type==='loop')return '<img class="ronny-loop-symbol-img" src="'+RONNY_LOOP_ICON+'" alt="" draggable="false" aria-hidden="true">';const t=types[type]||types.other;if(t.icon==='bench')return '<svg class="point-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16M4 13h16M5 7v8M19 7v8M6 15l-1 5M18 15l1 5M3 15h18"/></svg>';if(t.icon==='balloon-custom')return '<svg class="point-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-4 0-6 3-6 7 0 4 2 6 6 8 4-2 6-4 6-8 0-4-2-7-6-7Z"/><path d="M10 18h4l-2 2v2"/></svg>';return icon(t.icon,'point-symbol-icon')}
 
 const RONNY_EXTRA_ICONS={"glencairn":{"label":"כוס וויסקי גלנקרן","src":"assets/glencairn_icon.svg"},"picnic":{"label":"סל פיקניק","path":"<path d=\"M4 11h16l-2 10H6L4 11Z\"/><path d=\"M7 11c0-4 2-7 5-7s5 3 5 7\"/><path d=\"M8 11l1 10m6-10-1 10\"/>"},"ferry":{"label":"חזית מעבורת","path":"<path d=\"M5 10h14l-1 8-6 3-6-3-1-8Z\"/><path d=\"M8 10V5h8v5M10 5V3h4v2M5 14h14\"/>"},"cablecar":{"label":"רכבל","path":"<path d=\"M3 5 21 3M12 4v6M7 10h10l2 3v6H5v-6l2-3Z\"/><path d=\"M5 15h14M9 10v5m6-5v5\"/>"}};
-const RONNY_ICON_BANK=[...Object.entries(types).map(([id,v])=>({id,label:v.name})),...Object.entries(RONNY_EXTRA_ICONS).map(([id,v])=>({id,label:v.label}))];
+// The same eight choices are used for primary and secondary icons.
+// Old saved iconId values can still render, but cannot be newly selected.
+const RONNY_ICON_BANK=[
+ {id:'glencairn',label:'כוס וויסקי'},{id:'nature',label:'טבע'},
+ {id:'viewpoint',label:'צילום'},{id:'picnic',label:'סל פיקניק'},
+ {id:'ferry',label:'מעבורת'},{id:'dining',label:'סכו״ם'},
+ {id:'cablecar',label:'רכבל'},{id:'walkStart',label:'הליכה'}
+];
 function ronnyPointSymbol(type,stop){
- const key=stop&&RONNY_ICON_BANK.some(i=>i.id===stop.iconId)?stop.iconId:null;
+ // Passage points always keep their original main icon/ordinal.
+ if(type==='via')return pointSymbol(type);
+ const key=stop&&(RONNY_ICON_BANK.some(i=>i.id===stop.iconId)||
+  Object.hasOwn(types,stop.iconId)||Object.hasOwn(RONNY_EXTRA_ICONS,stop.iconId))?stop.iconId:null;
  if(!key)return pointSymbol(type);
  const extra=RONNY_EXTRA_ICONS[key];
  if(extra?.src)return '<img class="point-svg ronny-glencairn-icon" src="'+extra.src+'" alt="" aria-hidden="true" draggable="false">';
@@ -53,34 +63,49 @@ function ronnyPointSymbol(type,stop){
  return pointSymbol(key);
 }
 function ronnyIconPickerMarkup(stop){
+ if(stop.type==='via')return '';
  const selected=RONNY_ICON_BANK.some(i=>i.id===stop.iconId)?stop.iconId:'';
  const make=(key,label,markup)=>'<button type="button" data-ronny-icon="'+esc(key)+'" class="ronny-icon-choice'+(selected===key?' selected':'')+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
- return '<details class="ronny-icon-editor"><summary>אייקון הנקודה '+ronnyPointSymbol(stop.type,stop)+'</summary><div class="ronny-icon-grid">'+make('','ברירת מחדל',pointSymbol(stop.type))+RONNY_ICON_BANK.map(i=>make(i.id,i.label,ronnyPointSymbol(i.id,{iconId:i.id}))).join('')+'</div></details>';
+ return '<details class="ronny-icon-editor"><summary>אייקון ראשי '+ronnyPointSymbol(stop.type,stop)+'</summary><div class="ronny-icon-grid">'+make('','ברירת מחדל',pointSymbol(stop.type))+RONNY_ICON_BANK.map(i=>make(i.id,i.label,ronnyPointSymbol(i.id,{iconId:i.id}))).join('')+'</div></details>';
 }
-
-const RONNY_SECONDARY_ICON_CHOICES=[
- {id:'ferry',label:'מעבורת'},{id:'viewpoint',label:'תצפית'},{id:'dining',label:'אוכל'},
- {id:'picnic',label:'פיקניק'},{id:'cablecar',label:'רכבל'},{id:'nature',label:'טבע'},
- {id:'fuel',label:'דלק'},{id:'walkStart',label:'תחילת הליכה'},
- {id:'hotel',label:'לינה'},{id:'glencairn',label:'וויסקי'}
-];
-function ronnySecondaryIconKey(stop){
+// Match the existing dashed access connector: a walking start belongs to the
+// latest valid non-walking route stop preceding it chronologically.
+function ronnyLinkedWalkParkingIds(route){
+ const linked=new Set();
+ let previous=null;
+ for(const point of route||[]){
+  if(!point||!validPoint(point))continue;
+  if(point.type==='walkStart'&&previous?.type==='parking')linked.add(previous.id);
+  if(!WALK_TYPES.has(point.type))previous=point;
+ }
+ return linked;
+}
+function ronnySecondaryIconKey(stop,linkedWalk=false){
  if(!stop||!['via','parking'].includes(stop.type))return null;
- return RONNY_SECONDARY_ICON_CHOICES.some(c=>c.id===stop.secondaryIconId)?stop.secondaryIconId:null;
+ const key=stop.secondaryIconId;
+ if(RONNY_ICON_BANK.some(i=>i.id===key))return key;
+ // An explicit empty selection suppresses the automatic badge.
+ if(Object.hasOwn(stop,'secondaryIconId'))return null;
+ return stop.type==='parking'&&linkedWalk?'walkStart':null;
 }
-function ronnySecondaryIconLabel(stop){
- const key=ronnySecondaryIconKey(stop);
- return RONNY_SECONDARY_ICON_CHOICES.find(c=>c.id===key)?.label||'ללא סמל';
+function ronnySecondaryIconLabel(stop,linkedWalk=false){
+ const key=ronnySecondaryIconKey(stop,linkedWalk);
+ if(!key)return 'ללא סמל';
+ const label=RONNY_ICON_BANK.find(i=>i.id===key)?.label||'ללא סמל';
+ return stop?.type==='parking'&&linkedWalk&&!Object.hasOwn(stop,'secondaryIconId')?label+' (אוטומטי)':label;
 }
-function ronnySecondaryIconMarkerMarkup(stop){
- const key=ronnySecondaryIconKey(stop);
+function ronnySecondaryIconMarkerMarkup(stop,linkedWalk=false){
+ const key=ronnySecondaryIconKey(stop,linkedWalk);
  return key?'<span class="ronny-secondary-context-icon" aria-hidden="true">'+ronnyPointSymbol(key,{iconId:key})+'</span>':'';
 }
-function ronnySecondaryIconPickerMarkup(stop){
+function ronnySecondaryIconPickerMarkup(stop,linkedWalk=false){
  if(!['via','parking'].includes(stop.type))return '';
- const selected=ronnySecondaryIconKey(stop)||'';
+ const selected=ronnySecondaryIconKey(stop,linkedWalk)||'';
+ const isAuto=stop.type==='parking'&&!Object.hasOwn(stop,'secondaryIconId');
  const choice=(key,label,markup)=>'<button type="button" class="ronny-secondary-icon-choice'+(selected===key?' selected':'')+'" data-ronny-secondary-icon="'+esc(key)+'" aria-pressed="'+String(selected===key)+'" aria-label="'+esc(label)+'" title="'+esc(label)+'">'+markup+'<small>'+esc(label)+'</small></button>';
- return '<div class="ronny-secondary-icon-editor"><p>הסמל יופיע בקטן מעל הנקודה, בלי לשנות את הסמן הראשי.</p><div class="ronny-secondary-icon-grid">'+choice('','ללא סמל',icon('slash','small-icon'))+RONNY_SECONDARY_ICON_CHOICES.map(c=>choice(c.id,c.label,ronnyPointSymbol(c.id,{iconId:c.id}))).join('')+'</div></div>';
+ const auto=stop.type==='parking'?'<button type="button" class="ronny-secondary-auto'+(isAuto?' selected':'')+'" data-ronny-secondary-auto aria-pressed="'+String(isAuto)+'">אוטומטי לפי תחילת הליכה מקושרת</button>':'';
+ const explanation=stop.type==='parking'?'במצב אוטומטי יופיע סמל הליכה רק כשמסלול הליכה מקושר לחנייה. בחירה ידנית גוברת עליו.':'בחר סמל קטן שיופיע מעל מספר נקודת המעבר.';
+ return '<div class="ronny-secondary-icon-editor"><p>'+explanation+'</p>'+auto+'<div class="ronny-secondary-icon-grid">'+choice('','ללא סמל',icon('slash','small-icon'))+RONNY_ICON_BANK.map(c=>choice(c.id,c.label,ronnyPointSymbol(c.id,{iconId:c.id}))).join('')+'</div></div>';
 }
 function endpointChoiceAllowed(type,dayIndex=selectedDay,ignoreId=null){
  if(!['start','end'].includes(type))return true;

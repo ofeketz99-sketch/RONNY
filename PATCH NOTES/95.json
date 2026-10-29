@@ -1,0 +1,15 @@
+{
+  "version": "95",
+  "date": "2026-10-29",
+  "notes": [
+    "שני בנקי האייקונים אוחדו לשמונה סמלים: וויסקי, טבע, צילום, פיקניק, מעבורת, סכו״ם, רכבל והליכה.",
+    "נקודת תצפית נקראת מעתה צילום ומציגה כברירת מחדל סמל מצלמה, בלי לשנות את מזהה הסוג בטיולים שמורים.",
+    "לנקודת מעבר אין עוד אפשרות להחליף אייקון ראשי; ניתן לבחור רק אייקון משני מעל המספר.",
+    "חנייה שמקושרת כרונולוגית לתחילת מסלול הליכה מציגה אייקון משני של הליכה אוטומטית, עם אפשרות לדריסה ידנית או לחזרה למצב אוטומטי."
+  ],
+  "technical": [
+    "One allowlisted RONNY_ICON_BANK is used by primary and secondary editors.",
+    "Parking walking badge is derived from the same previous non-walking route stop logic as the dotted walk access link; no additional persisted auto fields.",
+    "Existing stored icon overrides and viewpoint identifiers remain compatible; Chromium browser verification pending."
+  ]
+}

@@ -2386,3 +2386,8 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-secondary-icon-choice .point-svg,.ronny-secondary-icon-choice .point-symbol-icon,
 .ronny-secondary-icon-choice .small-icon{width:20px;height:20px}
 .ronny-secondary-icon-choice small{font-size:10px;line-height:1.25;text-align:center;overflow-wrap:anywhere}
+
+/* Patch 95 — one icon bank and explicit auto-mode for parking. */
+.ronny-secondary-auto{display:block;width:100%;padding:7px 9px;margin:0 0 9px;border:1px solid #dbe5d9;border-radius:8px;background:#fafcf7;color:#55735e;font-size:11px;font-weight:700;cursor:pointer;text-align:center}
+.ronny-secondary-auto.selected{border-color:#6a9073;background:#e2eee0;color:#31563b}
+.ronny-secondary-auto:focus-visible{outline:2px solid #4e8a63;outline-offset:2px}

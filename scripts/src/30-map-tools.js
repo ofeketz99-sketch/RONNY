@@ -391,10 +391,12 @@ function renderMarkers(){
  const palette=['#08a99c','#517bb9','#a269d3','#d08b38','#3b967c','#d36776','#64748b'];
  // Precompute route order and walking-loop endpoints once per visible day.
  // Without this, every map marker rescans every stop in its day.
- const routeIndexByDay=new Map(),walkingEndByDay=new Map();
+ const routeIndexByDay=new Map(),walkingEndByDay=new Map(),linkedWalkParkingByDay=new Map();
  for(const di of ronnyVisibleDayIndices()){
   const indexes=new Map(),walkEnds=new Map();
-  routeStopsForDay(di).forEach((p,index)=>{
+  const route=routeStopsForDay(di);
+  linkedWalkParkingByDay.set(di,ronnyLinkedWalkParkingIds(route));
+  route.forEach((p,index)=>{
    if(!indexes.has(p.id))indexes.set(p.id,index+1);
    if(p.type==='walkEnd'&&p.walkLoopSource&&!walkEnds.has(p.walkLoopSource))
     walkEnds.set(p.walkLoopSource,p);
@@ -413,7 +415,7 @@ function renderMarkers(){
     const timeInfo=(viewScope==='all'||isMapOnlyPoint(s))?'':`<div class="map-time-badge" aria-label="${s.type==='walkStart'?'יציאה וחזרה מההליכה':s.type==='start'?'שעת יציאה':'שעת הגעה'}">${esc(s.type==='walkStart'?walkRange:s.time||'')}</div>`;
    const selectedQuick=$('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===s.id;
    const canDrag=!ronnyMeasure.active&&!drawLegSession&&!forcedPointSession&&!forcedRelocateSession&&!outlineMoveModeId&&!newTripSetupDraft&&(!pointMoveModeId||pointMoveModeId===s.id);
-   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:ronnySecondaryIconMarkerMarkup(s)+html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'גרור לשינוי מיקום · לחץ לעריכה'}).addTo(markerLayer);
+   const m=L.marker([+s.lat,+s.lng],{icon:L.divIcon({html:ronnySecondaryIconMarkerMarkup(s,linkedWalkParkingByDay.get(di)?.has(s.id)===true)+html+timeInfo,className:'',iconSize:[36,36],iconAnchor:[18,34]}),alt:routeOrder!==null?'נקודה '+routeOrder+' — '+s.name:s.name,ronnyStopId:s.id,ronnyRouteOrder:routeOrder,draggable:canDrag,autoPan:true,title:'גרור לשינוי מיקום · לחץ לעריכה'}).addTo(markerLayer);
    const element=m.getElement?.();if(element){element.dataset.ronnyStopId=s.id;if(routeOrder!==null)element.dataset.ronnyRouteOrder=String(routeOrder)}
    // Dragging requires no prior click. Hide an existing editor while moving,
    // and leave it closed afterwards so further adjustments are unobstructed.
