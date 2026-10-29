@@ -122,7 +122,7 @@ function commitRouteOrder(trip,dayIndex,ordered,isMapOnlyPoint){const day=trip.d
 function renumberGenericDayLabels(trip){
  trip.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
 }
-function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const loopLinked=synchronizeLoopDays();const linked=isDayView?synchronizeDayStarts():false;const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
+function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const linked=isDayView?synchronizeDayStarts():false;const loopLinked=synchronizeLoopDays();const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
 return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,renumberGenericDayLabels,synchronizeForRender});
 })();
 // Geometry and manual-leg calculations; no browser, routing network, UI or trip state.
@@ -1018,6 +1018,20 @@ function ensureDayStart(i){
  if(existing.fromPreviousDayEnd!==ending.id||+existing.lat!==+ending.lat||+existing.lng!==+ending.lng){existing.fromPreviousDayEnd=ending.id;existing.lat=+ending.lat;existing.lng=+ending.lng;changed=true}
  if(changed)positionRouteEndpoints(curr);
  return changed;
+}
+// Moving a shared departure also moves the upstream physical arrival and any
+// consecutive circular days. Ordinary intermediate waypoints are never touched.
+function relocateConnectedDayOrigin(dayIndex,previous,next){
+ let i=dayIndex;
+ while(i>0){
+  const prior=state.days[i-1];
+  const end=prior.stops.find(s=>s.type==='end'&&validPoint(s));
+  const source=prior.loop?prior.stops.find(s=>s.type==='start'&&validPoint(s)):end;
+  if(!source||Math.abs(+source.lat-previous.lat)>0.000002||Math.abs(+source.lng-previous.lng)>0.000002)break;
+  source.lat=next.lat;source.lng=next.lng;
+  if(!prior.loop)break;
+  i--;
+ }
 }
 function synchronizeDayStarts(){let modified=false;for(let i=1;i<state.days.length;i++)modified=ensureDayStart(i)||modified;return modified}
 function reverseDayItinerary(day){
@@ -2956,8 +2970,10 @@ function relocatePoint(id,latlng){
  const found=getStop(id);
  if(!found||!Number.isFinite(latlng?.lat)||!Number.isFinite(latlng?.lng))return;
  if(Math.abs(latlng.lat)>90||Math.abs(latlng.lng)>180)return;
+ const original={lat:+found.stop.lat,lng:+found.stop.lng};
  found.stop.lat=+latlng.lat.toFixed(6);found.stop.lng=+latlng.lng.toFixed(6);
- if(found.stop.type==='start'){found.stop.autoInheritedStart=false;delete found.stop.fromPreviousDayEnd}
+ if(found.stop.type==='start')relocateConnectedDayOrigin(found.day,original,{lat:found.stop.lat,lng:found.stop.lng});
+ synchronizeLoopDays();synchronizeDayStarts();synchronizeLoopDays();
  pointMoveModeId=null;
  if($('point-quick')?.classList.contains('open'))hidePointQuick();
  if(!isMapOnlyPoint(found.stop)){invalidate();retimeAfterOrderChange(found.day)}
@@ -4256,18 +4272,23 @@ function selectSearchResult(p){
  if(map){map.flyTo([p.lat,p.lng],Math.max(12,map.getZoom()),{duration:.6});map.once('moveend',()=>showPointTypeTree(p));}
  else showPointTypeTree(p);
 }
+function ronnyLocalSearchMatches(q){
+ const normalized=q.toLocaleLowerCase();
+ return state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+}
 function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
  const q=$('place-search').value.trim();
  if(!q){hideSearch();return}
  const normalized=q.toLocaleLowerCase();
- const local=state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+ const local=ronnyLocalSearchMatches(q);
  if(q.length<2){if(local.length)paintSearchResults(local,q);else{$('search-results').innerHTML='<div class="search-state">המשך להקליד כדי לראות הצעות למקומות.</div>';$('search-results').classList.add('open')}return}
  searchChoices=[];$('search-results').innerHTML='<div class="search-state search-loading">מחפש מקומות…</div>'+externalSearchMarkup(q);$('search-results').classList.add('open');
  searchDebounce=setTimeout(()=>searchPlaces(q,local),420);
 }
 async function searchPlaces(overrideQuery=null,local=[]){
  const q=(overrideQuery??$('place-search').value).trim();if(q.length<2)return;
+ local=ronnyLocalSearchMatches(q);
  const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
  try{
   // Photon search is center-biased; text-only caching returns stale places after moving the map.
@@ -4277,7 +4298,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
   const cacheKey=q.toLocaleLowerCase()+'|'+bucket;
   let results=searchCache.get(cacheKey);
   if(!results){
-   const params=new URLSearchParams({q,limit:'7',lang:'he'});
+   const params=new URLSearchParams({q,limit:'7'});
    if(near){params.set('lat',near.lat.toFixed(5));params.set('lon',near.lng.toFixed(5));}
    const res=await fetch('https://photon.komoot.io/api/?'+params.toString(),{signal:searchController.signal,headers:{Accept:'application/json'}});
    if(!res.ok)throw Error('שירות החיפוש אינו זמין');
