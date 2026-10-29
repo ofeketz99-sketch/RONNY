@@ -32,7 +32,7 @@ function walkStartIndex(points,index){for(let i=index;i>=0;i--){if(points[i]?.ty
 function isMapOnlyPoint(s){return TripQueries.isMapOnlyPoint(s,MAP_ONLY_TYPES)}
 function routeStopsForDay(dayIndex){return TripQueries.routeStopsForDay(state,dayIndex,MAP_ONLY_TYPES)}
 function stops(){return routeStopsForDay(selectedDay)}
-function commitRouteOrder(dayIndex, ordered){const day=state.days[dayIndex];if(!day)return;day.stops=[...ordered,...day.stops.filter(isMapOnlyPoint)]}
+function commitRouteOrder(dayIndex, ordered){return TripStateCommands.commitRouteOrder(state,dayIndex,ordered,isMapOnlyPoint)}
 function poiLinksForDay(dayIndex){return TripQueries.poiLinksForDay(state,dayIndex,MAP_ONLY_TYPES,kmBetween)}
 function getStop(id){return TripQueries.getStop(state,id)}
 function tripDefaultDepartureTime(){const t=state?.settings?.defaultDepartureTime;return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t||'')?t:'09:00'}
@@ -63,9 +63,7 @@ function dayDefaultProfile(dayIndex=selectedDay){
  const preferred=state.days[dayIndex]?.travelMode;
  return TRAVEL_MODES[preferred]?preferred:(TRAVEL_MODES[state.settings.travelMode]?state.settings.travelMode:'driving');
 }
-function renumberGenericDayLabels(){
- state.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
-}
+function renumberGenericDayLabels(){return TripStateCommands.renumberGenericDayLabels(state)}
 function applyDayTheme(){
  const color=selectedDayColor(),root=document.documentElement;
  root.style.setProperty('--day-accent',color);

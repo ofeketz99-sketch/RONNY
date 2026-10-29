@@ -1,0 +1,10 @@
+{
+  "version": "50",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרדו פעולות לשינוי נתוני הטיול ממנגנוני התצוגה בקובץ ייעודי.",
+    "שלב סנכרון המודל לפני הציור רוכז בממשק ברור, בלי לשנות את סדר הפעולות או את השמירה.",
+    "נוספו בדיקות יחידה לסדר עצירות, נקודות קצה, שמות ימים וסנכרון מצב."
+  ],
+  "technical": "DEV only. TripStateCommands module: 7 domain adapters and synchronizeForRender. In-place stop identity and legacy callbacks preserved. 20 isolated differential comparisons and full JS syntax passed; Node/browser regression pending. Backup: backups/2026-10-29_pre-state-commands_77d291c9"
+}

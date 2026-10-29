@@ -11,6 +11,7 @@ const parts=[
   "00d-core-format",
   "00e-trip-storage",
   "00f-trip-queries",
+  "00g-trip-state-commands",
   "00-initial-state",
   "05-storage-trips",
   "10-days-groups",

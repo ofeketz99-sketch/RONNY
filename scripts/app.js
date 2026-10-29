@@ -82,6 +82,32 @@ function dayExcludedFromTotals(d){return dayMissingEndpoint(d)&&d.excludedUntilE
 function tripMapPositions(trip){const points=[];const add=p=>{if(validPoint(p))points.push([+p.lat,+p.lng])};(trip.outline?.points||[]).forEach(add);(trip.days||[]).forEach(day=>(day.stops||[]).forEach(add));return points;}
 return Object.freeze({validPoint,currentStopsForMap,isMapOnlyPoint,routeStopsForDay,poiLinksForDay,getStop,dayMissingEndpoint,dayExcludedFromTotals,tripMapPositions});
 })();
+// State-only commands. Dependencies are injected; no DOM or map access.
+const TripStateCommands=(()=>{
+function ronnyIsAutoEndpointName(name){return /^(?:נקודת (?:התחלה|יציאה|סיום)(?: יום \d+)?|נקודת התחלה\/סיום יום \d+)$/u.test(String(name||'').trim())}
+function ronnyEndpointDayName(trip,stop,i){return stop.type==='start'?(trip.days[i]?.loop?'נקודת התחלה/סיום יום ':'נקודת יציאה יום ')+(i+1):stop.type==='end'?'נקודת סיום יום '+(i+1):String(stop.name||'')}
+function synchronizeChronologicalEndpointNames(trip){let changed=false;trip.days.forEach((d,i)=>(d.stops||[]).forEach(p=>{if(p.autoLoopEnd)return;if(!['start','end'].includes(p.type)){if(p.autoChronoName){p.name='נקודת מעבר';p.autoChronoName=false;p.autoViaName=true;changed=true}return}if(p.autoChronoName||ronnyIsAutoEndpointName(p.name)||!String(p.name||'').trim()){const n=ronnyEndpointDayName(trip,p,i);if(n!==p.name||p.autoChronoName!==true){p.name=n;p.autoChronoName=true;p.autoPlaceName=false;changed=true}}}));return changed}
+function positionRouteEndpoints(day,isMapOnlyPoint,renumberWaypoints){
+ const arr=day.stops||[];
+ const start=arr.find(s=>s.type==='start'),end=arr.find(s=>s.type==='end');
+ day.stops=[...(start?[start]:[]),...arr.filter(s=>s!==start&&s!==end&&!isMapOnlyPoint(s)),...(end?[end]:[]),...arr.filter(isMapOnlyPoint)];
+ renumberWaypoints(day);
+}
+function enforceRouteEndpoints(day,updated){
+ if(updated.type!=='start'&&updated.type!=='end')return false;
+ let replaced=false;
+ for(const other of day.stops){
+  if(other.id!==updated.id&&other.type===updated.type){if(other.autoChronoName||ronnyIsAutoEndpointName(other.name)){other.name='נקודת מעבר';other.autoViaName=true;other.autoChronoName=false;}other.type='via';replaced=true;}
+ }
+ return replaced;
+}
+function commitRouteOrder(trip,dayIndex,ordered,isMapOnlyPoint){const day=trip.days[dayIndex];if(!day)return;day.stops=[...ordered,...day.stops.filter(isMapOnlyPoint)]}
+function renumberGenericDayLabels(trip){
+ trip.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
+}
+function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const loopLinked=synchronizeLoopDays();const linked=isDayView?synchronizeDayStarts():false;const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
+return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,renumberGenericDayLabels,synchronizeForRender});
+})();
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const icon=(name,cls='small-icon')=>`<i data-lucide="${name}" class="${cls}"></i>`;
 const uid=()=> (window.crypto?.randomUUID?.()||('stop'+Date.now().toString(36)+Math.random().toString(36).slice(2)));
@@ -235,20 +261,8 @@ function renumberWaypoints(day){
  }
 }
 function viaOrdinal(dayIndex,id){const via=(state.days[dayIndex]?.stops||[]).filter(s=>s.type==='via');return via.findIndex(s=>s.id===id)+1}
-function positionRouteEndpoints(day){
- const arr=day.stops||[];
- const start=arr.find(s=>s.type==='start'),end=arr.find(s=>s.type==='end');
- day.stops=[...(start?[start]:[]),...arr.filter(s=>s!==start&&s!==end&&!isMapOnlyPoint(s)),...(end?[end]:[]),...arr.filter(isMapOnlyPoint)];
- renumberWaypoints(day);
-}
-function enforceRouteEndpoints(day,updated){
- if(updated.type!=='start'&&updated.type!=='end')return false;
- let replaced=false;
- for(const other of day.stops){
-  if(other.id!==updated.id&&other.type===updated.type){if(other.autoChronoName||ronnyIsAutoEndpointName(other.name)){other.name='נקודת מעבר';other.autoViaName=true;other.autoChronoName=false;}other.type='via';replaced=true;}
- }
- return replaced;
-}
+function positionRouteEndpoints(day){return TripStateCommands.positionRouteEndpoints(day,isMapOnlyPoint,renumberWaypoints)}
+function enforceRouteEndpoints(day,updated){return TripStateCommands.enforceRouteEndpoints(day,updated)}
 function normalizeSavedEndpoints(day){
  const seen=new Set();
  // Preserve the last marked endpoint when old imports contain duplicates.
@@ -386,9 +400,9 @@ function synchronizeLoopDays(){
  return changed;
 }
 // Chronological day endpoint names (preserves user-entered locations).
-function ronnyIsAutoEndpointName(name){return /^(?:נקודת (?:התחלה|יציאה|סיום)(?: יום \d+)?|נקודת התחלה\/סיום יום \d+)$/u.test(String(name||'').trim())}
-function ronnyEndpointDayName(stop,i){return stop.type==='start'?(state.days[i]?.loop?'נקודת התחלה/סיום יום ':'נקודת יציאה יום ')+(i+1):stop.type==='end'?'נקודת סיום יום '+(i+1):String(stop.name||'')}
-function synchronizeChronologicalEndpointNames(){let changed=false;state.days.forEach((d,i)=>(d.stops||[]).forEach(p=>{if(p.autoLoopEnd)return;if(!['start','end'].includes(p.type)){if(p.autoChronoName){p.name='נקודת מעבר';p.autoChronoName=false;p.autoViaName=true;changed=true}return}if(p.autoChronoName||ronnyIsAutoEndpointName(p.name)||!String(p.name||'').trim()){const n=ronnyEndpointDayName(p,i);if(n!==p.name||p.autoChronoName!==true){p.name=n;p.autoChronoName=true;p.autoPlaceName=false;changed=true}}}));return changed}
+function ronnyIsAutoEndpointName(name){return TripStateCommands.ronnyIsAutoEndpointName(name)}
+function ronnyEndpointDayName(stop,i){return TripStateCommands.ronnyEndpointDayName(state,stop,i)}
+function synchronizeChronologicalEndpointNames(){return TripStateCommands.synchronizeChronologicalEndpointNames(state)}
 function prepareTrip(t){
  if(!t||!Array.isArray(t.days)||!t.days.length||!t.settings)throw Error('קובץ טיול לא תקין');
  const cleaned=cloneValue(t);
@@ -734,7 +748,7 @@ function walkStartIndex(points,index){for(let i=index;i>=0;i--){if(points[i]?.ty
 function isMapOnlyPoint(s){return TripQueries.isMapOnlyPoint(s,MAP_ONLY_TYPES)}
 function routeStopsForDay(dayIndex){return TripQueries.routeStopsForDay(state,dayIndex,MAP_ONLY_TYPES)}
 function stops(){return routeStopsForDay(selectedDay)}
-function commitRouteOrder(dayIndex, ordered){const day=state.days[dayIndex];if(!day)return;day.stops=[...ordered,...day.stops.filter(isMapOnlyPoint)]}
+function commitRouteOrder(dayIndex, ordered){return TripStateCommands.commitRouteOrder(state,dayIndex,ordered,isMapOnlyPoint)}
 function poiLinksForDay(dayIndex){return TripQueries.poiLinksForDay(state,dayIndex,MAP_ONLY_TYPES,kmBetween)}
 function getStop(id){return TripQueries.getStop(state,id)}
 function tripDefaultDepartureTime(){const t=state?.settings?.defaultDepartureTime;return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t||'')?t:'09:00'}
@@ -765,9 +779,7 @@ function dayDefaultProfile(dayIndex=selectedDay){
  const preferred=state.days[dayIndex]?.travelMode;
  return TRAVEL_MODES[preferred]?preferred:(TRAVEL_MODES[state.settings.travelMode]?state.settings.travelMode:'driving');
 }
-function renumberGenericDayLabels(){
- state.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
-}
+function renumberGenericDayLabels(){return TripStateCommands.renumberGenericDayLabels(state)}
 function applyDayTheme(){
  const color=selectedDayColor(),root=document.documentElement;
  root.style.setProperty('--day-accent',color);
@@ -3276,7 +3288,7 @@ function fitOutlineMap(){if(!map)return;const o=currentOutline(),pts=o.points;
 
 function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggle.setAttribute('aria-pressed',String(state.settings.showMapDescriptions!==false));outlineLayer?.clearLayers();if(planningResolution!=='day'){renderOutlineMap();renderSavedPlaceMarkers();return}renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
-function renderAll(){ronnyRenderGroupBar();const walkingLinked=state.days.some(day=>syncWalkingLoops(day));const loopLinked=synchronizeLoopDays();const linked=planningResolution==='day'?synchronizeDayStarts():false;const chronoLinked=synchronizeChronologicalEndpointNames();ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(linked||loopLinked||walkingLinked||chronoLinked)save()}
+function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
 function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
 function selectDay(i){if(i<0||i>=state.days.length)return;

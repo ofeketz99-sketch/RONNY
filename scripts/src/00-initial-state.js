@@ -151,20 +151,8 @@ function renumberWaypoints(day){
  }
 }
 function viaOrdinal(dayIndex,id){const via=(state.days[dayIndex]?.stops||[]).filter(s=>s.type==='via');return via.findIndex(s=>s.id===id)+1}
-function positionRouteEndpoints(day){
- const arr=day.stops||[];
- const start=arr.find(s=>s.type==='start'),end=arr.find(s=>s.type==='end');
- day.stops=[...(start?[start]:[]),...arr.filter(s=>s!==start&&s!==end&&!isMapOnlyPoint(s)),...(end?[end]:[]),...arr.filter(isMapOnlyPoint)];
- renumberWaypoints(day);
-}
-function enforceRouteEndpoints(day,updated){
- if(updated.type!=='start'&&updated.type!=='end')return false;
- let replaced=false;
- for(const other of day.stops){
-  if(other.id!==updated.id&&other.type===updated.type){if(other.autoChronoName||ronnyIsAutoEndpointName(other.name)){other.name='נקודת מעבר';other.autoViaName=true;other.autoChronoName=false;}other.type='via';replaced=true;}
- }
- return replaced;
-}
+function positionRouteEndpoints(day){return TripStateCommands.positionRouteEndpoints(day,isMapOnlyPoint,renumberWaypoints)}
+function enforceRouteEndpoints(day,updated){return TripStateCommands.enforceRouteEndpoints(day,updated)}
 function normalizeSavedEndpoints(day){
  const seen=new Set();
  // Preserve the last marked endpoint when old imports contain duplicates.
@@ -302,9 +290,9 @@ function synchronizeLoopDays(){
  return changed;
 }
 // Chronological day endpoint names (preserves user-entered locations).
-function ronnyIsAutoEndpointName(name){return /^(?:נקודת (?:התחלה|יציאה|סיום)(?: יום \d+)?|נקודת התחלה\/סיום יום \d+)$/u.test(String(name||'').trim())}
-function ronnyEndpointDayName(stop,i){return stop.type==='start'?(state.days[i]?.loop?'נקודת התחלה/סיום יום ':'נקודת יציאה יום ')+(i+1):stop.type==='end'?'נקודת סיום יום '+(i+1):String(stop.name||'')}
-function synchronizeChronologicalEndpointNames(){let changed=false;state.days.forEach((d,i)=>(d.stops||[]).forEach(p=>{if(p.autoLoopEnd)return;if(!['start','end'].includes(p.type)){if(p.autoChronoName){p.name='נקודת מעבר';p.autoChronoName=false;p.autoViaName=true;changed=true}return}if(p.autoChronoName||ronnyIsAutoEndpointName(p.name)||!String(p.name||'').trim()){const n=ronnyEndpointDayName(p,i);if(n!==p.name||p.autoChronoName!==true){p.name=n;p.autoChronoName=true;p.autoPlaceName=false;changed=true}}}));return changed}
+function ronnyIsAutoEndpointName(name){return TripStateCommands.ronnyIsAutoEndpointName(name)}
+function ronnyEndpointDayName(stop,i){return TripStateCommands.ronnyEndpointDayName(state,stop,i)}
+function synchronizeChronologicalEndpointNames(){return TripStateCommands.synchronizeChronologicalEndpointNames(state)}
 function prepareTrip(t){
  if(!t||!Array.isArray(t.days)||!t.days.length||!t.settings)throw Error('קובץ טיול לא תקין');
  const cleaned=cloneValue(t);
