@@ -2267,3 +2267,18 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #point-quick[data-mode="day"] .point-quick-actions button{
  min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25;
 }
+
+/* Patch 82: viewport-aware vertical cap; matches the 32px desktop and 16px
+   compact safe margins used by mapPopupMargin, with extra border tolerance. */
+.map-pane #point-quick[data-mode="day"],
+.map-pane #point-quick.ronny-point-full[data-mode="day"],
+.map-pane #point-quick.ronny-point-compact[data-mode="day"]{
+ max-height:calc(100% - 72px);
+}
+@media(max-width:760px){
+ .map-pane #point-quick[data-mode="day"],
+ .map-pane #point-quick.ronny-point-full[data-mode="day"],
+ .map-pane #point-quick.ronny-point-compact[data-mode="day"]{
+  max-height:calc(100% - 40px);
+ }
+}

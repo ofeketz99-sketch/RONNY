@@ -1,0 +1,9 @@
+{
+  "version": "82",
+  "date": "2026-10-29",
+  "notes": [
+    "הוגבל גם גובה חלונית עריכת הנקודה כך שתישאר בתוך גבולות המפה, כולל כשפותחים את תפריט האייקונים.",
+    "נשמר הרוחב המצומצם של 336 פיקסלים והגלילה הפנימית; לא שונו נתוני טיול או מנגנוני גרירת נקודות."
+  ],
+  "technical": "Follow-up to width patch 81: desktop vertical safety margin 36px per edge, mobile 20px. Chromium regression pending. Backup backups/2026-10-29_pre-popup-height-clamp_7d79224985."
+}
