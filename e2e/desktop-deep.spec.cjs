@@ -90,8 +90,12 @@ test('desktop distance ruler draws, undoes, clears and exits with Escape', async
   await page.locator('#map-distance-measure').click();
   await expect(page.locator('#ronny-measure-panel')).toBeVisible();
   await expect(page.locator('#map-distance-measure')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.map-pane')).not.toHaveClass(/map-tools-expanded/);
   await mapClick(page, .41, .48);
+  await expect(page.locator('#ronny-measure-clear')).toBeEnabled();
+  await expect(page.locator('#ronny-measure-detail')).toContainText('1 נקודות שרטוט');
   await mapClick(page, .57, .58);
+  await expect(page.locator('#ronny-measure-detail')).toContainText('2 נקודות שרטוט');
   await expect(page.locator('#ronny-measure-undo')).toBeEnabled();
   await expect(page.locator('#ronny-measure-value')).not.toHaveText('0 מ׳');
   await page.locator('#ronny-measure-undo').click();

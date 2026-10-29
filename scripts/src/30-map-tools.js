@@ -52,6 +52,12 @@ function ronnyMeasureToggle(){
  if(googleMode){toast('עבור לתצוגת המפה הרגילה כדי למדוד');return}
  if(savedPinPlacementId||outlineMoveModeId||newTripSetupDraft||forcedRelocateSession||pointMoveModeId||drawLegSession||forcedPointSession||homePickMode||photoPlacement){toast('סיים תחילה את הפעולה הפעילה במפה');return}
  ronnyMeasure.active=true;ronnyMeasure.hover=null;ronnyMeasure.prevDragEnabled=map.dragging.enabled();ronnyMeasure.prevDblClickEnabled=map.doubleClickZoom.enabled();map.dragging.disable();map.doubleClickZoom.disable();map.getContainer().classList.add('ronny-measuring');
+ // Close the tools flyout immediately: its outside-click guard would eat the first map measurement.
+ const pane=document.querySelector('.map-pane');
+ if(pane?.classList.contains('map-tools-expanded')){
+  pane.classList.remove('map-tools-expanded');
+  $('map-tools-toggle')?.setAttribute('aria-expanded','false');
+ }
  if(routeEdit){routeEdit=false;$('route-edit-toggle')?.setAttribute('aria-pressed','false');renderViaHandles()}
  if(quickStreetMode){quickStreetMode=false;$('street-link-mode')?.setAttribute('aria-pressed','false')}
  hideContext();hidePointQuick();closeLegEditor();

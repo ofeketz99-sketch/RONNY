@@ -1,0 +1,9 @@
+{
+  "version": "62",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה לחיצה ראשונה שלא נרשמה בכלי מדידת המרחק לאחר פתיחתו מתפריט כלי המפה.",
+    "הורחבה בדיקת הדפדפן לוודא שנקודת המדידה הראשונה והשנייה נקלטות."
+  ],
+  "technical": "DEV only. Root cause: outside-pointer dismissal swallowed the first map click when the tools flyout was still expanded after activating ruler. Close flyout during measurement activation, preserving remaining outside-click rules. 8/9 Playwright tests passed before fix; CI rerun required. Backup backups/2026-10-29_pre-measure-first-point_dcb95046/."
+}
