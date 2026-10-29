@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const code=fs.readFileSync(path.join(__dirname,'../scripts/src/00h-route-geometry.js'),'utf8');
 const geo=vm.runInNewContext(code+'\nRouteGeometry');
-const equal=(actual,expected)=>assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected);
+const equal=(actual,expected)=>assert.deepEqual(JSON.parse(JSON.stringify(actual)),JSON.parse(JSON.stringify(expected)));
 const loop=(mode='draw')=>[
  {id:'walk',type:'walkStart',walkRetrace:true,lat:46,lng:8},
  {id:'turn',type:'walkTurn',lat:46.03,lng:8.04,leg:{fromId:'walk',mode,path:[[46.01,8.01],[46.02,8.025]]}},

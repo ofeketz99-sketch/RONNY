@@ -72,6 +72,8 @@ test('dragging a route marker in edit mode persists the position after reload',a
   await expect(page.locator('#route-edit-toggle')).toHaveAttribute('aria-pressed','true');
   const marker=page.locator('.leaflet-marker-icon[data-ronny-stop-id="finish"]');
   await expect(marker).toBeVisible();
+  // The new tight fit animates for 650ms; do not drag while Leaflet is moving markers.
+  await page.waitForTimeout(800);
   const before=(await saved(page)).days[0].stops[1];
   const bounds=await marker.boundingBox();
   expect(bounds).toBeTruthy();

@@ -1,0 +1,9 @@
+{
+  "version": "68",
+  "date": "2026-10-29",
+  "notes": [
+    "יוצבו בדיקות רגרסיה למסלולי הלוך־חזור ולגרירת נקודות לאחר אנימציית זום.",
+    "השוואת קואורדינטות בבדיקות מותאמת למערכים שנוצרים במודולי JavaScript מבודדים."
+  ],
+  "technical": "Test-only correction: normalize expected as well as actual when comparing vm realm arrays; drag Playwright test waits for the 650ms Leaflet fit transition to settle before simulated pointer movement. Prior patch 67: 63/64 Node, 15/16 browser; feature-focused browser tests passed. Rerun required. Backup backups/2026-10-29_pre-retrace-test-stability_fad277ae/."
+}
