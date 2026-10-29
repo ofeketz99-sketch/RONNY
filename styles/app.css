@@ -2248,3 +2248,8 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 @media(prefers-reduced-motion:reduce){
  #point-quick[data-mode="day"] .ronny-point-accordion>summary:after{transition:none}
 }
+
+/* Patch 77 — choose walking drawing mode before placing any vertex. */
+#point-quick .walk-loop-route-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+#point-quick .walk-loop-route-actions .walk-loop-route{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px}
+#point-quick .walk-loop-route-actions svg{width:15px;height:15px;flex:none}

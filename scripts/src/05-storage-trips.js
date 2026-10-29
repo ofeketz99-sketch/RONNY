@@ -45,6 +45,55 @@ function fitWholeTrip(){
  // Use ALL days and macro waypoints, not just the day currently selected.
  map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:[92,96],paddingBottomRight:[90,98],maxZoom:12,animate:true,duration:.65});
 }
+
+const RONNY_WORKSPACE_PREFIX='ronny-workspace-v1:';
+let ronnyWorkspaceReady=false;
+function ronnyReadWorkspace(){
+ if(!activeTripId)return null;
+ try{
+  const view=JSON.parse(localStorage.getItem(RONNY_WORKSPACE_PREFIX+activeTripId)||'null');
+  return view&&view.version===1&&typeof view==='object'?view:null;
+ }catch(e){return null}
+}
+function ronnyApplyWorkspaceSelection(view){
+ if(!view)return;
+ const index=state.days.findIndex(day=>day.dayId===view.dayId);
+ if(index>=0)selectedDay=index;
+ planningResolution=view.resolution==='outline'?'outline':'day';
+ viewScope=view.scope==='all'?'all':'day';
+ ronnyActiveDayGroupId=viewScope==='all'&&ronnyDayGroups().some(group=>group.id===view.groupId)?view.groupId:null;
+}
+function ronnyRememberWorkspace(){
+ if(!ronnyWorkspaceReady||!activeTripId||!map||!state?.days?.length)return;
+ const center=map.getCenter(),zoom=map.getZoom();
+ if(!Number.isFinite(center.lat)||!Number.isFinite(center.lng)||!Number.isFinite(zoom))return;
+ try{
+  localStorage.setItem(RONNY_WORKSPACE_PREFIX+activeTripId,JSON.stringify({
+   version:1,dayId:state.days[selectedDay]?.dayId||null,
+   resolution:planningResolution==='day'?'day':'outline',
+   scope:viewScope==='all'?'all':'day',
+   groupId:viewScope==='all'?ronnyActiveDayGroupId:null,
+   lat:+center.lat.toFixed(7),lng:+center.lng.toFixed(7),zoom
+  }));
+ }catch(e){}
+}
+function ronnyRestoreWorkspaceViewport(view){
+ if(!map)return;
+ map.invalidateSize({pan:false});
+ const z=Number(view?.zoom),lat=Number(view?.lat),lng=Number(view?.lng);
+ if(view&&Number.isFinite(z)&&z>=2&&z<=19&&Number.isFinite(lat)&&Math.abs(lat)<=90&&Number.isFinite(lng)&&Math.abs(lng)<=180){
+  map.setView([lat,lng],z,{animate:false});
+ }else fitMap();
+ ronnyWorkspaceReady=true;
+ ronnyRememberWorkspace();
+}
+function ronnyQueueWorkspaceViewport(view){
+ const seq=++wholeTripFocusSeq;let completed=false;
+ const restore=()=>{if(completed||seq!==wholeTripFocusSeq||!map)return;completed=true;ronnyRestoreWorkspaceViewport(view)};
+ requestAnimationFrame(()=>requestAnimationFrame(restore));
+ setTimeout(restore,340);
+}
+
 let wholeTripFocusSeq=0;
 function focusLoadedTrip(){if(!map)return;map.invalidateSize({pan:false});fitMap()}
 function queueWholeTripFocus(){
@@ -55,15 +104,17 @@ function queueWholeTripFocus(){
 }
 function applyCurrentTrip(){
  if(drawLegSession)stopLegDrawing();closeLegEditor();
- resetPlannerBulk();state=prepareTrip(state);if(+state.settings.railWidth===72)state.settings.railWidth=54;const detailedPoints=(state.days||[]).some(d=>(d.stops||[]).some(validPoint));planningResolution=detailedPoints?'day':(['outline','stage'].includes(state.settings.planningResolution)?'outline':'day');selectedOutlineId=null;selectedStageId=null;outlineAddArmed=false;selectedDay=0;selectedStop=null;viewScope='all';invalidate();pendingRetimes.clear();scheduleQuality.clear();repairExistingSchedules();restorePlannerUpperHeight();
+ ronnyWorkspaceReady=false;wholeTripFocusSeq++;
+ resetPlannerBulk();state=prepareTrip(state);if(+state.settings.railWidth===72)state.settings.railWidth=54;const detailedPoints=(state.days||[]).some(d=>(d.stops||[]).some(validPoint));planningResolution=detailedPoints?'day':(['outline','stage'].includes(state.settings.planningResolution)?'outline':'day');selectedOutlineId=null;selectedStageId=null;outlineAddArmed=false;selectedDay=0;selectedStop=null;viewScope='all';ronnyActiveDayGroupId=null;invalidate();pendingRetimes.clear();scheduleQuality.clear();repairExistingSchedules();restorePlannerUpperHeight();
+ const resume=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(resume);
  if(googleMode){googleMode=false;document.querySelector('.map-pane').classList.remove('google-mode');$('google-coverage-toggle').setAttribute('aria-pressed','false')}
  $('map-scope').value=viewScope;$('trip-name').value=state.title;$('start-date').value=state.startDate;
  $('travel-mode').value=state.settings.travelMode;rebuildMapOptions();document.documentElement.style.setProperty('--rail-width',(+state.settings.railWidth||54)+'px');
  document.documentElement.style.setProperty('--planner-width',(+state.settings.plannerWidth||430)+'px');
  document.documentElement.style.setProperty('--drawer-width',(+state.settings.drawerWidth||440)+'px');
  setMapStyle(state.settings.mapStyle,false);renderAll();
- // Selection always shows every day. Fit after the drawer closes and Leaflet has resized.
- queueWholeTripFocus()
+ // Restore this trip's own previous map and day view, or fit a trip without a saved workspace.
+ ronnyQueueWorkspaceViewport(resume)
 }
 async function saveTripExplicitly(){save();const ok=await saveQueue;if(ok)toast('הטיול נשמר בספריית RONNY')}
 let newTripSetupDraft=null;

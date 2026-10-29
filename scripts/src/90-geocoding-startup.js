@@ -292,9 +292,11 @@ function showSavedPlaceLibrary(){
 
 (async()=>{
  try{await initTripLibrary()}catch(e){state=prepareTrip(demo());activeTripId=uid();libraryReady=true;save();toast('טעינת הספרייה נכשלה. ניתן לייצא קובץ גיבוי.')}
- await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';repairExistingSchedules();initMap();enableMapPopupDragging();initDaysManager();initOutsideDismissal();
+ await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';const startupWorkspace=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(startupWorkspace);repairExistingSchedules();initMap();map?.on('moveend zoomend',ronnyRememberWorkspace);enableMapPopupDragging();initDaysManager();initOutsideDismissal();
  window.addEventListener('resize',()=>{for(const id of ['leg-editor','point-quick','map-context','layer-filter-panel'])keepMapPopoverVisible($(id))});
- bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();setTimeout(focusLoadedTrip,360);
+ bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();
+ const startupTrip=activeTripId,startupSeq=++wholeTripFocusSeq;
+ setTimeout(()=>{if(activeTripId===startupTrip&&wholeTripFocusSeq===startupSeq)ronnyRestoreWorkspaceViewport(startupWorkspace)},360);
  const wasCollapsed=(()=>{try{return localStorage.getItem('ronny-planner-collapsed-v1')==='true'}catch(e){return false}})();
  if(wasCollapsed)setPlannerCollapsed(true);
 })().catch(e=>{$('map').textContent='אירעה שגיאה בהפעלת האתר. '+e.message});

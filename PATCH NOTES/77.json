@@ -1,0 +1,9 @@
+{
+  "version": "77",
+  "date": "2026-10-29",
+  "notes": [
+    "אחרי רענון נשמרים היום והמקטע שהמשתמש בחר, היקף התצוגה, מיקום המפה ורמת הזום. המצב נשמר בנפרד לכל טיול ובדפדפן המקומי.",
+    "בעת התחלת שרטוט מסלול הליכה ניתן לבחור שרטוט רגיל או עיפרון חופשי לפני תחילת השרטוט."
+  ],
+  "technical": "Backups at backups/2026-10-29_pre-workspace-pencil_1b06a0d88a; per-trip workspace stored separately from trip JSON to avoid schema changes. CI verification required."
+}
