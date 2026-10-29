@@ -92,7 +92,10 @@ function focusMapPositions(trip,dayIndices){
  }
  return positions;
 }
-function poiLinksForDay(trip,dayIndex,mapOnlyTypes,kmBetween){const day=trip.days[dayIndex];if(!day)return [];const routes=routeStopsForDay(trip,dayIndex,mapOnlyTypes).filter(validPoint);if(!routes.length)return [];return day.stops.filter(s=>isMapOnlyPoint(s,mapOnlyTypes)&&s.type!=='idea'&&validPoint(s)).map(p=>{let nearest=null,meters=Infinity;for(const r of routes){const distance=kmBetween([+p.lat,+p.lng],[+r.lat,+r.lng]);if(distance<meters){meters=distance;nearest=r}}return {point:p,nearest,meters}}).filter(x=>x.nearest)}
+// Side-of-road locations attach to the nearest driving waypoint in their own day.
+// Walking waypoints may be closer spatially but must never become anchor points.
+const DRIVING_WAYPOINT_TYPES=new Set(['start','via','parking','rest','end','hotel']);
+function poiLinksForDay(trip,dayIndex,mapOnlyTypes,kmBetween){const day=trip.days[dayIndex];if(!day)return [];const routes=routeStopsForDay(trip,dayIndex,mapOnlyTypes).filter(s=>DRIVING_WAYPOINT_TYPES.has(s.type)&&validPoint(s));if(!routes.length)return [];return day.stops.filter(s=>isMapOnlyPoint(s,mapOnlyTypes)&&s.type!=='idea'&&validPoint(s)).map(p=>{let nearest=null,meters=Infinity;for(const r of routes){const distance=kmBetween([+p.lat,+p.lng],[+r.lat,+r.lng]);if(distance<meters){meters=distance;nearest=r}}return {point:p,nearest,meters}}).filter(x=>x.nearest)}
 function getStop(trip,id){for(let i=0;i<trip.days.length;i++){const s=trip.days[i].stops.find(s=>s.id===id);if(s)return {stop:s,day:i}}return null}
 function dayMissingEndpoint(d){return !!(d?.stops||[]).some(p=>p.type==='start')&&!d.loop&&!(d?.stops||[]).some(p=>p.type==='end')}
 function dayExcludedFromTotals(d){return dayMissingEndpoint(d)&&d.excludedUntilEnd===true}

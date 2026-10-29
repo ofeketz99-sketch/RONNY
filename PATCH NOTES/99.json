@@ -1,0 +1,14 @@
+{
+  "version": "99",
+  "date": "2026-10-29",
+  "notes": [
+    "נקודות צד הדרך מחוברות בקו המקווקו הקיים לנקודת הנסיעה הקרובה ביותר באותו יום.",
+    "נקודות של מסלולי הליכה אינן מועמדות עוד לעיגון של נקודות צד, גם אם הן קרובות יותר.",
+    "אם אין נקודת נסיעה תקינה, לא מוצג חיבור שגוי. קווי הגישה למסלול הליכה והמסלולים עצמם לא שונו."
+  ],
+  "technical": [
+    "Restrict TripQueries.poiLinksForDay anchor candidates to start,via,parking,rest,end,hotel.",
+    "Read-only query maintains per-day nearest-distance selection, existing rendering and layer toggles.",
+    "Added unit tests for walking vs driving anchors, invalid coordinates and absence of driving anchors."
+  ]
+}

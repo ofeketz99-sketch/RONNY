@@ -79,3 +79,39 @@ test('all queries leave supplied trip unchanged',()=>{
  Q.tripMapPositions(trip);
  assert.equal(json(trip),before);
 });
+
+test('side-of-road markers attach to nearest driving waypoint, never to a walking point',()=>{
+ const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+ const trip={days:[{stops:[
+  {id:'drive-start',type:'start',lat:45,lng:6},
+  {id:'parking',type:'parking',lat:45.02,lng:6},
+  {id:'walk-start',type:'walkStart',lat:45.051,lng:6},
+  {id:'walk-turn',type:'walkTurn',lat:45.052,lng:6},
+  {id:'walk-end',type:'walkEnd',lat:45.051,lng:6},
+  {id:'legacy-walk',type:'hike',lat:45.052,lng:6},
+  {id:'side-photo',type:'viewpoint',lat:45.053,lng:6},
+  {id:'side-meal',type:'dining',lat:45.018,lng:6},
+  {id:'idea',type:'idea',lat:45.017,lng:6},
+  {id:'drive-end',type:'end',lat:45.09,lng:6}
+ ]}]};
+ const results=Q.poiLinksForDay(trip,0,types,distance);
+ assert.equal(results.length,2);
+ assert.equal(results.find(x=>x.point.id==='side-photo').nearest.id,'parking');
+ assert.equal(results.find(x=>x.point.id==='side-meal').nearest.id,'parking');
+ assert.ok(results.every(x=>!x.nearest.type.startsWith('walk')&&x.nearest.type!=='hike'));
+ assert.equal(results.some(x=>x.point.id==='idea'),false);
+});
+test('side-of-road links use only valid driving stops in the same day',()=>{
+ const distance=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
+ const trip={days:[
+  {stops:[{id:'walk',type:'walkStart',lat:1,lng:2},{id:'photo',type:'viewpoint',lat:1.01,lng:2}]},
+  {stops:[{id:'road',type:'via',lat:1.01,lng:2}]}
+ ]};
+ assert.equal(Q.poiLinksForDay(trip,0,types,distance).length,0);
+ trip.days[0].stops.push({id:'invalid',type:'via',lat:null,lng:null});
+ assert.equal(Q.poiLinksForDay(trip,0,types,distance).length,0);
+ trip.days[0].stops.push({id:'valid',type:'rest',lat:1.2,lng:2});
+ const links=Q.poiLinksForDay(trip,0,types,distance);
+ assert.equal(links.length,1);
+ assert.equal(links[0].nearest.id,'valid');
+});
