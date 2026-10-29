@@ -1,0 +1,13 @@
+{
+  "version": "93",
+  "date": "2026-10-29",
+  "notes": [
+    "הוסר כפתור ״מקטעי זמן״ והחלון שנפתח ממנו, שלא סיפקו נתונים מחושבים.",
+    "הוסרה שורת מקטעי השעות וכותרות המקטעים מלוח הזמנים ומדוח ההדפסה, כדי למנוע ממשק מיותר.",
+    "נתוני מקטעי זמן שמורים מטיולים קיימים נשארו בקבצי הטיול לתאימות לאחור; תזמון אוטומטי, סיכום יום ועריכת שעות נשמרו."
+  ],
+  "technical": [
+    "Removed obsolete time-segment UI, handlers and presentation, retaining historical trip segments in prepareTrip/JSON.",
+    "Removed references in source modules and rebuilt generated scripts/app.js; scoped regression checks added."
+  ]
+}
