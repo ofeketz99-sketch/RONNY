@@ -177,13 +177,20 @@ function syncWalkingLoops(day){
   const next=routes.findIndex((p,i)=>i>idx&&p.type==='walkStart');
   const limit=next>=0?next:routes.length;
   const section=routes.slice(idx+1,limit);
-  let end=section.find(p=>p.type==='walkEnd');
+  // Day endpoints are not walking waypoints; keep the walk finish before the day finish.
+  const dayEndAt=section.findIndex(p=>p.type==='end');
+  const walkingSection=dayEndAt<0?section:section.slice(0,dayEndAt);
+  let end=section.find(p=>p.type==='walkEnd'&&p.walkLoopSource===start.id)||walkingSection.find(p=>p.type==='walkEnd'&&!p.walkLoopSource);
+  const walkTail=walkingSection.filter(p=>p!==end).at(-1)||start;
   if(!end){
    end={id:uid(),name:'סיום ההליכה · חזרה להתחלה',type:'walkEnd',autoWalkEnd:true,
     walkLoopSource:start.id,lat:start.lat,lng:start.lng,time:start.time||'09:00',
     duration:0,cost:0,description:'',notes:''};
-   const tail=section.at(-1)||start;
-   day.stops.splice(day.stops.indexOf(tail)+1,0,end);changed=true;
+   day.stops.splice(day.stops.indexOf(walkTail)+1,0,end);changed=true;
+  }else if(dayEndAt>=0&&day.stops.indexOf(end)>day.stops.indexOf(section[dayEndAt])){
+   // Repair a saved walk finish that was previously inserted after the day finish.
+   day.stops.splice(day.stops.indexOf(end),1);
+   day.stops.splice(day.stops.indexOf(walkTail)+1,0,end);changed=true;
   }
   // The physical endpoint is always identical to the corresponding walking start.
   if(end.lat!==start.lat||end.lng!==start.lng){

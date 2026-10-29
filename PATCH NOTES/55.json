@@ -1,0 +1,10 @@
+{
+  "version": "55",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקן סדר העצירות כך שסיום הליכה מעגלית לא מופיע אחרי נקודת סיום היום.",
+    "נוספה התאוששות מסדר שגוי של מסלולי הליכה שנשמרו בגרסאות קודמות.",
+    "נוספו בדיקות רגרסיה למסלולים רגליים, זמני סיבוב וחציית חצות."
+  ],
+  "technical": "Source syncWalkingLoops limit by day-end route marker, migrate misplaced walkEnd preserving stop identity. 11 regression tests passed in isolated JS harness; original 39 isolated unit tests and 28-part bundle parity checked before change. Node npm test and live browser not executed. Backup backups/2026-10-29_pre-walking-regression_70d611b/."
+}
