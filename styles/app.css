@@ -2404,14 +2404,22 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #days .ronny-day-card-edit{
  position:absolute;top:8px;inset-inline-end:8px;z-index:2;
  display:grid;place-items:center;width:27px;height:27px;padding:0;
- border:1px solid rgba(84,114,91,.22);border-radius:8px;
- background:rgba(255,253,245,.83);color:#466c51;
- cursor:pointer;transition:background-color .16s,box-shadow .16s;
+ border:0;border-radius:10px;
+ background:transparent;color:#405248;
+ cursor:pointer;box-shadow:none;
+ transition:background-color .18s ease,box-shadow .18s ease;
 }
 #days .ronny-day-card-edit .small-icon{width:14px;height:14px}
-#days .ronny-day-card-edit:hover{background:#fffdf7;box-shadow:0 2px 9px #20382b35}
+#days .ronny-day-card-edit:hover{
+ background:rgba(29,49,35,.12);
+ box-shadow:0 0 7px rgba(29,49,35,.08);
+}
 #days .ronny-day-card-edit:focus-visible{outline:2px solid #426e53;outline-offset:2px}
 #days .ronny-day-card:has(.day-pill.active) .ronny-day-card-edit{
- background:rgba(251,252,244,.93);color:#315f42;border-color:rgba(255,255,255,.66);
+ background:transparent;color:#fff;border:0;
+}
+#days .ronny-day-card:has(.day-pill.active) .ronny-day-card-edit:hover{
+ background:rgba(15,32,23,.23);
+ box-shadow:0 0 7px rgba(15,32,23,.1);
 }
 @media(prefers-reduced-motion:reduce){#days .ronny-day-card-edit{transition:none}}

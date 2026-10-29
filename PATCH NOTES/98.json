@@ -1,0 +1,14 @@
+{
+  "version": "98",
+  "date": "2026-10-29",
+  "notes": [
+    "כפתור העיפרון בכרטיסי הימים מוצג ללא רקע או מסגרת במצב רגיל.",
+    "צבע העיפרון תואם את הטקסט של הכרטיס, גם כאשר הכרטיס נבחר.",
+    "בריחוף העיפרון מקבל רקע כהה ועדין עם פינות מעוגלות ומעבר חלק, ללא שינוי בפעולות הכפתור."
+  ],
+  "technical": [
+    "Scoped CSS-only change for day-card edit button.",
+    "Keeps accessible keyboard focus and reduced-motion behavior.",
+    "No changes to JavaScript, map focus, or day selection."
+  ]
+}
