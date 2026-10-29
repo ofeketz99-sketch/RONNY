@@ -1,0 +1,10 @@
+{
+  "version": "63",
+  "date": "2026-10-29",
+  "notes": [
+    "נוספו בדיקות דפדפן לגרירת נקודת מסלול ולשמירתה אחרי רענון.",
+    "נוספו בדיקות שרטוט ידני וגרירת נקודת שרטוט.",
+    "נוספו בדיקות לביטול בקשת ניתוב ישנה ולהפעלת תכנון יום עמוס במחשב."
+  ],
+  "technical": "DEV only. Four Chromium scenarios run against isolated trip fixtures, with route replies deliberately delayed for cancellation regression and 52-stop planning stress. No site product code modified; CI verification pending. Backup backups/2026-10-29_pre-desktop-final_b2e62f84/."
+}
