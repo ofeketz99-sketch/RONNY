@@ -1,0 +1,9 @@
+{
+  "version": "64",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה גרירת סמן המסלול הראשונה לאחר הפעלת מצב עריכת מסלול מתוך תפריט כלי המפה.",
+    "בדיקת ביטול הניתוב בוחנת כעת גם הזנת משך מעבר ידני לפני הצגת זמן מסלול מלא."
+  ],
+  "technical": "DEV only. First marker drag swallowed by outside-pointer dismissal because tools flyout remained open; close flyout on route edit toggling. Routing cancellation test incorrectly expected full duration with an unspecified manual leg; now supplies 25-minute manual duration in UI. Previous 11/13 Chromium pass; CI rerun required. Backup backups/2026-10-29_pre-route-edit-drag_ec65dc54/."
+}

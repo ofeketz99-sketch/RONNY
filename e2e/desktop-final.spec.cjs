@@ -133,6 +133,8 @@ test('changing a leg cancels obsolete in-flight routing and preserves manual dat
     await expect.poll(()=>requests).toBeGreaterThan(0);
     await page.locator('.leg-open[data-leg-index="1"]').click();
     await page.locator('[data-leg-mode="straight"]').click();
+    await page.locator('#leg-duration').fill('25');
+    await page.locator('#leg-duration').press('Tab');
     await expect.poll(async()=>(await saved(page))?.days?.[0]?.stops?.[1]?.leg?.mode).toBe('straight');
   }finally{release()}
   await expect(page.locator('#route-msg')).toContainText('מקטעים מחושבים');
