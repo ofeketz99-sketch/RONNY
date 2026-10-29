@@ -1,0 +1,10 @@
+{
+  "version": "47",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרדו חישובי זמן, מרחק, גאומטריה, תזמון מקטעים ועיצוב ערכים לארבע שכבות בסיס.",
+    "נשמרו שמות הפונקציות והתנהגותן באמצעות מתאמים לקוד הקיים.",
+    "נוספו בדיקות אוטומטיות לשכבות הבסיס."
+  ],
+  "technical": "15 pure functions moved to four frozen API objects; 46 differential checks before commit; full live browser regression not performed."
+}

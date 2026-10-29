@@ -14,12 +14,7 @@ function csvRows(text){
  row.push(cell);if(row.some(x=>x.trim()))rows.push(row);
  return rows;
 }
-function parseCoordinatePair(raw){
- if(typeof raw!=='string')return null;
- const m=raw.trim().match(/^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)(?:\s|$)/);
- if(!m)return null;
- const lat=+m[1],lng=+m[2];return Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null;
-}
+function parseCoordinatePair(raw){return CoreGeo.parseCoordinatePair(raw)}
 function googleMapCoordinates(url){
  const value=String(url||'');if(!/^https?:\/\//i.test(value))return null;
  let decoded=value;try{decoded=decodeURIComponent(value)}catch(e){}

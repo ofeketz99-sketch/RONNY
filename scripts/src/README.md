@@ -11,3 +11,6 @@ The public site still loads `scripts/app.js` as **one classic script**. The 18 f
 5. Apply the mandatory GitHub `dev` backup and patch-note workflow before changing any tracked file.
 
 The partitioning preserves **the exact text** of the pre-split application. It does not solve coupling or prove browser behavior. Further modularization should establish explicit boundaries, followed by browser regression tests for routing, walking loops, schedule, local storage, import/export and release notes.
+
+## Pure foundation APIs (patch 47)
+Four generated-source partitions define frozen CoreTime, CoreGeo, CoreLegTiming and CoreFormat APIs at the start of the classic app IIFE. Existing function names remain compatibility wrappers. These APIs do not access the application state or browser. Always run npm run build and npm test after editing source files; the remaining code is still coupled and is not an ES module.

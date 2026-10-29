@@ -1,5 +1,5 @@
-function clockMinutes(value){const m=/^(\d{2}):(\d{2})$/.exec(String(value||''));return m?((+m[1])*60+(+m[2])):540}
-function clockAt(total){const m=((Math.round(total)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+function clockMinutes(value){return CoreTime.clockMinutes(value)}
+function clockAt(total){return CoreTime.clockAt(total)}
 
 // Each destination owns the settings of the connection from the previous stop.
 // The fromId prevents a manually traced cable-car path from accidentally
@@ -32,19 +32,13 @@ function legCoords(index,arr=stops()){
  if(leg.mode==='pencil')return [start,...path];
  return [start,...(leg.mode==='draw'?path:[]),[+b.lat,+b.lng]];
 }
-function kmBetween(a,b){const k=Math.PI/180,lat1=a[0]*k,lat2=b[0]*k,dlat=(b[0]-a[0])*k,dlng=(b[1]-a[1])*k;const h=Math.sin(dlat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlng/2)**2;return 6371000*2*Math.atan2(Math.sqrt(Math.min(1,h)),Math.sqrt(Math.max(0,1-h)))}
-function distanceOfCoords(coords){let d=0;for(let i=1;i<coords.length;i++)d+=kmBetween(coords[i-1],coords[i]);return d}
-function routeModeName(mode){return {auto:'מצא נתיב',draw:'שרטט נתיב',pencil:'עיפרון חופשי',straight:'קו אווירי'}[mode]||'מצא נתיב'}
-function routeLegMinutes(leg){return leg.minutes!==null&&leg.minutes!==undefined&&leg.minutes!==''&&Number.isFinite(+leg.minutes)?Math.max(0,+leg.minutes):null}
-function legTimingMode(leg){return leg?.mode==='auto'&&leg?.minutesMode==='extra'?'extra':'total'}
-function resolveLegDuration(leg,baseSeconds){
- const seconds=Math.max(0,Number(baseSeconds)||0),override=routeLegMinutes(leg);
- return override===null?seconds:legTimingMode(leg)==='extra'?seconds+override*60:override*60;
-}
-function legTimingSnapshot(leg,baseSeconds){
- const base=Math.max(0,Number(baseSeconds)||0),duration=resolveLegDuration(leg,base);
- return {duration,baseDuration:base,adjustmentMinutes:(duration-base)/60,manualOverride:routeLegMinutes(leg)!==null,minutesMode:legTimingMode(leg)};
-}
+function kmBetween(a,b){return CoreGeo.kmBetween(a,b)}
+function distanceOfCoords(coords){return CoreGeo.distanceOfCoords(coords)}
+function routeModeName(mode){return CoreLegTiming.routeModeName(mode)}
+function routeLegMinutes(leg){return CoreLegTiming.routeLegMinutes(leg)}
+function legTimingMode(leg){return CoreLegTiming.legTimingMode(leg)}
+function resolveLegDuration(leg,baseSeconds){return CoreLegTiming.resolveLegDuration(leg,baseSeconds)}
+function legTimingSnapshot(leg,baseSeconds){return CoreLegTiming.legTimingSnapshot(leg,baseSeconds)}
 function cachedLegBaseSeconds(index,arr=stops(),di=selectedDay){
  if(index<1||index>=arr.length)return null;
  const existing=routeData?.day===di&&routeData.ids?.length===arr.length&&routeData.ids.every((id,i)=>id===arr[i].id)?routeData.legs?.[index-1]:null;

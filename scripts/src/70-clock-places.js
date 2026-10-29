@@ -1,11 +1,5 @@
-function ronnyValidate24(s){const m=String(s||'').trim().match(/^([01]\d|2[0-3]):([0-5]\d)$/);return m?m[1]+':'+m[2]:null}
-function ronnyNormalize24(s){
- const t=String(s||'').trim();if(ronnyValidate24(t))return t;
- const compact=t.match(/^(\d{1,2}):(\d{1,2})$/)||t.match(/^(\d{1,2})(\d{2})$/);
- if(compact){const h=Number(compact[1]),m=Number(compact[2]);if(h>=0&&h<24&&m>=0&&m<60)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
- if(/^\d{1,2}$/.test(t)&&Number(t)<24)return t.padStart(2,'0')+':00';
- return null;
-}
+function ronnyValidate24(s){return CoreTime.ronnyValidate24(s)}
+function ronnyNormalize24(s){return CoreTime.ronnyNormalize24(s)}
 function ronnyCloseTimeDialog(){const p=document.getElementById('ronny-time-dialog');if(p){if(p.open)p.close();p.remove()}}
 function ronnyOpenTimeDialog(input){
  if(!input)return;ronnyCloseTimeDialog();

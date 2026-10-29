@@ -24,8 +24,8 @@ function ronnySetGroupView(id){
 function currentStopsForMap(){const selected=ronnyVisibleDayIndices(),r=selected.flatMap(di=>state.days[di].stops.map((stop,si)=>({stop,di,si})));state.days.forEach((d,di)=>{if(!selected.includes(di))(d.stops||[]).forEach((stop,si)=>{if(stop.type==='idea')r.push({stop,di,si})})});return r}
 function makeDate(i){let d=new Date((state.startDate||'2026-10-26')+'T12:00:00');d.setDate(d.getDate()+i);return d}
 function dayDate(i){return new Intl.DateTimeFormat('he-IL',{weekday:'short',day:'numeric',month:'short'}).format(makeDate(i))}
-function money(n){return '₪'+(Number(n)||0).toLocaleString('he-IL',{maximumFractionDigits:0})}
-function minsFmt(m){if(!Number.isFinite(m))return '—';const h=Math.floor(m/60);return h?`${h} ש׳ ${Math.round(m%60)} ד׳`:`${Math.round(m)} ד׳`}
+function money(n){return CoreFormat.money(n)}
+function minsFmt(m){return CoreFormat.minsFmt(m)}
 const MAP_ONLY_TYPES=new Set(['poi','note','idea','nature','viewpoint','dining','fuel','other']);
 const WALK_TYPES=new Set(['walkStart','walkTurn','walkEnd']);
 function walkStartIndex(points,index){for(let i=index;i>=0;i--){if(points[i]?.type==='walkEnd')break;if(points[i]?.type==='walkStart')return i;}return -1;}

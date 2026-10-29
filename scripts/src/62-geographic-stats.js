@@ -1,4 +1,4 @@
-function ronnyPolyContains(lng,lat,polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const [ax,ay]=polygon[i],[bx,by]=polygon[j];if(((ay>lat)!==(by>lat))&&lng<(bx-ax)*(lat-ay)/(by-ay)+ax)inside=!inside}return inside}
+function ronnyPolyContains(lng,lat,polygon){return CoreGeo.ronnyPolyContains(lng,lat,polygon)}
 function ronnyCountryAt(lat,lng){for(const [iso,parts] of RONNY_COUNTRY_SHAPES)for(const coords of parts)if(ronnyPolyContains(lng,lat,coords))return iso;return null}
 function ronnyFlag(iso){if(!/^[A-Z]{2}$/.test(iso||''))return '';return [...iso].map(c=>String.fromCodePoint(c.charCodeAt(0)-65+0x1F1E6)).join('')}
 let ronnyCountryKey='',ronnyCountryCached=[];
