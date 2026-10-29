@@ -1,0 +1,9 @@
+{
+  "version": "57",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה הפקודה להרצת בדיקות היחידה והאינטגרציה בסביבת Node.",
+    "הבדיקה האוטומטית תאתר כעת את קובצי הבדיקות לפי מוסכמות Node במקום להתייחס לתיקייה כאל קובץ."
+  ],
+  "technical": "Fix npm test script from `node --test tests` (MODULE_NOT_FOUND on GitHub Node 22) to `node --test` automatic test discovery. Prior build check passed; new CI run required to confirm tests. Backup backups/2026-10-29_pre-node-runner-fix_87f75e0e/."
+}

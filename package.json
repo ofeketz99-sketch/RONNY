@@ -6,6 +6,6 @@
   "scripts": {
     "build": "node tools/build.js",
     "check": "node tools/build.js --check",
-    "test": "node tools/build.js --check && node --test tests"
+    "test": "node tools/build.js --check && node --test"
   }
 }
