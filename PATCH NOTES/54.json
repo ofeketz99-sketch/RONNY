@@ -1,0 +1,9 @@
+{
+  "version": "54",
+  "date": "2026-10-29",
+  "notes": [
+    "תוקנה התאמה מדויקת בין קובץ ההרצה המאוחד וקובצי המקור לאחר פיצול מתכנן הנתיבים.",
+    "לא שונתה התנהגות המסלולים, המפה או שמירת הטיולים."
+  ],
+  "technical": "Alignment-only fix to eliminate one extra source-boundary newline in generated scripts/app.js. JavaScript syntax and exact adjacency of RoutingService, RoutePlan, initial-state partitions checked; full Node build not executed and live browser regressions pending. Backup backups/2026-10-29_pre-build-alignment_224676c2/"
+}
