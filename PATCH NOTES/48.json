@@ -1,0 +1,10 @@
+{
+  "version": "48",
+  "date": "2026-10-29",
+  "notes": [
+    "הופרדה שכבת הגישה לאחסון המקומי של הטיולים ממנגנוני התכנון והשמירה.",
+    "נשמרו סדר השמירה, מנגנון השחזור ומבנה הטיולים הקיימים.",
+    "נוספו בדיקות אוטומטיות לתרחישי אחסון, שגיאות ונתונים פגומים."
+  ],
+  "technical": "TripStorage injected IO adapter for IndexedDB and localStorage. No schema or key changes; existing saveQueue, walking normalization, undo and UI error handling remain unmodified. V8 simulated-IDB checks passed, Node and live browser tests remain pending."
+}
