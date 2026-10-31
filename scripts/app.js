@@ -3989,8 +3989,9 @@ function openPointQuick(id){
  if(secondaryEditor)addPointSection('context','אייקון משני','layers-2',[secondaryEditor],ronnySecondaryIconLabel(s,ronnyLinkedWalkParkingIds(routeStopsForDay(obj.day)).has(s.id)));
  addPointSection('colors','צבע הנקודה','palette',[quickForm.querySelector('.quick-colors')]);
  const timingNodes=['.quick-two','.quick-departure-editor','.quick-departure','.walk-loop-options'].map(selector=>quickForm.querySelector(selector));
- addPointSection('timing',s.type==='walkStart'?'זמנים ופרטי ההליכה':'זמנים ושהייה','clock-3',timingNodes,
-  String(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00')).slice(0,5));
+ const timingSection=addPointSection('timing',s.type==='walkStart'?'זמנים ופרטי ההליכה':'זמנים ושהייה','clock-3',timingNodes,
+   String(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00')).slice(0,5));
+  if(timingSection)timingSection.open=true;
  addPointSection('routes','דרכים אל הנקודה וממנה','route',[quickForm.querySelector('.point-route-links')]);
  const saveStatus=el.querySelector('#quick-save-state');
  if(saveStatus)el.querySelector('.point-quick-heading')?.appendChild(saveStatus);
@@ -4028,7 +4029,7 @@ function openPointQuick(id){
   stop.description=f.description.value;
   const validClock=value=>/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
   const arrivalChanged=validClock(f.time.value)&&f.time.value!==oldTime;
-  const duration=Number(f.duration?.value??0);
+  const duration=f.duration?Number(f.duration.value):oldDuration;
   if(Number.isFinite(duration))stop.duration=Math.max(0,Math.min(3000,duration));
   const departureChanged=!!f.departure&&timeEditIntent==='departure'&&
     validClock(f.departure.value)&&f.departure.value!==quickEndTime(oldTime,oldDuration).slice(0,5);
@@ -4085,7 +4086,19 @@ function openPointQuick(id){
  };
  activeQuickCommit=commit;
  const queue=()=>{const label=el.querySelector('#quick-save-state');if(label)label.textContent='שומר…';clearTimeout(pending);pending=setTimeout(commit,280)};
- Object.values(fields()).filter(Boolean).forEach(field=>{field.addEventListener('input',()=>{if(field.id==='quick-time')timeEditIntent='arrival';else if(field.id==='quick-outbound')timeEditIntent='departure';queue()});field.addEventListener('change',commit)});
+ Object.values(fields()).filter(Boolean).forEach(field=>{
+   const clockField=field.id==='quick-time'||field.id==='quick-outbound';
+   field.addEventListener('input',()=>{
+    if(field.id==='quick-time')timeEditIntent='arrival';
+    else if(field.id==='quick-outbound')timeEditIntent='departure';
+    if(!clockField)queue();
+   });
+   field.addEventListener('change',()=>{
+    if(field.id==='quick-time')timeEditIntent='arrival';
+    else if(field.id==='quick-outbound')timeEditIntent='departure';
+    commit();
+   });
+  });
   el.querySelector('#quick-show-description')?.addEventListener('change',e=>{const obj=getStop(id);if(!obj)return;commit();obj.stop.showMapDescription=e.target.checked;if(e.target.checked)state.settings.showMapDescriptions=true;save();renderMap();refreshIcons();toast(e.target.checked?'התיאור מוצג על המפה':'התיאור הוסתר מהמפה')});
  el.querySelector('#quick-type').addEventListener('change',e=>changeExistingPointType(id,e.target.value));
  el.querySelectorAll('[data-ronny-icon]').forEach(btn=>btn.addEventListener('click',()=>{commit();const target=getStop(id);if(!target)return;const value=btn.dataset.ronnyIcon;if(value)target.stop.iconId=value;else delete target.stop.iconId;save();renderMarkers();renderSchedule();el.querySelectorAll('[data-ronny-icon]').forEach(item=>item.classList.toggle('selected',item.dataset.ronnyIcon===(target.stop.iconId||'')));const summary=el.querySelector('.ronny-icon-editor summary');if(summary)summary.innerHTML='אייקון ראשי '+ronnyPointSymbol(target.stop.type,target.stop);refreshIcons()}));
@@ -5123,7 +5136,7 @@ function ronnyOpenTimeDialog(input){
  picker.innerHTML=`<div class="ronny-time-heading"><span>בחירת שעה</span><span style="color:#758b79;font-size:12px;font-weight:700">24 שעות</span></div><div class="ronny-time-format">שעות ודקות · ללא AM/PM</div><div class="ronny-time-selects"><select id="ronny-hour" aria-label="שעה">${hourOptions}</select><span class="colon">:</span><select id="ronny-minute" aria-label="דקות">${minOptions}</select></div><div class="ronny-time-dialog-actions"><button class="ronny-time-apply" type="button">אישור</button><button class="ronny-time-cancel" type="button">ביטול</button></div>`;
  document.body.appendChild(picker);picker.addEventListener('close',()=>picker.remove(),{once:true});
  picker.querySelector('.ronny-time-apply').addEventListener('click',()=>{
-   if(input.isConnected){const value=picker.querySelector('#ronny-hour').value+':'+picker.querySelector('#ronny-minute').value;input.value=value;input.dataset.lastValid=value;input.setAttribute('aria-invalid','false');input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))}
+   if(input.isConnected){const value=picker.querySelector('#ronny-hour').value+':'+picker.querySelector('#ronny-minute').value;input.value=value;input.dataset.lastValid=value;input.setAttribute('aria-invalid','false');input.dispatchEvent(new Event('change',{bubbles:true}))}
    ronnyCloseTimeDialog();
  });
  picker.querySelector('.ronny-time-cancel').addEventListener('click',ronnyCloseTimeDialog);
@@ -5134,7 +5147,7 @@ function ronnyOpenTimeDialog(input){
 // Delegation works also when the point editor and time segments are reconstructed.
 document.addEventListener('click',e=>{const btn=e.target.closest('.ronny-time-trigger');if(!btn)return;e.preventDefault();e.stopPropagation();ronnyOpenTimeDialog(btn.closest('.ronny-time-control')?.querySelector('.ronny-time-input'))});
 document.addEventListener('focusin',e=>{if(e.target.matches('.ronny-time-input'))e.target.dataset.lastValid=ronnyValidate24(e.target.value)||'09:00'});
-document.addEventListener('input',e=>{if(!e.target.matches('.ronny-time-input'))return;if(ronnyValidate24(e.target.value)){e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid','false')}else e.stopImmediatePropagation()},true);
+document.addEventListener('input',e=>{if(!e.target.matches('.ronny-time-input'))return;if(ronnyValidate24(e.target.value)){e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid','false')}else e.target.setAttribute('aria-invalid','true')},true);
 document.addEventListener('change',e=>{if(!e.target.matches('.ronny-time-input'))return;const normal=ronnyNormalize24(e.target.value);e.target.value=normal||e.target.dataset.lastValid||'09:00';e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid',normal?'false':'true')},true);
 document.addEventListener('focusout',e=>{if(!e.target.matches('.ronny-time-input'))return;const normal=ronnyNormalize24(e.target.value);if(normal&&normal!==e.target.value){e.target.value=normal;e.target.dispatchEvent(new Event('change',{bubbles:true}))}else if(!normal){e.target.value=e.target.dataset.lastValid||'09:00';e.target.setAttribute('aria-invalid','false')}},true);
 document.addEventListener('keydown',e=>{if(document.getElementById('ronny-time-dialog')?.open&&e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();ronnyCloseTimeDialog()}},true);

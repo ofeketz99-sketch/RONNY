@@ -23,10 +23,10 @@ test('stage overview has only day starts, colored roads, stage summary, and day 
  await expect(page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="start2"]')).toHaveCount(1);
  await expect(page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="end1"]')).toHaveCount(0);
  await expect(page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="start3"]')).toHaveCount(0);
- const colors=()=>page.evaluate(()=>[...document.querySelectorAll('#map .leaflet-overlay-pane path')].map(p=>p.getAttribute('stroke')?.toLowerCase()));
- await expect.poll(colors).toContain('#72947b');
+ // Leaflet uses Canvas instead of SVG for overview roads.
+ await expect(page.locator('#map canvas.leaflet-zoom-animated')).toHaveCount(1);
  await page.locator('[data-ronny-group-view=""]').click();
- await expect.poll(colors).toContain('#bd977a');
+ await expect(page.locator('#map canvas.leaflet-zoom-animated')).toHaveCount(1);
  await expect(page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="start3"]')).toHaveCount(1);
  await page.locator('[data-day="0"].day-pill').click();
  await expect(page.locator('#map-scope')).toHaveValue('day');

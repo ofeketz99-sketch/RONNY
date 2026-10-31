@@ -6,7 +6,7 @@ const trip={version:3,title:'בדיקת תפריטי נקודה',startDate:'2026
  settings:{travelMode:'driving',mapStyle:'streets',planningResolution:'day'},
  days:[{label:'יום בדיקת חלונית',stops:[
  point('test-start','start','תחילת יום',46.04,7.8,'09:00',0),
- point('test-rest','via','עצירת בדיקה',46.05,7.805,'09:40',90),
+ point('test-rest','rest','עצירת בדיקה',46.05,7.805,'09:40',90),
  point('test-end','end','סוף יום',46.06,7.82,'11:20',0)]}]};
 
 test('point editing keeps advanced menus collapsed, scrollable and inside the map',async({page})=>{
@@ -38,7 +38,8 @@ test('point editing keeps advanced menus collapsed, scrollable and inside the ma
  await expect(popup.locator('#quick-name')).toHaveValue('עצירת בדיקה');
  const menus=popup.locator('details[name="ronny-point-details"]');
  await expect(menus).toHaveCount(4);
- await expect(popup.locator('details[open]')).toHaveCount(0);
+ await expect(popup.locator('details[open]')).toHaveCount(1);
+ await expect(popup.locator('[data-ronny-point-section="timing"] #quick-time')).toBeVisible();
  await popup.locator('details[data-ronny-point-section="icons"]>summary').click();
  await expect(popup.locator('.ronny-icon-grid')).toBeVisible();
  const inside=await popup.evaluate(node=>{

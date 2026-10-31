@@ -1,0 +1,13 @@
+{
+  "version": "104",
+  "date": "2026-10-31",
+  "notes": [
+    "פתיחת בקרות זמן ושהייה באופן מיידי בחלונית הנקודה.",
+    "מניעת שמירה מוקדמת בזמן הקלדת שעה ותיקון אישור בבורר הזמן.",
+    "התאמת בדיקות חלונית הנקודה וציור Canvas להתנהגות המערכת."
+  ],
+  "technical": [
+    "No claim of a fix for the existing marker-drag and first-day zoom failures.",
+    "Clock selection now dispatches a single change event."
+  ]
+}

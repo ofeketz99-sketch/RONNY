@@ -11,7 +11,7 @@ function ronnyOpenTimeDialog(input){
  picker.innerHTML=`<div class="ronny-time-heading"><span>בחירת שעה</span><span style="color:#758b79;font-size:12px;font-weight:700">24 שעות</span></div><div class="ronny-time-format">שעות ודקות · ללא AM/PM</div><div class="ronny-time-selects"><select id="ronny-hour" aria-label="שעה">${hourOptions}</select><span class="colon">:</span><select id="ronny-minute" aria-label="דקות">${minOptions}</select></div><div class="ronny-time-dialog-actions"><button class="ronny-time-apply" type="button">אישור</button><button class="ronny-time-cancel" type="button">ביטול</button></div>`;
  document.body.appendChild(picker);picker.addEventListener('close',()=>picker.remove(),{once:true});
  picker.querySelector('.ronny-time-apply').addEventListener('click',()=>{
-   if(input.isConnected){const value=picker.querySelector('#ronny-hour').value+':'+picker.querySelector('#ronny-minute').value;input.value=value;input.dataset.lastValid=value;input.setAttribute('aria-invalid','false');input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))}
+   if(input.isConnected){const value=picker.querySelector('#ronny-hour').value+':'+picker.querySelector('#ronny-minute').value;input.value=value;input.dataset.lastValid=value;input.setAttribute('aria-invalid','false');input.dispatchEvent(new Event('change',{bubbles:true}))}
    ronnyCloseTimeDialog();
  });
  picker.querySelector('.ronny-time-cancel').addEventListener('click',ronnyCloseTimeDialog);
@@ -22,7 +22,7 @@ function ronnyOpenTimeDialog(input){
 // Delegation works also when the point editor and time segments are reconstructed.
 document.addEventListener('click',e=>{const btn=e.target.closest('.ronny-time-trigger');if(!btn)return;e.preventDefault();e.stopPropagation();ronnyOpenTimeDialog(btn.closest('.ronny-time-control')?.querySelector('.ronny-time-input'))});
 document.addEventListener('focusin',e=>{if(e.target.matches('.ronny-time-input'))e.target.dataset.lastValid=ronnyValidate24(e.target.value)||'09:00'});
-document.addEventListener('input',e=>{if(!e.target.matches('.ronny-time-input'))return;if(ronnyValidate24(e.target.value)){e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid','false')}else e.stopImmediatePropagation()},true);
+document.addEventListener('input',e=>{if(!e.target.matches('.ronny-time-input'))return;if(ronnyValidate24(e.target.value)){e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid','false')}else e.target.setAttribute('aria-invalid','true')},true);
 document.addEventListener('change',e=>{if(!e.target.matches('.ronny-time-input'))return;const normal=ronnyNormalize24(e.target.value);e.target.value=normal||e.target.dataset.lastValid||'09:00';e.target.dataset.lastValid=e.target.value;e.target.setAttribute('aria-invalid',normal?'false':'true')},true);
 document.addEventListener('focusout',e=>{if(!e.target.matches('.ronny-time-input'))return;const normal=ronnyNormalize24(e.target.value);if(normal&&normal!==e.target.value){e.target.value=normal;e.target.dispatchEvent(new Event('change',{bubbles:true}))}else if(!normal){e.target.value=e.target.dataset.lastValid||'09:00';e.target.setAttribute('aria-invalid','false')}},true);
 document.addEventListener('keydown',e=>{if(document.getElementById('ronny-time-dialog')?.open&&e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();ronnyCloseTimeDialog()}},true);
