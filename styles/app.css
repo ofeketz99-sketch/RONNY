@@ -926,7 +926,8 @@ body{background:var(--bg);color:var(--ink)}
 body.ronny-no-times .planner .schedule .stop-time,body.ronny-no-times .planner .departure-flag,body.ronny-no-times .planner .departure-time,body.ronny-no-times .planner .stop-departure-time{display:none!important}
 body.ronny-macro-mode #top-add,body.ronny-macro-mode #route-card,body.ronny-macro-mode #route-card-toggle,body.ronny-macro-mode #map-day-trigger,body.ronny-macro-mode #map-tools-side #route-edit-toggle,body.ronny-macro-mode #map-tools-side #photo-add{display:none!important}
 body.ronny-no-times .map-time-badge{display:none!important}
-body.ronny-no-times .planner #auto-time,body.ronny-no-times .point-quick .quick-two,body.ronny-no-times .point-quick .quick-departure,body.ronny-no-times .point-quick .quick-departure-editor{display:none!important}
+/* An unscheduled day hides timeline badges, but its point-editor clocks stay editable. */
+body.ronny-no-times .planner #auto-time{display:none!important}
 @media(max-width:760px){.planner .resolution-switch{padding:7px 9px;gap:3px}.resolution-switch button{font-size:11px;min-height:38px}.zoom-header{padding:16px!important}.zoom-footer{padding:10px}}
 
 
@@ -2453,3 +2454,9 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #point-quick .ronny-walk-auto-time{justify-self:start;border:0;background:transparent;color:#537960;font:700 11px var(--ui-font);padding:3px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 #point-quick .ronny-walk-auto-time:hover{color:#284b38}
 #point-quick .ronny-walk-auto-time:focus-visible{outline:2px solid #568b6a;outline-offset:2px;border-radius:3px}
+
+/* Patch 108: explain and activate scheduling without hiding editable time fields. */
+#point-quick[data-mode="day"] .ronny-time-schedule-note{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:9px 10px;border-radius:9px;background:#eef4ed;border:1px solid #d2e2d3;color:#4b6854;font:700 11px var(--ui-font);line-height:1.6}
+#point-quick[data-mode="day"] .ronny-time-schedule-note button{align-self:start;border:1px solid #8caf94;border-radius:8px;background:#fffdf9;color:#366849;padding:5px 10px;font:800 11px var(--ui-font);cursor:pointer}
+#point-quick[data-mode="day"] .ronny-time-schedule-note button:hover{background:#e1eee4}
+#point-quick[data-mode="day"] .ronny-time-schedule-note button:focus-visible{outline:2px solid #487d58;outline-offset:2px}

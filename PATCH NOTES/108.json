@@ -1,0 +1,13 @@
+{
+  "version": "108",
+  "date": "2026-10-31",
+  "notes": [
+    "תוקנה חלונית ״זמנים ושהייה״ ריקה ביום שהתזמון שלו כבוי: שדות העריכה מוצגים גם כשאין שעות על ציר היום.",
+    "הוספה הודעה והפעלה ישירה של התזמון היומי מתוך חלונית הנקודה; שינוי שעה ידנית מפעיל תזמון.",
+    "נוספו בדיקות דפדפן לנקודת התחלה ולעצירת ביניים ביום ללא תזמון, ולשמירה לאחר רענון."
+  ],
+  "technical": [
+    "Root cause: body.ronny-no-times CSS hid all time controls moved inside the point-editor accordion; previous tests only exercised scheduled days.",
+    "Drag and initial zoom failures remain separate known CI issues."
+  ]
+}

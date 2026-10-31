@@ -113,6 +113,18 @@ function openPointQuick(id){
  const timingSection=addPointSection('timing',s.type==='walkStart'?'זמנים ופרטי ההליכה':'זמנים ושהייה','clock-3',timingNodes,
    String(s.time||(s.type==='start'?tripDefaultDepartureTime():'09:00')).slice(0,5));
   if(timingSection)timingSection.open=true;
+  // Outline-created days hide the timetable, not the editor's time controls.
+  if(timingSection&&state.days[obj.day]?.scheduleEnabled===false){
+   const note=document.createElement('div');
+   note.className='ronny-time-schedule-note';
+   note.innerHTML='<span>התזמון היומי כבוי. אפשר לערוך שעות כאן, או להפעיל את הצגת השעות לכל היום.</span><button type="button" data-quick-enable-schedule>הפעל תזמון ליום</button>';
+   timingSection.querySelector('.ronny-point-accordion-body')?.prepend(note);
+   note.querySelector('button').onclick=()=>{
+    const day=state.days[obj.day];if(!day)return;
+    day.scheduleEnabled=true;invalidate();retimeAfterOrderChange(obj.day);
+    save();renderAll();openPointQuick(id);
+   };
+  }
  addPointSection('routes','דרכים אל הנקודה וממנה','route',[quickForm.querySelector('.point-route-links')]);
  const saveStatus=el.querySelector('#quick-save-state');
  if(saveStatus)el.querySelector('.point-quick-heading')?.appendChild(saveStatus);
@@ -198,6 +210,8 @@ function openPointQuick(id){
   if(newAnchor){day.timeAnchor=newAnchor;stop.time=newAnchor.time;if(newAnchor.kind==='departure'&&start?.id===id)day.departureUsesDefault=false;}
   else if(arrivalChanged&&validClock(f.time.value)&&timeEditIntent!=='departure'&&!arrivalAdjustedLeg&&!walkTurnAdjusted)stop.time=f.time.value;
   const timingChanged=!!newAnchor||durationChanged||arrivalAdjustedLeg||walkClockChanged||walkTurnAdjusted;
+  const enableSchedule=day.scheduleEnabled===false&&(arrivalChanged||departureChanged||durationChanged||walkClockChanged||walkTurnAdjusted);
+  if(enableSchedule)day.scheduleEnabled=true;
   // Dwell-only changes propagate forward from the existing arrival chain;
   // they must not establish a new anchor at this stop or shift preceding legs.
   if(timingChanged){if(arrivalAdjustedLeg)invalidate();retimeAfterOrderChange(target.day,newAnchor?routeStopsForDay(target.day).findIndex(x=>x.id===id):0);}
@@ -208,6 +222,7 @@ function openPointQuick(id){
   timeEditIntent=null;
   if(oldName===stop.name&&oldDescription===stop.description&&!timingChanged&&oldTime===stop.time)return;
   save();renderMarkers();renderSchedule();
+  if(enableSchedule){renderPlanningResolution();el.querySelector('.ronny-time-schedule-note')?.remove()}
  };
  activeQuickCommit=commit;
  el.querySelectorAll('[data-ronny-clear-walk-clock]').forEach(button=>button.addEventListener('click',()=>{const input=el.querySelector('#'+button.dataset.ronnyClearWalkClock);if(input){input.value='';input.dispatchEvent(new Event('change',{bubbles:true}))}}));
