@@ -53,7 +53,7 @@ test('walking start offers pencil immediately without drawing first',async({page
  await marker.evaluate(node=>node.click());
  const quick=page.locator('#point-quick[data-mode="day"]');
  await expect(quick).toHaveClass(/open/);
- await quick.locator('details[data-ronny-point-section="timing"]>summary').click();
+ await expect(quick.locator('details[data-ronny-point-section="timing"]')).toHaveAttribute('open','');
  await expect(quick.locator('#walk-edit-pencil-leg')).toBeVisible();
  await quick.locator('#walk-edit-pencil-leg').click();
  await expect(page.locator('#leg-draw-banner')).toHaveClass(/active/);

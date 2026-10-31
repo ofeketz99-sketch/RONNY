@@ -52,6 +52,8 @@ function openPointQuick(id){
  if(obj.day!==selectedDay||viewScope==='all'){
   selectedDay=obj.day;viewScope='day';$('map-scope').value='day';renderAll();
  }
+ // Display current computed arrival before allowing manual departure edits.
+ if(!isMapOnlyPoint(obj.stop))retimeAfterOrderChange(obj.day);
  selectedStop=id;
  const s=obj.stop,el=$('point-quick'),pt=map.latLngToContainerPoint([+s.lat,+s.lng]);
  const actualColor=pointColor(s,obj.day);

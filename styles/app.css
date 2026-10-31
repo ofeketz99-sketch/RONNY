@@ -2448,3 +2448,8 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-group-strip{padding-block:6px 9px;scroll-padding-inline:8px}
 .ronny-group-chip{transition:background-color .15s,border-color .15s;transform:none!important}
 .ronny-group-chip:focus-visible{outline-offset:-2px}
+
+/* Patch 107: optional walking clocks have an explicit, keyboard-accessible auto mode. */
+#point-quick .ronny-walk-auto-time{justify-self:start;border:0;background:transparent;color:#537960;font:700 11px var(--ui-font);padding:3px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+#point-quick .ronny-walk-auto-time:hover{color:#284b38}
+#point-quick .ronny-walk-auto-time:focus-visible{outline:2px solid #568b6a;outline-offset:2px;border-radius:3px}

@@ -1,0 +1,12 @@
+{
+  "version": "107",
+  "date": "2026-10-31",
+  "notes": [
+    "סנכרון שעת הגעה מחושבת לפני פתיחת חלונית הנקודה, כדי שעריכת שעת היציאה לא תגרום לקפיצה לא צפויה.",
+    "עיצוב לחצן 'חישוב אוטומטי' בשעות ההליכה ותיקון בדיקת עיפרון שהסתמכה על תפריט זמן סגור."
+  ],
+  "technical": [
+    "Opening route-point editor retimes its day before rendering clock values; existing explicit day timeAnchor remains authoritative.",
+    "Browser results and previous drag/zoom failures must be reviewed before release."
+  ]
+}
