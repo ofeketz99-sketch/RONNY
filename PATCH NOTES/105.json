@@ -1,0 +1,13 @@
+{
+  "version": "105",
+  "date": "2026-10-31",
+  "notes": [
+    "שעות הסיבוב והסיום במסלול הליכה ניתנות לעריכה בבורר השעות האחיד.",
+    "ניתן למחוק שעה ידנית כדי לחזור לחישוב אוטומטי, בלי שהערך יהפוך לשעה שרירותית.",
+    "עריכת שעת נקודת סיבוב מעדכנת את זמן ההליכה במקום ליצור עוגן זמן נפרד."
+  ],
+  "technical": [
+    "Time-picker integration and walking turn ownership changed.",
+    "Earlier dragging/zoom failures are outside this patch; browser confirmation is required."
+  ]
+}
