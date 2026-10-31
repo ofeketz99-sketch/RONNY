@@ -1,0 +1,11 @@
+{
+  "version": "106",
+  "date": "2026-10-31",
+  "notes": [
+    "תוקנה אי־התאמה בבניית קובץ JavaScript המאוחד אחרי שיפור שעוני ההליכה."
+  ],
+  "technical": [
+    "Only the generated scripts/app.js was resynchronized with source scripts/src/50-point-editing.js; no further feature change.",
+    "Regression and browser checks must confirm patch 105 behavior."
+  ]
+}

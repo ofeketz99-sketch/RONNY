@@ -3693,7 +3693,6 @@ function openOutlinePointQuick(id){
   const status=el.querySelector('#quick-save-state');if(status)status.textContent='נשמר';
  };
  activeQuickCommit=commit;
- el.querySelectorAll('[data-ronny-clear-walk-clock]').forEach(button=>button.addEventListener('click',()=>{const input=el.querySelector('#'+button.dataset.ronnyClearWalkClock);if(input){input.value='';input.dispatchEvent(new Event('change',{bubbles:true}))}}));
  for(const input of [el.querySelector('#outline-popup-name'),el.querySelector('#outline-popup-description')]){
   input.addEventListener('input',()=>{el.querySelector('#quick-save-state').textContent='שומר…';clearTimeout(pending);pending=setTimeout(commit,320)});
   input.addEventListener('change',commit);
@@ -4090,6 +4089,7 @@ function openPointQuick(id){
   save();renderMarkers();renderSchedule();
  };
  activeQuickCommit=commit;
+ el.querySelectorAll('[data-ronny-clear-walk-clock]').forEach(button=>button.addEventListener('click',()=>{const input=el.querySelector('#'+button.dataset.ronnyClearWalkClock);if(input){input.value='';input.dispatchEvent(new Event('change',{bubbles:true}))}}));
  const queue=()=>{const label=el.querySelector('#quick-save-state');if(label)label.textContent='שומר…';clearTimeout(pending);pending=setTimeout(commit,280)};
  Object.values(fields()).filter(Boolean).forEach(field=>{
    const clockField=field.id==='quick-time'||field.id==='quick-outbound';
