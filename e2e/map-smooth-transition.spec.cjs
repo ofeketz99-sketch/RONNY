@@ -1,0 +1,31 @@
+'use strict';
+const {test,expect}=require('@playwright/test');
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/bXMAAAAASUVORK5CYII=','base64');
+test('switching maps retains the old tiles until new tiles load, then fades without a blank frame',async({page})=>{
+ let unlockTiles=()=>{},notifyRequest=()=>{};
+ const gate=new Promise(resolve=>{unlockTiles=resolve});
+ const requested=new Promise(resolve=>{notifyRequest=resolve});
+ await page.route('**/ArcGIS/rest/services/World_Imagery/MapServer/tile/**',route=>route.fulfill({status:200,contentType:'image/png',body:png}));
+ await page.route('**/tile.openmaps.fr/opentopomap/**',async route=>{
+  notifyRequest();
+  await gate;
+  await route.fulfill({status:200,contentType:'image/png',body:png});
+ });
+ await page.goto('/index.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ await page.locator('#map-base-switch [data-map-base="satellite"]').click();
+ await expect.poll(()=>page.locator('.leaflet-tile-pane img[src*="World_Imagery"].leaflet-tile-loaded').count()).toBeGreaterThan(0);
+ await expect.poll(()=>page.locator('.leaflet-tile-pane .ronny-smooth-basemap').count()).toBe(1);
+ await page.locator('#map-base-switch [data-map-base="topo-r"]').click();
+ await requested;
+ await expect(page.locator('#map-style')).toHaveValue('topo-r');
+ const oldImages=page.locator('.leaflet-tile-pane img[src*="World_Imagery"]');
+ await expect.poll(()=>oldImages.count()).toBeGreaterThan(0);
+ const opacities=await page.locator('.leaflet-tile-pane .ronny-smooth-basemap').evaluateAll(els=>els.map(el=>Number(getComputedStyle(el).opacity)));
+ expect(opacities).toContain(0);
+ expect(opacities).toContain(1);
+ unlockTiles();
+ await expect.poll(()=>page.locator('.leaflet-tile-pane img[src*="World_Imagery"]').count()).toBe(0);
+ await expect.poll(()=>page.locator('.leaflet-tile-pane .ronny-smooth-basemap').count()).toBe(1);
+ await expect(page.locator('#map-style')).toHaveValue('topo-r');
+});

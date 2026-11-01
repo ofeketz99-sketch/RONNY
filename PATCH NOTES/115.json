@@ -1,0 +1,15 @@
+{
+  "version": "115",
+  "date": "2026-11-01",
+  "notes": [
+    "טופל ההבהוב בעת החלפת מפות: המפה הקודמת נשארת גלויה עד שהחדשה מוכנה, ומוחלפת במעבר חזותי קצר.",
+    "נוספה הגנה בפני לחיצות רצופות על מתג המפות, כך שטעינות קודמות לא מחליפות את הבחירה המאוחרת.",
+    "אם ספק המפה החדשה אינו מגיב, המפה הישנה נשארת והבחירה חוזרת אליה במקום להציג רקע ריק.",
+    "נוספו בדיקות התנהגות להחלפת מפות, טעינה איטית ושכבות תצ״א עם שמות."
+  ],
+  "technical": [
+    "Dual tile-layer buffering, fade 220ms / cleanup 260ms, abort on empty load or 12-second timeout.",
+    "No changes to routing, trip geometry or selected tile providers.",
+    "Actual browser and live network regression results depend on CI."
+  ]
+}

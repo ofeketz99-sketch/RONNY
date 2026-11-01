@@ -2944,6 +2944,24 @@ function ronnyMeasureBindControls(){
 function initMap(){if(!window.L){$('map').innerHTML='<div style="padding:90px 30px;text-align:center;direction:rtl">לא ניתן לטעון את רכיב המפה. בדוק חיבור אינטרנט ופתח מחדש.</div>';toast('ספריית המפה לא נטענה');return}map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([mapPrefs.home.lat,mapPrefs.home.lng],mapPrefs.home.zoom);L.control.zoom({position:'topright'}).addTo(map);markerLayer=L.layerGroup().addTo(map);routeLayer=L.layerGroup().addTo(map);poiLinkLayer=L.layerGroup().addTo(map);map.createPane('ronnyPoiLinks');map.getPane('ronnyPoiLinks').style.zIndex='420';map.getPane('ronnyPoiLinks').style.pointerEvents='none';map.createPane('ronnyRouteLabels');map.getPane('ronnyRouteLabels').style.zIndex='490';map.getPane('ronnyRouteLabels').style.pointerEvents='none';legTextSvgRenderer=L.svg({pane:'ronnyRouteLabels',padding:1});legLabelLayer=L.layerGroup().addTo(map);photoLayer=L.layerGroup().addTo(map);viaLayer=L.layerGroup().addTo(map);forcedHandleLayer=L.layerGroup().addTo(map);outlineLayer=L.layerGroup().addTo(map);savedPlaceLayer=L.layerGroup().addTo(map);savedPlacePreviewLayer=L.layerGroup().addTo(map);ronnyMeasureLayer=L.layerGroup().addTo(map);setMapStyle(normalizeMapStyle(state.settings.mapStyle),false);map.on('click',e=>{if(ronnyMeasure.active||savedPreviewMode)return;if(Date.now()-ronnyMarkerDraggedAt<450)return;if(savedPinPlacementId){const p=savedPlaces.places.find(x=>x.id===savedPinPlacementId);savedPinPlacementId=null;if(p){p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);p.positionSource='user-map';persistSavedPlaces();renderSavedPlaceMarkers();showSavedPlaceLibrary();toast('מיקום המקום נקבע ונשמר');}return;}if(outlineMoveModeId&&planningResolution!=='day'){const id=outlineMoveModeId;outlineMoveModeId=null;const p=currentOutline().points.find(x=>x.id===id);if(p){const old={...p};p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);syncOutlineAnchors(id,old);save();renderAll();updateMapHint();toast('מיקום היעד עודכן')}return;}if(planningResolution!=='day'&&!newTripSetupDraft&&!forcedRelocateSession&&!pointMoveModeId&&!drawLegSession&&!forcedPointSession&&!homePickMode&&!photoPlacement&&!quickStreetMode){if($('map-context')?.classList.contains('open')){hideContext();return}addOutlinePoint(e.latlng);return;}if(newTripSetupDraft){const draft={...newTripSetupDraft,lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};newTripSetupDraft=null;updateMapHint();createTrip(draft);return}if(forcedRelocateSession){relocateForcedWaypoint(e.latlng);return}if(pointMoveModeId){relocatePoint(pointMoveModeId,e.latlng);return}if(drawLegSession){addDrawVertex(e.latlng.lat,e.latlng.lng);return}if(forcedPointSession){addForcedPoint(e.latlng);return}if($('leg-editor')?.classList.contains('open')){closeLegEditor();return}if($('point-quick')?.classList.contains('open')){hidePointQuick();return}if(homePickMode){homePickMode=false;mapPrefs.home={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};saveMapPrefs();updateMapHint();toast('נקודת הפתיחה נשמרה. בפעם הבאה האתר ייפתח כאן.');return}if($('map-context').classList.contains('open')){hideContext();return}if(photoPlacement){photoPlacement={lat:e.latlng.lat,lng:e.latlng.lng};$('photo-file').click();return}if(quickStreetMode){openGoogleStreetView(e.latlng.lat,e.latlng.lng);return}currentContext={lat:e.latlng.lat,lng:e.latlng.lng};showContext(e.containerPoint.x,e.containerPoint.y)});map.getContainer().addEventListener('click',e=>{if(!savedPreviewMode||e.target.closest?.('.leaflet-control'))return;e.stopPropagation();e.preventDefault()},true);
  map.on('movestart',hideContext);map.on('moveend zoomend resize',queueLegTextRefresh);ronnyMeasureBindMapPointer();setTimeout(()=>map.invalidateSize(),250)}
 const MAP_SAFE_ZOOM={satellite:17,'satellite-labels':17,osm:19,hiking:17,cyclosm:20,'topo-r':16};
+let visibleBasemapStyle=null,basemapTransition=null;
+function discardBasemapTransition(){
+ const transition=basemapTransition;
+ if(!transition)return;
+ basemapTransition=null;
+ clearTimeout(transition.timeout);
+ if(transition.phase==='loading'){
+  for(const layer of [transition.next,transition.nextRoads,transition.nextLabels])if(layer&&map.hasLayer(layer))map.removeLayer(layer);
+ }else{
+  // A second click during the fade must not leave a third, orphaned raster layer.
+  for(const layer of [transition.previous,transition.previousRoads,transition.previousLabels])if(layer&&map.hasLayer(layer))map.removeLayer(layer);
+  transition.next.setOpacity(1);
+  tiles=transition.next;
+  roadsTile=transition.nextRoads;
+  labelsTile=transition.nextLabels;
+  visibleBasemapStyle=transition.style;
+ }
+}
 function setMapStyle(style,persist=true){
  if(!map)return;
  style=normalizeMapStyle(style);
@@ -2955,30 +2973,82 @@ function setMapStyle(style,persist=true){
   cyclosm:{url:'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',maxZoom:20,subdomains:'abc',attrib:'<a href="https://www.cyclosm.org/">© CyclOSM</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors'},
   'topo-r':{url:'https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png',maxZoom:16,attrib:'<a href="https://github.com/sletuffe/OpenTopoMap">© OpenTopoMap-R</a> · <a href="https://openmaps.fr/donate">תרומה</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'}
  };
- if(tiles){map.removeLayer(tiles);tiles=null}
- if(labelsTile){map.removeLayer(labelsTile);labelsTile=null}
-  if(roadsTile){map.removeLayer(roadsTile);roadsTile=null}
+ // A cached map choice should not be torn down and requested again.
+ if(basemapTransition&&basemapTransition.style===style)return;
+ discardBasemapTransition();
+ if(tiles&&visibleBasemapStyle===style){
+  $('map-style').value=style;state.settings.mapStyle=style;syncMapBaseSwitch();if(persist)save();
+  return;
+ }
+ const previous=tiles,previousRoads=roadsTile,previousLabels=labelsTile,previousStyle=visibleBasemapStyle;
  const config=services[style];
- // All zoom interactions, including wheel, pinch, +/- and flyTo, respect the active layer.
- // Avoid requesting tiles at optimistic vendor levels with "Map data not yet available" placeholders.
  map.setMaxZoom(config.maxZoom);
  if(map.getZoom()>config.maxZoom)map.setZoom(config.maxZoom,{animate:false});
- const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:config.subdomains||''});
+ // Load a complete new raster layer at opacity zero, leaving the old map visible.
+ const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:config.subdomains||'',opacity:previous?0:1,zIndex:6,className:'ronny-smooth-basemap'});
+ let nextRoads=null,nextLabels=null;
+ if(style==='satellite-labels'){
+  nextRoads=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{attribution:'Roads © Esri and contributors',maxZoom:17,zIndex:8,opacity:previous?0:.43,className:'ronny-smooth-basemap'});
+  nextLabels=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'Labels © Esri and contributors',maxZoom:17,zIndex:9,opacity:previous?0:.84,className:'ronny-smooth-basemap'});
+ }
  tileErrorCount=0;
- // Do not silently change the map style after provider errors.
- layer.on('tileerror',()=>{if(layer!==tiles)return;if(++tileErrorCount===5)toast('המפה שנבחרה אינה נטענת. נסה זום אחר או מפה אחרת בבנק המפות.');});
- layer.on('tileload',()=>{if(layer===tiles)tileErrorCount=0});
- tiles=layer.addTo(map);tiles.bringToBack();
-  if(style==='satellite-labels'){
-   // An understated hybrid view: aerial imagery with translucent road geometry,
-   // plus place/site labels. Keep both overlays beneath all RONNY markers.
-   roadsTile=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',{attribution:'Roads © Esri and contributors',maxZoom:17,zIndex:8,opacity:.43}).addTo(map);
-   labelsTile=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{attribution:'Labels © Esri and contributors',maxZoom:17,zIndex:9,opacity:.84}).addTo(map);
+ let loadedTiles=0;
+ layer.on('tileerror',()=>{
+  if(basemapTransition?.next===layer||tiles===layer){
+   if(++tileErrorCount===5)toast('שכבת המפה אינה נטענת כרגע. אפשר לבחור מפה אחרת בבנק המפות.');
   }
- $('map-style').value=style;
- state.settings.mapStyle=style;
- syncMapBaseSwitch();
- if(persist)save();
+ });
+ layer.on('tileload',()=>{loadedTiles++;tileErrorCount=0});
+ const updateSelection=()=>{
+  $('map-style').value=style;
+  state.settings.mapStyle=style;
+  syncMapBaseSwitch();
+  if(persist)save();
+ };
+ if(!previous){
+  tiles=layer.addTo(map);roadsTile=nextRoads?nextRoads.addTo(map):null;labelsTile=nextLabels?nextLabels.addTo(map):null;
+  visibleBasemapStyle=style;
+  updateSelection();
+  return;
+ }
+ const transition={style,previous,previousRoads,previousLabels,previousStyle,next:layer,nextRoads,nextLabels,phase:'loading',timeout:null};
+ basemapTransition=transition;
+ const removeOld=()=>{
+  for(const oldLayer of [previous,previousRoads,previousLabels])if(oldLayer&&map.hasLayer(oldLayer))map.removeLayer(oldLayer);
+ };
+ const abort=()=>{
+  if(basemapTransition!==transition||transition.phase!=='loading')return;
+  discardBasemapTransition();
+  map.setMaxZoom(services[previousStyle]?.maxZoom||19);
+  $('map-style').value=previousStyle;
+  state.settings.mapStyle=previousStyle;
+  syncMapBaseSwitch();
+  if(persist)save();
+  toast('המפה החדשה לא נטענה; המפה הקודמת נשארה מוצגת');
+ };
+ layer.on('load',()=>{
+  if(basemapTransition!==transition||transition.phase!=='loading')return;
+  if(!loadedTiles){abort();return}
+  clearTimeout(transition.timeout);
+  transition.phase='fading';
+  // Keep the previous layer through the 220ms cross-fade to avoid any blank frame.
+  tiles=layer;roadsTile=nextRoads;labelsTile=nextLabels;visibleBasemapStyle=style;
+  layer.setOpacity(1);
+  if(nextRoads)nextRoads.setOpacity(.43);
+  if(nextLabels)nextLabels.setOpacity(.84);
+  if(previousRoads)previousRoads.setOpacity(0);
+  if(previousLabels)previousLabels.setOpacity(0);
+  transition.timeout=setTimeout(()=>{
+   if(basemapTransition!==transition)return;
+   removeOld();basemapTransition=null;
+  },260);
+ });
+ // A stalled or inaccessible tile server must not leave a hidden layer forever.
+ transition.timeout=setTimeout(abort,12000);
+ layer.addTo(map);
+ if(nextRoads)nextRoads.addTo(map);
+ if(nextLabels)nextLabels.addTo(map);
+ updateSelection();
 }
 // The documented Maps URL opens a map viewport, not a Street View panorama.
 // Street View coverage is not supported as a link-controlled Google Maps layer.
