@@ -1,0 +1,15 @@
+{
+  "version": "112",
+  "date": "2026-11-01",
+  "notes": [
+    "כל תשע המפות מוצגות כעת בבורר שעל המפה, מסודרות לפי טופוגרפיה ושבילים, תצלומי אוויר, ודרכים ורחובות.",
+    "בנק המפות בהגדרות מסודר באותן שלוש קבוצות.",
+    "נוסף אזור ״מתג בחירה מהירה״ בבנק: גוררים אליו שתי מפות מהבנק, מחליפים סדר בגרירה או משתמשים בכפתור ״למתג״.",
+    "בחירת שתי המפות נשמרת בהגדרות ומשנה את המתג שעל המפה, בלי להסיר מפות מהבנק או מהבורר."
+  ],
+  "technical": [
+    "Quick map pair stored in global map preferences as quickMaps with migration default [satellite, topo], validated against available styles.",
+    "Two-slot drag-and-drop avoids duplicate quick maps and includes a click alternative.",
+    "Test additions: sorted categories, picker includes all nine, quick pair customisation, persistence and keyboard/mouse accessibility."
+  ]
+}

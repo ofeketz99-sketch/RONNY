@@ -2478,3 +2478,31 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #map-picker-toggle:focus-visible,#map-picker-menu [data-map-choice]:focus-visible{outline:2px solid #5d9571;outline-offset:2px}
 @media(max-width:760px){.map-pane #map-picker-menu{top:145px;left:49px;width:min(260px,calc(100vw - 75px));max-height:min(440px,calc(100vh - 195px))}}
 @media(prefers-reduced-motion:reduce){.map-pane #map-picker-menu{animation:none}}
+
+/* Patch 112: three map families; configurable two-slot quick switch with bank drag-and-drop. */
+.map-pane .map-base-switch[data-active-slot="0"]:before{transform:translateX(0);opacity:1}
+.map-pane .map-base-switch[data-active-slot="1"]:before{transform:translateX(-100%);opacity:1}
+.map-pane .map-base-switch[data-active-slot="other"]:before{opacity:0}
+#map-picker-menu .map-quick-title:not(:first-child){margin-top:8px;padding-top:10px;border-top:1px solid #e4e1d6}
+.map-bank-group{min-width:0;margin:0}
+.map-bank-group-title{font-size:13px;font-weight:900;color:#315a47;margin:7px 0 10px;padding:0 2px 7px;border-bottom:1px solid #d5e4db}
+.map-bank-group-items{display:grid;gap:9px}
+.map-bank-quick-add{border:1px dashed #9dbdaa!important;background:#f1f8f3!important;color:#315c43!important}
+.map-bank-item[draggable="true"]{cursor:grab}
+.map-bank-item[draggable="true"]:active{cursor:grabbing}
+.map-quick-drop-area{background:#f2f7f0;border:1px solid #cbdccb;border-radius:14px;padding:13px;margin:13px 0 18px}
+.map-quick-drop-title{display:flex;flex-direction:column;gap:4px;color:#315941}
+.map-quick-drop-title strong{font-size:13px}
+.map-quick-drop-title small{font-size:11px;line-height:1.55;color:#627b67}
+.map-quick-drop-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.map-quick-drop-slot{display:flex;align-items:center;gap:9px;min-height:63px;min-width:0;direction:rtl;text-align:right;padding:11px;border:1.5px dashed #9ebba6;background:#fff;border-radius:12px;color:#345744;font:750 12px var(--ui-font);cursor:grab;transition:background .15s,border-color .15s,box-shadow .15s}
+.map-quick-drop-slot.is-target{border-color:#438860;box-shadow:0 0 0 2px #5aaf7833}
+.map-quick-drop-slot.is-drop-target{background:#dbeedf;border-color:#267344;box-shadow:0 0 0 3px #52a46d55}
+.map-quick-drop-slot:focus-visible{outline:2px solid #31794d;outline-offset:2px}
+.map-quick-slot-position{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:8px;background:#e3eee4;color:#397052;font-weight:900}
+.map-quick-slot-name{min-width:0;flex:1;line-height:1.4}
+.map-quick-slot-handle{flex:none;color:#8fa79a}
+.map-quick-slot-handle svg{width:16px;height:16px}
+@media(max-width:700px){.ronny-map-bank-controls{justify-content:flex-start}.map-bank-item{grid-template-columns:1fr}}
+@media(max-width:400px){.map-quick-drop-slots{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.map-quick-drop-slot{transition:none}}
