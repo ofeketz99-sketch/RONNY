@@ -295,7 +295,9 @@ function focusStop(id){
  if(obj.day!==selectedDay||viewScope!=='day'){
   selectedDay=obj.day;viewScope='day';$('map-scope').value='day';renderAll();
  }
- selectedStop=id;renderMarkers();renderSchedule();
+ // Only update marker states. Recreating every Leaflet marker on a list click
+ // causes needless flicker and interrupts pending pointer interactions.
+ selectedStop=id;syncMarkerDragState();renderSchedule();
  if(window.innerWidth<=760)showMap();
  const target=L.latLng(+obj.stop.lat,+obj.stop.lng);
  if(!Number.isFinite(target.lat)||!Number.isFinite(target.lng))return;

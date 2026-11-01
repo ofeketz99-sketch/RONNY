@@ -1,0 +1,12 @@
+{
+  "version": "117",
+  "date": "2026-11-01",
+  "notes": [
+    "בבחירה בעצירה מתוך תוכנית היום סמני המפה כבר אינם נוצרים מחדש בכל לחיצה; רק הסמן הפעיל ויכולת הגרירה שלו מתעדכנים.",
+    "עודכנה בדיקת הרגרסיה של מיקוד נקודות כך שתוודא שהמפה אינה מציירת מחדש את כל הסמנים ללא צורך."
+  ],
+  "technical": [
+    "Follow-up to patch 116; replaced renderMarkers() with syncMarkerDragState() in focusStop.",
+    "Cross-day transitions still invoke renderAll() when necessary; no routing or trip data changes."
+  ]
+}

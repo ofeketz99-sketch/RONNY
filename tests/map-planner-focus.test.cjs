@@ -10,7 +10,7 @@ function create(inside=true,zoom=13){
  const env={map,L:{latLng:(lat,lng)=>({lat,lng})},selectedDay:0,viewScope:'day',selectedStop:null,
   getStop:id=>id==='via'?{day:0,stop}:null,hidePointQuick:()=>{},closeLegEditor:()=>{},hideContext:()=>{},
   $:()=>({value:'day'}),renderAll:()=>calls.push(['renderAll']),
-  renderMarkers:()=>calls.push(['markers']),renderSchedule:()=>calls.push(['schedule']),
+  renderMarkers:()=>calls.push(['markers']),syncMarkerDragState:()=>calls.push(['markerState']),renderSchedule:()=>calls.push(['schedule']),
   showMap:()=>calls.push(['showMap']),markerLayer:{eachLayer:()=>{}},
   window:{innerWidth:1200,matchMedia:()=>({matches:true}),setTimeout:()=>{}}
  };
@@ -20,7 +20,7 @@ function create(inside=true,zoom=13){
 test('visible stop remains in place; map and timeline selections are synchronized',()=>{
  const h=create(true,14);h.env.focusStop('via');
  assert.equal(h.env.selectedStop,'via');
- assert.deepEqual(h.calls.map(c=>c[0]),['markers','schedule']);
+ assert.deepEqual(h.calls.map(c=>c[0]),['markerState','schedule']);
 });
 test('offscreen stop pans at the existing zoom instead of unnecessarily zooming',()=>{
  const h=create(false,13);h.env.focusStop('via');
