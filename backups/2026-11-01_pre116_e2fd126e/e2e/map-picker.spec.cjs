@@ -1,0 +1,111 @@
+'use strict';
+const {test,expect}=require('@playwright/test');
+test('on-map picker shows all six maps, grouped, and switches immediately',async({page})=>{
+ await page.goto('/index.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ const trigger=page.locator('#map-picker-toggle'),menu=page.locator('#map-picker-menu'),switcher=page.locator('#map-base-switch');
+ await expect(trigger).toBeVisible();
+ await expect(menu).toBeHidden();
+ await trigger.click();
+ await expect(menu).toBeVisible();
+ await expect(trigger).toHaveAttribute('aria-expanded','true');
+ await expect(menu.locator('[data-map-choice]')).toHaveCount(6);
+ await expect(menu.locator('.map-quick-title')).toHaveText(['טופוגרפיה ושבילים','תצלומי אוויר','דרכים ורחובות']);
+ await expect(menu.locator('[data-map-choice="satellite"]')).toHaveCount(1);
+ await expect(menu.locator('[data-map-choice="topo"]')).toHaveCount(0);
+ await expect(menu.locator('[data-map-choice="topo-r"]')).toHaveCount(1);
+ await expect(menu.locator('[data-map-choice="esri-topo"]')).toHaveCount(0);
+ await expect(menu.locator('[data-map-choice="streets"]')).toHaveCount(0);
+ await menu.locator('[data-map-choice="osm"]').click();
+ await expect(menu).toBeHidden();
+ await expect(trigger).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('#map-style')).toHaveValue('osm');
+ await expect(switcher).toHaveAttribute('data-style','osm');
+ await expect(switcher.locator('[aria-checked="true"]')).toHaveCount(0);
+ await trigger.click();
+ await expect(menu.locator('[data-map-choice="osm"]')).toHaveAttribute('aria-checked','true');
+ await page.keyboard.press('Escape');
+ await expect(menu).toBeHidden();
+ await expect(trigger).toHaveAttribute('aria-expanded','false');
+ await trigger.click();
+ await expect(menu).toBeVisible();
+ await page.locator('#place-search').click();
+ await expect(menu).toBeHidden();
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ await expect(page.locator('#map-style')).toHaveValue('osm');
+ await expect(trigger).toHaveAttribute('aria-pressed','true');
+ await switcher.locator('[data-map-base="satellite"]').click();
+ await expect(switcher).toHaveAttribute('data-style','satellite');
+ await expect(trigger).toHaveAttribute('aria-pressed','false');
+ await expect(page.locator('#map-style')).toHaveValue('satellite');
+});
+
+test('settings bank drag/drop customizes the two quick-switch slots and persists',async({page})=>{
+ await page.goto('/index.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ await page.locator('#rail-settings').click();
+ await page.locator('#settings-tab-maps').click();
+ const bank=page.locator('#map-bank-list'),quick=page.locator('#map-quick-drop-area');
+ await expect(bank.locator('[data-map-drag]')).toHaveCount(6);
+ await expect(bank.locator('.map-bank-group-title')).toHaveText(['טופוגרפיה ושבילים','תצלומי אוויר','דרכים ורחובות']);
+ await expect(quick.locator('[data-quick-slot]')).toHaveCount(2);
+ await bank.locator('[data-map-drag="osm"]').dragTo(quick.locator('[data-quick-slot="1"]'));
+ await expect(quick.locator('[data-quick-slot="1"]')).toContainText('OpenStreetMap');
+ await bank.locator('[data-map-drag="hiking"]').dragTo(quick.locator('[data-quick-slot="0"]'));
+ await expect(quick.locator('[data-quick-slot="0"]')).toContainText('OpenHikingMap');
+ // Dragging between the two occupied slots swaps them instead of duplicating.
+ await quick.locator('[data-quick-slot="1"]').dragTo(quick.locator('[data-quick-slot="0"]'));
+ await expect(quick.locator('[data-quick-slot="0"]')).toContainText('OpenStreetMap');
+ await expect(quick.locator('[data-quick-slot="1"]')).toContainText('OpenHikingMap');
+ // Click selection is a keyboard/touch-friendly alternative to native HTML drag.
+ await quick.locator('[data-quick-slot="1"]').click();
+ await bank.locator('[data-map-quick="satellite-labels"]').click();
+ await expect(quick.locator('[data-quick-slot="1"]')).toContainText('שמות וכבישים');
+ await expect(quick.locator('[data-quick-slot="0"]')).toContainText('OpenStreetMap');
+ await page.locator('#settings-save').click();
+ const switcher=page.locator('#map-base-switch');
+ await expect(switcher.locator('[data-map-base]')).toHaveCount(2);
+ await expect(switcher.locator('[data-map-base="osm"]')).toHaveCount(1);
+ await expect(switcher.locator('[data-map-base="satellite-labels"]')).toHaveCount(1);
+ await page.locator('#map-picker-toggle').click();
+ await page.locator('#map-picker-menu [data-map-choice="satellite"]').click();
+ await switcher.click();
+ await expect(page.locator('#map-style')).toHaveValue('osm');
+ await expect(switcher).toHaveAttribute('data-active-slot','0');
+ await switcher.click();
+ await expect(page.locator('#map-style')).toHaveValue('satellite-labels');
+ await expect(switcher).toHaveAttribute('data-active-slot','1');
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(switcher.locator('[data-map-base="osm"]')).toHaveCount(1);
+ await expect(switcher.locator('[data-map-base="satellite-labels"]')).toHaveCount(1);
+ await expect(page.locator('#map-style')).toHaveValue('satellite-labels');
+ await page.locator('#map-picker-toggle').click();
+ await expect(page.locator('#map-picker-menu [data-map-choice]')).toHaveCount(6);
+});
+
+test('saved retired maps migrate into two valid quick switch styles',async({page})=>{
+ await page.addInitScript(()=>{
+  if(!localStorage.getItem('ronny-map-retirement-test')){
+   localStorage.setItem('ronny-map-retirement-test','1');
+   localStorage.setItem('ronny-global-map-settings-v1',JSON.stringify({
+    enabledMaps:['streets','topo','esri-topo','satellite'],
+    quickMaps:['topo','streets'],
+    defaultStyle:'esri-topo',
+    home:{lat:46.75,lng:8.12,zoom:9}
+   }));
+  }
+ });
+ await page.goto('/index.html',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ const switcher=page.locator('#map-base-switch');
+ await expect(switcher.locator('[data-map-base="topo-r"]')).toHaveCount(1);
+ await expect(switcher.locator('[data-map-base="osm"]')).toHaveCount(1);
+ await expect(switcher.locator('[data-map-base="topo"]')).toHaveCount(0);
+ await page.locator('#map-picker-toggle').click();
+ await expect(page.locator('#map-picker-menu [data-map-choice]')).toHaveCount(6);
+ await expect(page.locator('#map-picker-menu [data-map-choice="esri-topo"]')).toHaveCount(0);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await expect(switcher.locator('[data-map-base="topo-r"]')).toHaveCount(1);
+ await expect(switcher.locator('[data-map-base="osm"]')).toHaveCount(1);
+});
