@@ -387,8 +387,8 @@ function bindPointTypePicker({autoSaveOnPick=false}={}){const picker=$('point-ty
 
 // RONNY library uses IndexedDB to store independent trips (including photo journals).
 // One-time import from the legacy single-trip key keeps previous work intact.
-const AVAILABLE_MAP_STYLES=['satellite','topo'];
-const MAP_LABELS={streets:'מפה כללית · Esri',topo:'מפה טופוגרפית · OpenTopoMap','esri-topo':'מפה טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · שמות, כבישים ואתרים'};
+const AVAILABLE_MAP_STYLES=['satellite','topo','satellite-labels','osm','hiking','cyclosm','topo-r','esri-topo','streets'];
+const MAP_LABELS={streets:'רחובות · Esri',topo:'טופוגרפית · OpenTopoMap','esri-topo':'טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · עם שמות וכבישים',osm:'רחובות ושבילים · OpenStreetMap',hiking:'שבילי הליכה · OpenHikingMap',cyclosm:'מסלולי רכיבה · CyclOSM','topo-r':'טופוגרפית חלופית · OpenTopoMap-R'};
 const DEFAULT_LAYER_VISIBILITY={routeLines:true,routeStops:true,poi:true,notes:true,ideas:true,poiLinks:true,routeLabels:true,routeTimes:false,photos:true};
 const LAYER_FILTER_DEFS=[
  {key:'routeLines',label:'דרכים',hint:'הקווים בין נקודות המסלול'},
@@ -403,14 +403,13 @@ const LAYER_FILTER_DEFS=[
 ];
 function normalizeLayerVisibility(value){const base={...DEFAULT_LAYER_VISIBILITY};if(value&&typeof value==='object')for(const key of Object.keys(base))if(key in value)base[key]=!!value[key];return base}
 
-const MAP_DETAILS={streets:'מפת רחובות וכללית',topo:'קווי גובה ותבליט', 'esri-topo':'טופוגרפית עם כבישים ושמות',satellite:'תצלום אוויר נקי','satellite-labels':'תצלום אוויר, כבישים ושמות עדינים'};
+const MAP_DETAILS={streets:'רחובות, כבישים ושמות מקומות',topo:'קווי גובה ותבליט · מפת המתג המהיר','esri-topo':'טופוגרפית עם כבישים ושמות',satellite:'תצלום אוויר נקי · מפת המתג המהיר','satellite-labels':'תצלום אוויר עם שכבות שמות וכבישים',osm:'כבישים, מסלולים, עסקים ואתרי עניין',hiking:'שבילים, תבליט, מחסות ונקודות עניין · לשימוש לא מסחרי',cyclosm:'כבישים, רכיבה, שבילים ותבליט','topo-r':'טופוגרפיה ונתוני OSM מעודכנים · לשימוש לא מסחרי'};
 const normalizeMapStyle=style=>AVAILABLE_MAP_STYLES.includes(style)?style:'streets';
 const MAP_PREF_KEY='ronny-global-map-settings-v1';
 const DEFAULT_HOME={lat:46.75,lng:8.12,zoom:9};
 function readMapPrefs(){let obj={};try{obj=JSON.parse(localStorage.getItem(MAP_PREF_KEY)||'{}')||{}}catch(e){}
  const order=Array.isArray(obj.enabledMaps)?obj.enabledMaps.filter((v,i,a)=>AVAILABLE_MAP_STYLES.includes(v)&&a.indexOf(v)===i):AVAILABLE_MAP_STYLES.slice();
- if(!order.includes('satellite'))order.unshift('satellite');
-  if(!order.includes('topo'))order.push('topo');
+ for(const key of AVAILABLE_MAP_STYLES)if(!order.includes(key))order.push(key); // Retain preferences and migrate older two-map banks.
  const home=obj.home||DEFAULT_HOME;
  return {enabledMaps:order,defaultStyle:order.includes(obj.defaultStyle)?obj.defaultStyle:'satellite',home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
 }
@@ -2933,7 +2932,7 @@ function ronnyMeasureBindControls(){
 }
 function initMap(){if(!window.L){$('map').innerHTML='<div style="padding:90px 30px;text-align:center;direction:rtl">לא ניתן לטעון את רכיב המפה. בדוק חיבור אינטרנט ופתח מחדש.</div>';toast('ספריית המפה לא נטענה');return}map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([mapPrefs.home.lat,mapPrefs.home.lng],mapPrefs.home.zoom);L.control.zoom({position:'topright'}).addTo(map);markerLayer=L.layerGroup().addTo(map);routeLayer=L.layerGroup().addTo(map);poiLinkLayer=L.layerGroup().addTo(map);map.createPane('ronnyPoiLinks');map.getPane('ronnyPoiLinks').style.zIndex='420';map.getPane('ronnyPoiLinks').style.pointerEvents='none';map.createPane('ronnyRouteLabels');map.getPane('ronnyRouteLabels').style.zIndex='490';map.getPane('ronnyRouteLabels').style.pointerEvents='none';legTextSvgRenderer=L.svg({pane:'ronnyRouteLabels',padding:1});legLabelLayer=L.layerGroup().addTo(map);photoLayer=L.layerGroup().addTo(map);viaLayer=L.layerGroup().addTo(map);forcedHandleLayer=L.layerGroup().addTo(map);outlineLayer=L.layerGroup().addTo(map);savedPlaceLayer=L.layerGroup().addTo(map);savedPlacePreviewLayer=L.layerGroup().addTo(map);ronnyMeasureLayer=L.layerGroup().addTo(map);setMapStyle(state.settings.mapStyle||'streets',false);map.on('click',e=>{if(ronnyMeasure.active||savedPreviewMode)return;if(Date.now()-ronnyMarkerDraggedAt<450)return;if(savedPinPlacementId){const p=savedPlaces.places.find(x=>x.id===savedPinPlacementId);savedPinPlacementId=null;if(p){p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);p.positionSource='user-map';persistSavedPlaces();renderSavedPlaceMarkers();showSavedPlaceLibrary();toast('מיקום המקום נקבע ונשמר');}return;}if(outlineMoveModeId&&planningResolution!=='day'){const id=outlineMoveModeId;outlineMoveModeId=null;const p=currentOutline().points.find(x=>x.id===id);if(p){const old={...p};p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);syncOutlineAnchors(id,old);save();renderAll();updateMapHint();toast('מיקום היעד עודכן')}return;}if(planningResolution!=='day'&&!newTripSetupDraft&&!forcedRelocateSession&&!pointMoveModeId&&!drawLegSession&&!forcedPointSession&&!homePickMode&&!photoPlacement&&!quickStreetMode){if($('map-context')?.classList.contains('open')){hideContext();return}addOutlinePoint(e.latlng);return;}if(newTripSetupDraft){const draft={...newTripSetupDraft,lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};newTripSetupDraft=null;updateMapHint();createTrip(draft);return}if(forcedRelocateSession){relocateForcedWaypoint(e.latlng);return}if(pointMoveModeId){relocatePoint(pointMoveModeId,e.latlng);return}if(drawLegSession){addDrawVertex(e.latlng.lat,e.latlng.lng);return}if(forcedPointSession){addForcedPoint(e.latlng);return}if($('leg-editor')?.classList.contains('open')){closeLegEditor();return}if($('point-quick')?.classList.contains('open')){hidePointQuick();return}if(homePickMode){homePickMode=false;mapPrefs.home={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};saveMapPrefs();updateMapHint();toast('נקודת הפתיחה נשמרה. בפעם הבאה האתר ייפתח כאן.');return}if($('map-context').classList.contains('open')){hideContext();return}if(photoPlacement){photoPlacement={lat:e.latlng.lat,lng:e.latlng.lng};$('photo-file').click();return}if(quickStreetMode){openGoogleStreetView(e.latlng.lat,e.latlng.lng);return}currentContext={lat:e.latlng.lat,lng:e.latlng.lng};showContext(e.containerPoint.x,e.containerPoint.y)});map.getContainer().addEventListener('click',e=>{if(!savedPreviewMode||e.target.closest?.('.leaflet-control'))return;e.stopPropagation();e.preventDefault()},true);
  map.on('movestart',hideContext);map.on('moveend zoomend resize',queueLegTextRefresh);ronnyMeasureBindMapPointer();setTimeout(()=>map.invalidateSize(),250)}
-const MAP_SAFE_ZOOM={streets:17,topo:16,'esri-topo':16,satellite:17,'satellite-labels':17};
+const MAP_SAFE_ZOOM={streets:17,topo:16,'esri-topo':16,satellite:17,'satellite-labels':17,osm:19,hiking:17,cyclosm:20,'topo-r':16};
 function setMapStyle(style,persist=true){
  if(!map)return;
  style=mapPrefs.enabledMaps.includes(style)?style:mapPrefs.defaultStyle;
@@ -2942,7 +2941,11 @@ function setMapStyle(style,persist=true){
   topo:{url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',maxZoom:16,attrib:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · © <a href="https://opentopomap.org/">OpenTopoMap</a>'},
   'esri-topo':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',maxZoom:16,attrib:'Tiles © Esri and contributors'},
   satellite:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'},
-  'satellite-labels':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'}
+  'satellite-labels':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'},
+  osm:{url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',maxZoom:19,attrib:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'},
+  hiking:{url:'https://tile.openmaps.fr/openhikingmap/{z}/{x}/{y}.png',maxZoom:17,attrib:'<a href="https://wiki.openstreetmap.org/wiki/OpenHikingMap">© OpenHikingMap</a> · <a href="https://openmaps.fr/donate">תרומה</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'},
+  cyclosm:{url:'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',maxZoom:20,subdomains:'abc',attrib:'<a href="https://www.cyclosm.org/">© CyclOSM</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors'},
+  'topo-r':{url:'https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png',maxZoom:16,attrib:'<a href="https://github.com/sletuffe/OpenTopoMap">© OpenTopoMap-R</a> · <a href="https://openmaps.fr/donate">תרומה</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'}
  };
  if(tiles){map.removeLayer(tiles);tiles=null}
  if(labelsTile){map.removeLayer(labelsTile);labelsTile=null}
@@ -2952,22 +2955,11 @@ function setMapStyle(style,persist=true){
  // Avoid requesting tiles at optimistic vendor levels with "Map data not yet available" placeholders.
  map.setMaxZoom(config.maxZoom);
  if(map.getZoom()>config.maxZoom)map.setZoom(config.maxZoom,{animate:false});
- const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:style==='topo'?'abc':''});
+ const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:config.subdomains||(style==='topo'?'abc':'')});
  tileErrorCount=0;
- layer.on('tileerror',()=>{
-  if(layer!==tiles)return;
-  tileErrorCount++;
-  if(tileErrorCount===5){
-   const fallback=style==='streets'||style==='topo'?'esri-topo':'streets';
-   // Only one alternate provider attempt. Avoid endless fallback loops on full network outages.
-   if(!window._roamFallbackAttempted){
-    window._roamFallbackAttempted=true;
-    toast('מפת הרקע לא נטענה. מנסה שכבה חלופית. בדוק גם את החיבור לאינטרנט.');
-    setMapStyle(fallback,true);
-   }else toast('מפות הרקע אינן זמינות. ודא חיבור אינטרנט ואפשר גישה לשירותי Esri.');
-  }
- });
- layer.on('tileload',()=>{if(layer===tiles)window._roamFallbackAttempted=false});
+ // Do not silently change the map style after provider errors.
+ layer.on('tileerror',()=>{if(layer!==tiles)return;if(++tileErrorCount===5)toast('המפה שנבחרה אינה נטענת. נסה זום אחר או מפה אחרת בבנק המפות.');});
+ layer.on('tileload',()=>{if(layer===tiles)tileErrorCount=0});
  tiles=layer.addTo(map);tiles.bringToBack();
   if(style==='satellite-labels'){
    // An understated hybrid view: aerial imagery with translucent road geometry,
@@ -4314,7 +4306,7 @@ function updateStreetPreview(){const lat=+$('s-lat').value,lng=+$('s-lng').value
 function findNextTime(){const list=stops();if(!list.length)return tripDefaultDepartureTime();const s=list[list.length-1],parts=(s.time||'09:00').split(':').map(Number),total=(parts[0]*60+parts[1]+(+s.duration||0)+40)%1440;return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`}
 function openSettings(focus='trip'){
  // Draft all changes locally so Cancel / close doesn't alter the saved map bank.
- let draft=mapPrefs.enabledMaps.slice(),defaultStyle=mapPrefs.defaultStyle;
+ let draft=mapPrefs.enabledMaps.slice(),defaultStyle=mapPrefs.defaultStyle,selectedStyle=state.settings.mapStyle;
  const draftHome={...mapPrefs.home};
  const googleBody=`<div class="api-intro"><strong>Google — חיבור אופציונלי</strong><p>פתיחת Street View בטאב נפרד אינה מחייבת מפתח. רק הכיסוי הכחול והטמעה בתוך האתר מחייבים מפתח Google.</p></div>
  <div class="api-guide"><div class="api-guide-head"><strong>שכבת כיסוי Street View</strong></div><p>אם תרצה את שכבת הכיסוי של גוגל, הפעל Maps JavaScript API ו־Maps Embed API בחשבון Google Cloud.</p><a class="drawer-link" href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener noreferrer">פתיחת Google Cloud ${icon('external-link')}</a><div class="field"><label for="google-key">מפתח Google (אופציונלי)</label><input id="google-key" dir="ltr" type="password" autocomplete="off" value="${esc(state.settings.googleKey||'')}" placeholder="AIza..."><button type="button" class="key-visibility" id="google-key-visibility">הצגת המפתח</button></div></div><p class="footnote">המפתח נשמר מקומית ואינו נכלל בייצוא הטיול.</p>`;
@@ -4327,7 +4319,7 @@ function openSettings(focus='trip'){
  <div class="trip-setup-card"><strong>שעת יציאה ברירת מחדל</strong><div class="field"><label for="trip-default-departure">שעת יציאה לכל יום שלא נקבעה בו שעה ידנית</label><div class="ronny-time-control"><input id="trip-default-departure" class="ronny-time-input" type="text" inputmode="numeric" maxlength="5" autocomplete="off" value="${esc(tripDefaultDepartureTime())}" aria-label="שעת יציאה ברירת מחדל"><button class="ronny-time-trigger" type="button" aria-label="בחר שעת יציאה" title="בחר שעה">${icon('clock','small-icon')}</button></div></div><p class="footnote">ימים עם שעת יציאה או עוגן זמן ידניים לא ישתנו.</p></div>
   <div class="trip-setup-card"><strong>סיום המסלול כולו</strong><label class="ronny-loop-setting"><input type="checkbox" id="trip-round-loop" ${state.settings.tripLoop===true?'checked':''}><span class="ronny-loop-setting-icon">${pointSymbol('loop')}</span><span><strong>טיול מעגלי — חזרה לנקודת היציאה בסוף הטיול</strong><small>הדרך חזרה מחושבת רק אחרי התחנה האחרונה ביום האחרון, אל נקודת היציאה של היום הראשון. שונה מ״יום מעגלי״ שמחזיר בסוף יום מסוים.</small></span></label></div>
  <div class="trip-setup-card"><strong>מרכז המפה של הטיול</strong><div class="two-cols"><div class="field"><label for="trip-center-lat">קו רוחב</label><input id="trip-center-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${state.settings.startCenter?.lat??mapPrefs.home.lat}"></div><div class="field"><label for="trip-center-lng">קו אורך</label><input id="trip-center-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${state.settings.startCenter?.lng??mapPrefs.home.lng}"></div></div><div class="field"><label for="trip-center-zoom">רמת זום</label><input id="trip-center-zoom" type="number" min="2" max="19" value="${state.settings.startCenter?.zoom??mapPrefs.home.zoom}"></div><button type="button" class="btn btn-soft" id="trip-use-map-center">${icon('crosshair')} מרכז המפה הנוכחי</button></div></section>
- <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>מפת התצ״א והמפה הטופוגרפית זמינות תמיד במתג שעל המפה. כאן אפשר לבחור איזו מהן תהיה ברירת מחדל.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">שינוי בנק המפות ישפיע על כל הטיולים בדפדפן הזה. ניתן להחזיר כל שכבה בכל עת.</div></section>
+ <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>בחר מפה להצגה ולחץ ״שמירת הגדרות״. במתג ההחלפה המהירה נשארות רק התצ״א והמפה הטופוגרפית. ברירת המחדל נבחרת בנפרד.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">המפות נטענות דרך שירותים חיצוניים ללא מפתח API. OpenHikingMap ו־OpenTopoMap-R מיועדות לשימוש לא מסחרי ובכפוף למגבלות תעבורה.</div></section>
  <section id="settings-view-home" class="settings-view" role="tabpanel" hidden><div class="api-intro"><strong>נקודת פתיחה קבועה</strong><p>המפה תיפתח במיקום ובזום שתבחר בכל פתיחה של האתר, גם אם לטיול יש עצירות במקומות אחרים. כפתור ״הצג הכול״ עדיין יציג את המסלול.</p></div>
  <div class="two-cols"><div class="field"><label for="home-lat">קו רוחב</label><input id="home-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${draftHome.lat}"></div><div class="field"><label for="home-lng">קו אורך</label><input id="home-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${draftHome.lng}"></div></div>
  <div class="field"><label for="home-zoom">רמת התקרבות (2–19)</label><input id="home-zoom" type="number" min="2" max="19" step="1" value="${draftHome.zoom}"></div>
@@ -4338,7 +4330,8 @@ function openSettings(focus='trip'){
  for(const id of ['trip','maps','home','google'])$('settings-tab-'+id).onclick=()=>activate(id);
  function renderBank(){
   const list=$('map-bank-list');
-  list.innerHTML=AVAILABLE_MAP_STYLES.map(k=>`<div class="map-bank-item"><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span><label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> מפה ראשית כברירת מחדל</label></div>`).join('');
+  list.innerHTML=AVAILABLE_MAP_STYLES.map(k=>`<div class="map-bank-item${selectedStyle===k?' is-active':''}"><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span><div class="ronny-map-bank-controls"><button type="button" data-map-choose="${k}" aria-pressed="${selectedStyle===k}">${selectedStyle===k?'נבחרה להצגה':'בחר מפה'}</button><label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> ברירת מחדל</label></div></div>`).join('');
+  list.querySelectorAll('[data-map-choose]').forEach(btn=>btn.onclick=()=>{selectedStyle=btn.dataset.mapChoose;renderBank()});
   list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
  }
  // Display bank choices in current order rather than the fixed catalog order.
@@ -4373,7 +4366,7 @@ function openSettings(focus='trip'){
   if(defaultChanged){applyTripDefaultDeparture();invalidate()}if(travelChanged){invalidate();retimeAfterOrderChange(selectedDay)}
   if(googleMode&&state.settings.googleKey!==$('google-key').value.trim()){ googleMode=false;document.querySelector('.map-pane').classList.remove('google-mode');$('google-coverage-toggle').setAttribute('aria-pressed','false')}
   mapPrefs={enabledMaps:draft.slice(),defaultStyle:defaultStyle,home:{lat,lng,zoom}};
-  state.settings.googleKey=$('google-key').value.trim();state.settings.mapStyle=mapPrefs.defaultStyle;saveMapPrefs();rebuildMapOptions();setMapStyle(mapPrefs.defaultStyle,false);save();closeDrawer();if(travelChanged||tripLoopChanged||defaultChanged){renderAll()}toast('הגדרות הטיול והמפות נשמרו')};
+  state.settings.googleKey=$('google-key').value.trim();state.settings.mapStyle=selectedStyle;saveMapPrefs();rebuildMapOptions();setMapStyle(selectedStyle,false);save();closeDrawer();if(travelChanged||tripLoopChanged||defaultChanged){renderAll()}toast('הגדרות הטיול והמפות נשמרו')};
  activate(['trip','maps','home','google'].includes(focus)?focus:'trip');
  if(focus==='google')setTimeout(()=>$('google-key')?.focus(),180);
 }
@@ -4479,7 +4472,7 @@ function showPointTypeTreeExpanded(group){const p=currentContext;if(!p)return;co
 
 function syncMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
- const selected=state.settings.mapStyle==='topo'?'topo':'satellite';wrapper.dataset.style=selected;
+ const selected=state.settings.mapStyle==='topo'?'topo':state.settings.mapStyle==='satellite'?'satellite':'other';wrapper.dataset.style=selected;
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{const current=btn.dataset.mapBase===selected;btn.setAttribute('aria-checked',String(current));btn.tabIndex=current?0:-1});
 }
 function initMapBaseSwitch(){
@@ -5135,7 +5128,11 @@ function buildPrintable(layout,scope){const w=window.open('','_blank');if(!w){to
  const sections=days.map(({d,i})=>{const rows=d.stops.filter(s=>!isMapOnlyPoint(s)).map((s,idx)=>{return `<tr><td>${printHtmlEscape(s.time||'')}</td><td><strong>${printHtmlEscape(s.name)}</strong>${idx>0&&s.leg&&s.leg.fromId===d.stops[idx-1].id&&s.leg.label?`<div class="seg">דרך: ${printHtmlEscape(s.leg.label)}</div>`:''}</td><td>${printHtmlEscape(types[s.type]?.name||'עצירה')}</td><td>${s.duration?minsFmt(+s.duration):'—'}</td><td>${money(s.cost)}</td></tr>`}).join('');const photos=state.photos.filter(p=>p.day===i);return `<section class="page"><header class="page-header"><strong class="brand">RONNY.</strong><div><h1>${printHtmlEscape(state.title)} — יום ${i+1}</h1><p>${printHtmlEscape(dayDate(i))} · ${printHtmlEscape(d.label||'')} · ${d.stops.length} נקודות</p></div></header><div class="report-grid ${layoutCls}">${isMap?`<article class="map-card"><div class="subhead">מפת מסלול · יום ${i+1}</div><div class="export-map" id="print-map-${i}"></div><div class="map-caption">מפת רקע על בסיס שירות המפות הפעיל, והמסלול מצויר בין נקודות התכנון. קווים אינם בהכרח נתיבי כביש.</div></article>`:''}${isSchedule?`<article class="schedule-card"><div class="subhead">לוח זמנים מפורט</div><table><thead><tr><th>שעה</th><th>מקום</th><th>סוג</th><th>משך</th><th>עלות</th></tr></thead><tbody>${rows||'<tr><td colspan="5">לא תוכננו עצירות ליום זה</td></tr>'}</tbody></table>${photos.length?`<div class="photo-strip">${photos.slice(0,5).map(p=>`<figure><img src="${p.data}" alt=""><figcaption>${printHtmlEscape(p.caption||p.name)}</figcaption></figure>`).join('')}</div>`:''}</article>`:''}</div><footer>נוצר באמצעות RONNY · ${new Date().toLocaleDateString('he-IL')} · הערכות בלבד</footer></section>`}).join('');
    let tileUrl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',tileMax=19,attrib='Tiles © Esri and contributors';
   const style=normalizeMapStyle(state.settings.mapStyle);let printLabelsUrl='';
-  if(style==='topo'){tileUrl='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';tileMax=17;attrib='© OpenStreetMap contributors · © OpenTopoMap'}
+  if(style==='topo'){tileUrl='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';tileMax=16;attrib='© OpenStreetMap contributors · © OpenTopoMap'}
+  else if(style==='topo-r'){tileUrl='https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png';tileMax=16;attrib='© OpenTopoMap-R · © OpenStreetMap · openmaps.fr'}
+  else if(style==='hiking'){tileUrl='https://tile.openmaps.fr/openhikingmap/{z}/{x}/{y}.png';tileMax=17;attrib='© OpenHikingMap · © OpenStreetMap · openmaps.fr'}
+  else if(style==='cyclosm'){tileUrl='https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png';tileMax=20;attrib='© CyclOSM · © OpenStreetMap'}
+  else if(style==='osm'){tileUrl='https://tile.openstreetmap.org/{z}/{x}/{y}.png';tileMax=19;attrib='© OpenStreetMap contributors'}
   else if(style==='esri-topo'){tileUrl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';attrib='Tiles © Esri and contributors'}
   else if(style==='satellite'||style==='satellite-labels'){tileUrl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';attrib='Tiles © Esri and contributors';if(style==='satellite-labels')printLabelsUrl='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'}
 const payload={printRoadsUrl:style==='satellite-labels'?'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}':'',days:days.map(({d,i})=>({i,points:d.stops.filter(validPoint).map(s=>({lat:+s.lat,lng:+s.lng,name:s.name,type:s.type,seg:pointColor(s,i),id:s.id})),legs:routeStopsForDay(i).slice(1).map((s,j)=>({mode:legAt(j+1,routeStopsForDay(i)).mode,label:legAt(j+1,routeStopsForDay(i)).label||'',color:pointColor(s,i),points:(i===selectedDay&&paintedLegCoordinates.get(j+1))||([[+routeStopsForDay(i)[j].lat,+routeStopsForDay(i)[j].lng],...(legAt(j+1,routeStopsForDay(i)).mode==='auto'?legAt(j+1,routeStopsForDay(i)).viaPoints||[]:legAt(j+1,routeStopsForDay(i)).path||[]),[+s.lat,+s.lng]])})),poiLinks:poiLinksForDay(i).map(({point,nearest})=>({a:[+point.lat,+point.lng],b:[+nearest.lat,+nearest.lng],color:pointColor(point,i)})),photos:state.photos.filter(p=>p.day===i).map(p=>({lat:+p.lat,lng:+p.lng,data:p.data}))})),tileUrl,tileMax,attrib,printLabelsUrl};

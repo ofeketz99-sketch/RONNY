@@ -116,7 +116,7 @@ function updateStreetPreview(){const lat=+$('s-lat').value,lng=+$('s-lng').value
 function findNextTime(){const list=stops();if(!list.length)return tripDefaultDepartureTime();const s=list[list.length-1],parts=(s.time||'09:00').split(':').map(Number),total=(parts[0]*60+parts[1]+(+s.duration||0)+40)%1440;return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`}
 function openSettings(focus='trip'){
  // Draft all changes locally so Cancel / close doesn't alter the saved map bank.
- let draft=mapPrefs.enabledMaps.slice(),defaultStyle=mapPrefs.defaultStyle;
+ let draft=mapPrefs.enabledMaps.slice(),defaultStyle=mapPrefs.defaultStyle,selectedStyle=state.settings.mapStyle;
  const draftHome={...mapPrefs.home};
  const googleBody=`<div class="api-intro"><strong>Google — חיבור אופציונלי</strong><p>פתיחת Street View בטאב נפרד אינה מחייבת מפתח. רק הכיסוי הכחול והטמעה בתוך האתר מחייבים מפתח Google.</p></div>
  <div class="api-guide"><div class="api-guide-head"><strong>שכבת כיסוי Street View</strong></div><p>אם תרצה את שכבת הכיסוי של גוגל, הפעל Maps JavaScript API ו־Maps Embed API בחשבון Google Cloud.</p><a class="drawer-link" href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener noreferrer">פתיחת Google Cloud ${icon('external-link')}</a><div class="field"><label for="google-key">מפתח Google (אופציונלי)</label><input id="google-key" dir="ltr" type="password" autocomplete="off" value="${esc(state.settings.googleKey||'')}" placeholder="AIza..."><button type="button" class="key-visibility" id="google-key-visibility">הצגת המפתח</button></div></div><p class="footnote">המפתח נשמר מקומית ואינו נכלל בייצוא הטיול.</p>`;
@@ -129,7 +129,7 @@ function openSettings(focus='trip'){
  <div class="trip-setup-card"><strong>שעת יציאה ברירת מחדל</strong><div class="field"><label for="trip-default-departure">שעת יציאה לכל יום שלא נקבעה בו שעה ידנית</label><div class="ronny-time-control"><input id="trip-default-departure" class="ronny-time-input" type="text" inputmode="numeric" maxlength="5" autocomplete="off" value="${esc(tripDefaultDepartureTime())}" aria-label="שעת יציאה ברירת מחדל"><button class="ronny-time-trigger" type="button" aria-label="בחר שעת יציאה" title="בחר שעה">${icon('clock','small-icon')}</button></div></div><p class="footnote">ימים עם שעת יציאה או עוגן זמן ידניים לא ישתנו.</p></div>
   <div class="trip-setup-card"><strong>סיום המסלול כולו</strong><label class="ronny-loop-setting"><input type="checkbox" id="trip-round-loop" ${state.settings.tripLoop===true?'checked':''}><span class="ronny-loop-setting-icon">${pointSymbol('loop')}</span><span><strong>טיול מעגלי — חזרה לנקודת היציאה בסוף הטיול</strong><small>הדרך חזרה מחושבת רק אחרי התחנה האחרונה ביום האחרון, אל נקודת היציאה של היום הראשון. שונה מ״יום מעגלי״ שמחזיר בסוף יום מסוים.</small></span></label></div>
  <div class="trip-setup-card"><strong>מרכז המפה של הטיול</strong><div class="two-cols"><div class="field"><label for="trip-center-lat">קו רוחב</label><input id="trip-center-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${state.settings.startCenter?.lat??mapPrefs.home.lat}"></div><div class="field"><label for="trip-center-lng">קו אורך</label><input id="trip-center-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${state.settings.startCenter?.lng??mapPrefs.home.lng}"></div></div><div class="field"><label for="trip-center-zoom">רמת זום</label><input id="trip-center-zoom" type="number" min="2" max="19" value="${state.settings.startCenter?.zoom??mapPrefs.home.zoom}"></div><button type="button" class="btn btn-soft" id="trip-use-map-center">${icon('crosshair')} מרכז המפה הנוכחי</button></div></section>
- <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>מפת התצ״א והמפה הטופוגרפית זמינות תמיד במתג שעל המפה. כאן אפשר לבחור איזו מהן תהיה ברירת מחדל.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">שינוי בנק המפות ישפיע על כל הטיולים בדפדפן הזה. ניתן להחזיר כל שכבה בכל עת.</div></section>
+ <section id="settings-view-maps" class="settings-view" role="tabpanel"><div class="api-intro"><strong>בנק המפות של RONNY</strong><p>בחר מפה להצגה ולחץ ״שמירת הגדרות״. במתג ההחלפה המהירה נשארות רק התצ״א והמפה הטופוגרפית. ברירת המחדל נבחרת בנפרד.</p></div><div class="map-bank-list" id="map-bank-list"></div><div class="settings-map-preview">המפות נטענות דרך שירותים חיצוניים ללא מפתח API. OpenHikingMap ו־OpenTopoMap-R מיועדות לשימוש לא מסחרי ובכפוף למגבלות תעבורה.</div></section>
  <section id="settings-view-home" class="settings-view" role="tabpanel" hidden><div class="api-intro"><strong>נקודת פתיחה קבועה</strong><p>המפה תיפתח במיקום ובזום שתבחר בכל פתיחה של האתר, גם אם לטיול יש עצירות במקומות אחרים. כפתור ״הצג הכול״ עדיין יציג את המסלול.</p></div>
  <div class="two-cols"><div class="field"><label for="home-lat">קו רוחב</label><input id="home-lat" type="number" dir="ltr" min="-90" max="90" step="any" value="${draftHome.lat}"></div><div class="field"><label for="home-lng">קו אורך</label><input id="home-lng" type="number" dir="ltr" min="-180" max="180" step="any" value="${draftHome.lng}"></div></div>
  <div class="field"><label for="home-zoom">רמת התקרבות (2–19)</label><input id="home-zoom" type="number" min="2" max="19" step="1" value="${draftHome.zoom}"></div>
@@ -140,7 +140,8 @@ function openSettings(focus='trip'){
  for(const id of ['trip','maps','home','google'])$('settings-tab-'+id).onclick=()=>activate(id);
  function renderBank(){
   const list=$('map-bank-list');
-  list.innerHTML=AVAILABLE_MAP_STYLES.map(k=>`<div class="map-bank-item"><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span><label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> מפה ראשית כברירת מחדל</label></div>`).join('');
+  list.innerHTML=AVAILABLE_MAP_STYLES.map(k=>`<div class="map-bank-item${selectedStyle===k?' is-active':''}"><span class="map-bank-name"><strong>${esc(MAP_LABELS[k])}</strong><small>${esc(MAP_DETAILS[k])}</small></span><div class="ronny-map-bank-controls"><button type="button" data-map-choose="${k}" aria-pressed="${selectedStyle===k}">${selectedStyle===k?'נבחרה להצגה':'בחר מפה'}</button><label class="map-bank-default"><input type="radio" name="map-default" value="${k}" ${defaultStyle===k?'checked':''}> ברירת מחדל</label></div></div>`).join('');
+  list.querySelectorAll('[data-map-choose]').forEach(btn=>btn.onclick=()=>{selectedStyle=btn.dataset.mapChoose;renderBank()});
   list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
  }
  // Display bank choices in current order rather than the fixed catalog order.
@@ -175,7 +176,7 @@ function openSettings(focus='trip'){
   if(defaultChanged){applyTripDefaultDeparture();invalidate()}if(travelChanged){invalidate();retimeAfterOrderChange(selectedDay)}
   if(googleMode&&state.settings.googleKey!==$('google-key').value.trim()){ googleMode=false;document.querySelector('.map-pane').classList.remove('google-mode');$('google-coverage-toggle').setAttribute('aria-pressed','false')}
   mapPrefs={enabledMaps:draft.slice(),defaultStyle:defaultStyle,home:{lat,lng,zoom}};
-  state.settings.googleKey=$('google-key').value.trim();state.settings.mapStyle=mapPrefs.defaultStyle;saveMapPrefs();rebuildMapOptions();setMapStyle(mapPrefs.defaultStyle,false);save();closeDrawer();if(travelChanged||tripLoopChanged||defaultChanged){renderAll()}toast('הגדרות הטיול והמפות נשמרו')};
+  state.settings.googleKey=$('google-key').value.trim();state.settings.mapStyle=selectedStyle;saveMapPrefs();rebuildMapOptions();setMapStyle(selectedStyle,false);save();closeDrawer();if(travelChanged||tripLoopChanged||defaultChanged){renderAll()}toast('הגדרות הטיול והמפות נשמרו')};
  activate(['trip','maps','home','google'].includes(focus)?focus:'trip');
  if(focus==='google')setTimeout(()=>$('google-key')?.focus(),180);
 }
@@ -281,7 +282,7 @@ function showPointTypeTreeExpanded(group){const p=currentContext;if(!p)return;co
 
 function syncMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
- const selected=state.settings.mapStyle==='topo'?'topo':'satellite';wrapper.dataset.style=selected;
+ const selected=state.settings.mapStyle==='topo'?'topo':state.settings.mapStyle==='satellite'?'satellite':'other';wrapper.dataset.style=selected;
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{const current=btn.dataset.mapBase===selected;btn.setAttribute('aria-checked',String(current));btn.tabIndex=current?0:-1});
 }
 function initMapBaseSwitch(){

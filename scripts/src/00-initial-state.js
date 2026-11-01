@@ -152,8 +152,8 @@ function bindPointTypePicker({autoSaveOnPick=false}={}){const picker=$('point-ty
 
 // RONNY library uses IndexedDB to store independent trips (including photo journals).
 // One-time import from the legacy single-trip key keeps previous work intact.
-const AVAILABLE_MAP_STYLES=['satellite','topo'];
-const MAP_LABELS={streets:'מפה כללית · Esri',topo:'מפה טופוגרפית · OpenTopoMap','esri-topo':'מפה טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · שמות, כבישים ואתרים'};
+const AVAILABLE_MAP_STYLES=['satellite','topo','satellite-labels','osm','hiking','cyclosm','topo-r','esri-topo','streets'];
+const MAP_LABELS={streets:'רחובות · Esri',topo:'טופוגרפית · OpenTopoMap','esri-topo':'טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · עם שמות וכבישים',osm:'רחובות ושבילים · OpenStreetMap',hiking:'שבילי הליכה · OpenHikingMap',cyclosm:'מסלולי רכיבה · CyclOSM','topo-r':'טופוגרפית חלופית · OpenTopoMap-R'};
 const DEFAULT_LAYER_VISIBILITY={routeLines:true,routeStops:true,poi:true,notes:true,ideas:true,poiLinks:true,routeLabels:true,routeTimes:false,photos:true};
 const LAYER_FILTER_DEFS=[
  {key:'routeLines',label:'דרכים',hint:'הקווים בין נקודות המסלול'},
@@ -168,14 +168,13 @@ const LAYER_FILTER_DEFS=[
 ];
 function normalizeLayerVisibility(value){const base={...DEFAULT_LAYER_VISIBILITY};if(value&&typeof value==='object')for(const key of Object.keys(base))if(key in value)base[key]=!!value[key];return base}
 
-const MAP_DETAILS={streets:'מפת רחובות וכללית',topo:'קווי גובה ותבליט', 'esri-topo':'טופוגרפית עם כבישים ושמות',satellite:'תצלום אוויר נקי','satellite-labels':'תצלום אוויר, כבישים ושמות עדינים'};
+const MAP_DETAILS={streets:'רחובות, כבישים ושמות מקומות',topo:'קווי גובה ותבליט · מפת המתג המהיר','esri-topo':'טופוגרפית עם כבישים ושמות',satellite:'תצלום אוויר נקי · מפת המתג המהיר','satellite-labels':'תצלום אוויר עם שכבות שמות וכבישים',osm:'כבישים, מסלולים, עסקים ואתרי עניין',hiking:'שבילים, תבליט, מחסות ונקודות עניין · לשימוש לא מסחרי',cyclosm:'כבישים, רכיבה, שבילים ותבליט','topo-r':'טופוגרפיה ונתוני OSM מעודכנים · לשימוש לא מסחרי'};
 const normalizeMapStyle=style=>AVAILABLE_MAP_STYLES.includes(style)?style:'streets';
 const MAP_PREF_KEY='ronny-global-map-settings-v1';
 const DEFAULT_HOME={lat:46.75,lng:8.12,zoom:9};
 function readMapPrefs(){let obj={};try{obj=JSON.parse(localStorage.getItem(MAP_PREF_KEY)||'{}')||{}}catch(e){}
  const order=Array.isArray(obj.enabledMaps)?obj.enabledMaps.filter((v,i,a)=>AVAILABLE_MAP_STYLES.includes(v)&&a.indexOf(v)===i):AVAILABLE_MAP_STYLES.slice();
- if(!order.includes('satellite'))order.unshift('satellite');
-  if(!order.includes('topo'))order.push('topo');
+ for(const key of AVAILABLE_MAP_STYLES)if(!order.includes(key))order.push(key); // Retain preferences and migrate older two-map banks.
  const home=obj.home||DEFAULT_HOME;
  return {enabledMaps:order,defaultStyle:order.includes(obj.defaultStyle)?obj.defaultStyle:'satellite',home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
 }

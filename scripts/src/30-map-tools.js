@@ -110,7 +110,7 @@ function ronnyMeasureBindControls(){
 }
 function initMap(){if(!window.L){$('map').innerHTML='<div style="padding:90px 30px;text-align:center;direction:rtl">לא ניתן לטעון את רכיב המפה. בדוק חיבור אינטרנט ופתח מחדש.</div>';toast('ספריית המפה לא נטענה');return}map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([mapPrefs.home.lat,mapPrefs.home.lng],mapPrefs.home.zoom);L.control.zoom({position:'topright'}).addTo(map);markerLayer=L.layerGroup().addTo(map);routeLayer=L.layerGroup().addTo(map);poiLinkLayer=L.layerGroup().addTo(map);map.createPane('ronnyPoiLinks');map.getPane('ronnyPoiLinks').style.zIndex='420';map.getPane('ronnyPoiLinks').style.pointerEvents='none';map.createPane('ronnyRouteLabels');map.getPane('ronnyRouteLabels').style.zIndex='490';map.getPane('ronnyRouteLabels').style.pointerEvents='none';legTextSvgRenderer=L.svg({pane:'ronnyRouteLabels',padding:1});legLabelLayer=L.layerGroup().addTo(map);photoLayer=L.layerGroup().addTo(map);viaLayer=L.layerGroup().addTo(map);forcedHandleLayer=L.layerGroup().addTo(map);outlineLayer=L.layerGroup().addTo(map);savedPlaceLayer=L.layerGroup().addTo(map);savedPlacePreviewLayer=L.layerGroup().addTo(map);ronnyMeasureLayer=L.layerGroup().addTo(map);setMapStyle(state.settings.mapStyle||'streets',false);map.on('click',e=>{if(ronnyMeasure.active||savedPreviewMode)return;if(Date.now()-ronnyMarkerDraggedAt<450)return;if(savedPinPlacementId){const p=savedPlaces.places.find(x=>x.id===savedPinPlacementId);savedPinPlacementId=null;if(p){p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);p.positionSource='user-map';persistSavedPlaces();renderSavedPlaceMarkers();showSavedPlaceLibrary();toast('מיקום המקום נקבע ונשמר');}return;}if(outlineMoveModeId&&planningResolution!=='day'){const id=outlineMoveModeId;outlineMoveModeId=null;const p=currentOutline().points.find(x=>x.id===id);if(p){const old={...p};p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);syncOutlineAnchors(id,old);save();renderAll();updateMapHint();toast('מיקום היעד עודכן')}return;}if(planningResolution!=='day'&&!newTripSetupDraft&&!forcedRelocateSession&&!pointMoveModeId&&!drawLegSession&&!forcedPointSession&&!homePickMode&&!photoPlacement&&!quickStreetMode){if($('map-context')?.classList.contains('open')){hideContext();return}addOutlinePoint(e.latlng);return;}if(newTripSetupDraft){const draft={...newTripSetupDraft,lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};newTripSetupDraft=null;updateMapHint();createTrip(draft);return}if(forcedRelocateSession){relocateForcedWaypoint(e.latlng);return}if(pointMoveModeId){relocatePoint(pointMoveModeId,e.latlng);return}if(drawLegSession){addDrawVertex(e.latlng.lat,e.latlng.lng);return}if(forcedPointSession){addForcedPoint(e.latlng);return}if($('leg-editor')?.classList.contains('open')){closeLegEditor();return}if($('point-quick')?.classList.contains('open')){hidePointQuick();return}if(homePickMode){homePickMode=false;mapPrefs.home={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};saveMapPrefs();updateMapHint();toast('נקודת הפתיחה נשמרה. בפעם הבאה האתר ייפתח כאן.');return}if($('map-context').classList.contains('open')){hideContext();return}if(photoPlacement){photoPlacement={lat:e.latlng.lat,lng:e.latlng.lng};$('photo-file').click();return}if(quickStreetMode){openGoogleStreetView(e.latlng.lat,e.latlng.lng);return}currentContext={lat:e.latlng.lat,lng:e.latlng.lng};showContext(e.containerPoint.x,e.containerPoint.y)});map.getContainer().addEventListener('click',e=>{if(!savedPreviewMode||e.target.closest?.('.leaflet-control'))return;e.stopPropagation();e.preventDefault()},true);
  map.on('movestart',hideContext);map.on('moveend zoomend resize',queueLegTextRefresh);ronnyMeasureBindMapPointer();setTimeout(()=>map.invalidateSize(),250)}
-const MAP_SAFE_ZOOM={streets:17,topo:16,'esri-topo':16,satellite:17,'satellite-labels':17};
+const MAP_SAFE_ZOOM={streets:17,topo:16,'esri-topo':16,satellite:17,'satellite-labels':17,osm:19,hiking:17,cyclosm:20,'topo-r':16};
 function setMapStyle(style,persist=true){
  if(!map)return;
  style=mapPrefs.enabledMaps.includes(style)?style:mapPrefs.defaultStyle;
@@ -119,7 +119,11 @@ function setMapStyle(style,persist=true){
   topo:{url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',maxZoom:16,attrib:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · © <a href="https://opentopomap.org/">OpenTopoMap</a>'},
   'esri-topo':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',maxZoom:16,attrib:'Tiles © Esri and contributors'},
   satellite:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'},
-  'satellite-labels':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'}
+  'satellite-labels':{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',maxZoom:17,attrib:'Tiles © Esri, Vantor and contributors'},
+  osm:{url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',maxZoom:19,attrib:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'},
+  hiking:{url:'https://tile.openmaps.fr/openhikingmap/{z}/{x}/{y}.png',maxZoom:17,attrib:'<a href="https://wiki.openstreetmap.org/wiki/OpenHikingMap">© OpenHikingMap</a> · <a href="https://openmaps.fr/donate">תרומה</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'},
+  cyclosm:{url:'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',maxZoom:20,subdomains:'abc',attrib:'<a href="https://www.cyclosm.org/">© CyclOSM</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> contributors'},
+  'topo-r':{url:'https://tile.openmaps.fr/opentopomap/{z}/{x}/{y}.png',maxZoom:16,attrib:'<a href="https://github.com/sletuffe/OpenTopoMap">© OpenTopoMap-R</a> · <a href="https://openmaps.fr/donate">תרומה</a> · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a>'}
  };
  if(tiles){map.removeLayer(tiles);tiles=null}
  if(labelsTile){map.removeLayer(labelsTile);labelsTile=null}
@@ -129,22 +133,11 @@ function setMapStyle(style,persist=true){
  // Avoid requesting tiles at optimistic vendor levels with "Map data not yet available" placeholders.
  map.setMaxZoom(config.maxZoom);
  if(map.getZoom()>config.maxZoom)map.setZoom(config.maxZoom,{animate:false});
- const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:style==='topo'?'abc':''});
+ const layer=L.tileLayer(config.url,{attribution:config.attrib,maxZoom:config.maxZoom,maxNativeZoom:config.maxZoom,subdomains:config.subdomains||(style==='topo'?'abc':'')});
  tileErrorCount=0;
- layer.on('tileerror',()=>{
-  if(layer!==tiles)return;
-  tileErrorCount++;
-  if(tileErrorCount===5){
-   const fallback=style==='streets'||style==='topo'?'esri-topo':'streets';
-   // Only one alternate provider attempt. Avoid endless fallback loops on full network outages.
-   if(!window._roamFallbackAttempted){
-    window._roamFallbackAttempted=true;
-    toast('מפת הרקע לא נטענה. מנסה שכבה חלופית. בדוק גם את החיבור לאינטרנט.');
-    setMapStyle(fallback,true);
-   }else toast('מפות הרקע אינן זמינות. ודא חיבור אינטרנט ואפשר גישה לשירותי Esri.');
-  }
- });
- layer.on('tileload',()=>{if(layer===tiles)window._roamFallbackAttempted=false});
+ // Do not silently change the map style after provider errors.
+ layer.on('tileerror',()=>{if(layer!==tiles)return;if(++tileErrorCount===5)toast('המפה שנבחרה אינה נטענת. נסה זום אחר או מפה אחרת בבנק המפות.');});
+ layer.on('tileload',()=>{if(layer===tiles)tileErrorCount=0});
  tiles=layer.addTo(map);tiles.bringToBack();
   if(style==='satellite-labels'){
    // An understated hybrid view: aerial imagery with translucent road geometry,

@@ -2460,3 +2460,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 #point-quick[data-mode="day"] .ronny-time-schedule-note button{align-self:start;border:1px solid #8caf94;border-radius:8px;background:#fffdf9;color:#366849;padding:5px 10px;font:800 11px var(--ui-font);cursor:pointer}
 #point-quick[data-mode="day"] .ronny-time-schedule-note button:hover{background:#e1eee4}
 #point-quick[data-mode="day"] .ronny-time-schedule-note button:focus-visible{outline:2px solid #487d58;outline-offset:2px}
+
+/* Patch 110: multi-map bank, two-option quick toggle retained. */
+.map-base-switch[data-style="other"]:before{opacity:0}
+.map-bank-item.is-active{border-color:#88b49a;background:#f2f8f3}
+.ronny-map-bank-controls{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.ronny-map-bank-controls [data-map-choose]{border:1px solid #bfd4c4;border-radius:9px;background:#fff;color:#355d47;font:750 12px var(--ui-font);padding:7px 12px;cursor:pointer}
+.ronny-map-bank-controls [data-map-choose][aria-pressed="true"]{background:#dcece1;color:#244935;border-color:#7ca68a}
+.ronny-map-bank-controls [data-map-choose]:focus-visible{outline:2px solid #568b6a;outline-offset:2px}
+@media(max-width:570px){.map-bank-item{grid-template-columns:1fr}.ronny-map-bank-controls{justify-content:space-between}}

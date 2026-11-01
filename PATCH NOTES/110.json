@@ -1,0 +1,14 @@
+{
+  "version": "110",
+  "date": "2026-11-01",
+  "notes": [
+    "נפתח בנק מפות עם תשעה סגנונות, כולל תצ״א עם שמות וכבישים.",
+    "נוספו מפות ללא מפתח API: OpenStreetMap, OpenHikingMap, CyclOSM ו־OpenTopoMap-R.",
+    "ניתן לבחור מפה להצגה בנפרד מברירת מחדל; מתג ההחלפה המהירה נשאר עם שתי המפות המקוריות.",
+    "בוטל מעבר אוטומטי למפה אחרת לאחר תקלה בטעינת אריחי מפה."
+  ],
+  "technical": [
+    "Map print/export backgrounds include the additional providers.",
+    "OpenMaps.fr noncommercial terms and attribution must be respected. Live browser tile loading not yet tested."
+  ]
+}
