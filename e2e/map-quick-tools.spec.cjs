@@ -38,9 +38,9 @@ test('standalone map tools open measure and independent layers/contours',async({
 test('aerial / topographic switch is exclusive and saves the chosen style',async({page})=>{
  await page.goto('/index.html',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#map.leaflet-container')).toBeVisible();
- const group=page.locator('#map-base-switch'),aerial=group.locator('[data-map-base="satellite"]'),topo=group.locator('[data-map-base="topo"]');
+ const group=page.locator('#map-base-switch'),aerial=group.locator('[data-map-base="satellite"]'),topo=group.locator('[data-map-base="topo-r"]');
  await topo.click();
- await expect(group).toHaveAttribute('data-style','topo');
+ await expect(group).toHaveAttribute('data-style','topo-r');
  await expect(topo).toHaveAttribute('aria-checked','true');
  await expect(aerial).toHaveAttribute('aria-checked','false');
  await aerial.click();
@@ -60,12 +60,12 @@ test('switch uses two icons only and every click toggles even on the active half
  await expect(capsule.locator('svg')).toHaveCount(2);
  const initial=await capsule.getAttribute('data-style');
  await capsule.locator('[aria-checked="true"]').click();
- await expect(capsule).toHaveAttribute('data-style',initial==='topo'?'satellite':'topo');
+ await expect(capsule).toHaveAttribute('data-style',initial==='topo-r'?'satellite':'topo-r');
  await capsule.locator('[aria-checked="true"]').click();
  await expect(capsule).toHaveAttribute('data-style',initial);
  const rect=await capsule.boundingBox();
  await capsule.click({position:{x:rect.width/2,y:rect.height/2}});
- await expect(capsule).toHaveAttribute('data-style',initial==='topo'?'satellite':'topo');
+ await expect(capsule).toHaveAttribute('data-style',initial==='topo-r'?'satellite':'topo-r');
 });
 test('Google Maps quick button transfers currently displayed center zoom and type',async({page})=>{
  await page.goto('/index.html',{waitUntil:'domcontentloaded'});

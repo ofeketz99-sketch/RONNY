@@ -1,7 +1,7 @@
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const icon=(name,cls='small-icon')=>`<i data-lucide="${name}" class="${cls}"></i>`;
 const uid=()=> (window.crypto?.randomUUID?.()||('stop'+Date.now().toString(36)+Math.random().toString(36).slice(2)));
-const demo=()=>({version:2,title:'הרפתקה באלפים',startDate:'2026-10-26',settings:{googleKey:'',mapStyle:'streets',travelMode:'driving'},days:[
+const demo=()=>({version:2,title:'הרפתקה באלפים',startDate:'2026-10-26',settings:{googleKey:'',mapStyle:'osm',travelMode:'driving'},days:[
 {label:'אגם לוצרן',stops:[{id:uid(),name:'Lucerne',type:'attraction',time:'09:00',duration:90,cost:0,lat:47.0502,lng:8.3093,notes:'סיור לאורך האגם והגשר העתיק'},{id:uid(),name:'Stoosbahn',type:'attraction',time:'11:45',duration:70,cost:120,lat:46.9917,lng:8.6698,notes:'פוניקולר והגעה לכפר סטוס'},{id:uid(),name:'Stoos',type:'nature',time:'13:30',duration:180,cost:0,lat:46.9803,lng:8.6628,notes:'מסלולי הליכה ונוף הררי'},{id:uid(),name:'Brunnen',type:'hotel',time:'18:00',duration:0,cost:650,lat:46.9938,lng:8.6061,notes:'לינה באזור האגם'}]},
 {label:'האלפים הברניים',stops:[{id:uid(),name:'Interlaken',type:'attraction',time:'09:30',duration:70,cost:0,lat:46.6863,lng:7.8632,notes:'טיול במרכז העיירה'},{id:uid(),name:'Lauterbrunnen',type:'nature',time:'11:30',duration:150,cost:0,lat:46.5938,lng:7.9086,notes:'עמק המפלים'},{id:uid(),name:'Grindelwald',type:'attraction',time:'15:30',duration:140,cost:140,lat:46.6242,lng:8.0414,notes:'נוף עמק והרים'},{id:uid(),name:'Interlaken',type:'hotel',time:'19:00',duration:0,cost:720,lat:46.679,lng:7.85,notes:'לינה'}]},
 {label:'אגמים ועיירות',stops:[{id:uid(),name:'Thun',type:'attraction',time:'10:00',duration:100,cost:0,lat:46.758,lng:7.629,notes:'העיר העתיקה'},{id:uid(),name:'Bern',type:'dining',time:'13:00',duration:90,cost:160,lat:46.948,lng:7.448,notes:'ארוחת צהריים'},{id:uid(),name:'Bern Old Town',type:'attraction',time:'15:00',duration:130,cost:0,lat:46.9479,lng:7.4474,notes:'העיר העתיקה'}]}
@@ -153,14 +153,14 @@ function bindPointTypePicker({autoSaveOnPick=false}={}){const picker=$('point-ty
 // RONNY library uses IndexedDB to store independent trips (including photo journals).
 // One-time import from the legacy single-trip key keeps previous work intact.
 const MAP_STYLE_GROUPS=[
- {id:'topo',label:'טופוגרפיה ושבילים',styles:['topo','topo-r','esri-topo','hiking']},
+ {id:'topo',label:'טופוגרפיה ושבילים',styles:['topo-r','hiking']},
  {id:'satellite',label:'תצלומי אוויר',styles:['satellite','satellite-labels']},
- {id:'roads',label:'דרכים ורחובות',styles:['osm','streets','cyclosm']}
+ {id:'roads',label:'דרכים ורחובות',styles:['osm','cyclosm']}
 ];
 const AVAILABLE_MAP_STYLES=MAP_STYLE_GROUPS.flatMap(group=>group.styles);
-const DEFAULT_QUICK_MAPS=['satellite','topo'];
-const MAP_STYLE_ICONS={topo:'mountain','topo-r':'mountain','esri-topo':'mountain',hiking:'footprints',satellite:'satellite','satellite-labels':'satellite',osm:'map',streets:'map',cyclosm:'bike'};
-const MAP_LABELS={streets:'רחובות · Esri',topo:'טופוגרפית · OpenTopoMap','esri-topo':'טופוגרפית · Esri',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · עם שמות וכבישים',osm:'רחובות ושבילים · OpenStreetMap',hiking:'שבילי הליכה · OpenHikingMap',cyclosm:'מסלולי רכיבה · CyclOSM','topo-r':'טופוגרפית חלופית · OpenTopoMap-R'};
+const DEFAULT_QUICK_MAPS=['satellite','topo-r'];
+const MAP_STYLE_ICONS={'topo-r':'mountain',hiking:'footprints',satellite:'satellite','satellite-labels':'satellite',osm:'map',cyclosm:'bike'};
+const MAP_LABELS={'topo-r':'טופוגרפית · OpenTopoMap-R',hiking:'שבילי הליכה · OpenHikingMap',satellite:'תצ״א · ללא שמות','satellite-labels':'תצ״א · עם שמות וכבישים',osm:'רחובות ושבילים · OpenStreetMap',cyclosm:'מסלולי רכיבה · CyclOSM'};
 const DEFAULT_LAYER_VISIBILITY={routeLines:true,routeStops:true,poi:true,notes:true,ideas:true,poiLinks:true,routeLabels:true,routeTimes:false,photos:true};
 const LAYER_FILTER_DEFS=[
  {key:'routeLines',label:'דרכים',hint:'הקווים בין נקודות המסלול'},
@@ -175,17 +175,19 @@ const LAYER_FILTER_DEFS=[
 ];
 function normalizeLayerVisibility(value){const base={...DEFAULT_LAYER_VISIBILITY};if(value&&typeof value==='object')for(const key of Object.keys(base))if(key in value)base[key]=!!value[key];return base}
 
-const MAP_DETAILS={streets:'רחובות, כבישים ושמות מקומות',topo:'קווי גובה ותבליט','esri-topo':'טופוגרפית עם כבישים ושמות',satellite:'תצלום אוויר נקי','satellite-labels':'תצלום אוויר עם שכבות שמות וכבישים',osm:'כבישים, מסלולים, עסקים ואתרי עניין',hiking:'שבילים, תבליט, מחסות ונקודות עניין · לשימוש לא מסחרי',cyclosm:'כבישים, רכיבה, שבילים ותבליט','topo-r':'טופוגרפיה ונתוני OSM מעודכנים · לשימוש לא מסחרי'};
-const normalizeMapStyle=style=>AVAILABLE_MAP_STYLES.includes(style)?style:'streets';
+const MAP_DETAILS={'topo-r':'קווי גובה, תבליט ושבילים · לשימוש לא מסחרי',hiking:'שבילים, תבליט, מחסות ונקודות עניין · לשימוש לא מסחרי',satellite:'תצלום אוויר נקי','satellite-labels':'תצלום אוויר עם שכבות שמות וכבישים',osm:'כבישים, מסלולים, עסקים ואתרי עניין',cyclosm:'כבישים, רכיבה, שבילים ותבליט'};
+const LEGACY_MAP_STYLES={topo:'topo-r','esri-topo':'topo-r',streets:'osm'};
+const normalizeMapStyle=style=>AVAILABLE_MAP_STYLES.includes(style)?style:(LEGACY_MAP_STYLES[style]||'satellite');
 const MAP_PREF_KEY='ronny-global-map-settings-v1';
 const DEFAULT_HOME={lat:46.75,lng:8.12,zoom:9};
 function readMapPrefs(){let obj={};try{obj=JSON.parse(localStorage.getItem(MAP_PREF_KEY)||'{}')||{}}catch(e){}
  const order=Array.isArray(obj.enabledMaps)?obj.enabledMaps.filter((v,i,a)=>AVAILABLE_MAP_STYLES.includes(v)&&a.indexOf(v)===i):AVAILABLE_MAP_STYLES.slice();
  for(const key of AVAILABLE_MAP_STYLES)if(!order.includes(key))order.push(key); // Retain preferences and migrate older two-map banks.
  const rawQuick=Array.isArray(obj.quickMaps)?obj.quickMaps:[];
- const quickMaps=rawQuick.length===2&&rawQuick.every(style=>AVAILABLE_MAP_STYLES.includes(style))&&rawQuick[0]!==rawQuick[1]?rawQuick.slice():DEFAULT_QUICK_MAPS.slice();
+ const migratedQuick=rawQuick.map(style=>AVAILABLE_MAP_STYLES.includes(style)?style:LEGACY_MAP_STYLES[style]).filter(style=>AVAILABLE_MAP_STYLES.includes(style));
+ const quickMaps=migratedQuick.length===2&&migratedQuick[0]!==migratedQuick[1]?migratedQuick:DEFAULT_QUICK_MAPS.slice();
  const home=obj.home||DEFAULT_HOME;
- return {enabledMaps:order,quickMaps,defaultStyle:order.includes(obj.defaultStyle)?obj.defaultStyle:'satellite',home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
+ return {enabledMaps:order,quickMaps,defaultStyle:normalizeMapStyle(obj.defaultStyle),home:{lat:Number.isFinite(+home.lat)&&Math.abs(+home.lat)<=90?+home.lat:DEFAULT_HOME.lat,lng:Number.isFinite(+home.lng)&&Math.abs(+home.lng)<=180?+home.lng:DEFAULT_HOME.lng,zoom:Number.isFinite(+home.zoom)?Math.max(2,Math.min(19,+home.zoom)):DEFAULT_HOME.zoom}};
 }
 let mapPrefs=readMapPrefs(),homePickMode=false;
 function saveMapPrefs(){try{localStorage.setItem(MAP_PREF_KEY,JSON.stringify(mapPrefs));return true}catch(e){toast('לא ניתן לשמור הגדרות מפה בדפדפן');return false}}
@@ -379,9 +381,9 @@ function prepareTrip(t){
  if(!t||!Array.isArray(t.days)||!t.days.length||!t.settings)throw Error('קובץ טיול לא תקין');
  const cleaned=cloneValue(t);
  cleaned.outline=normalizeOutline(cleaned.outline);
- cleaned.settings={googleKey:'',mapStyle:'streets',travelMode:'driving',plannerWidth:430,railWidth:54,drawerWidth:440,layerVisibility:{...DEFAULT_LAYER_VISIBILITY},...cleaned.settings};cleaned.settings.layerVisibility=normalizeLayerVisibility(cleaned.settings.layerVisibility);cleaned.settings.defaultDepartureTime=/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(cleaned.settings.defaultDepartureTime||'')?cleaned.settings.defaultDepartureTime:'09:00';
+ cleaned.settings={googleKey:'',mapStyle:'osm',travelMode:'driving',plannerWidth:430,railWidth:54,drawerWidth:440,layerVisibility:{...DEFAULT_LAYER_VISIBILITY},...cleaned.settings};cleaned.settings.layerVisibility=normalizeLayerVisibility(cleaned.settings.layerVisibility);cleaned.settings.defaultDepartureTime=/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(cleaned.settings.defaultDepartureTime||'')?cleaned.settings.defaultDepartureTime:'09:00';
  delete cleaned.settings.mapyKey;delete cleaned.settings.routingProvider;
- cleaned.settings.mapStyle=mapPrefs.enabledMaps.includes(cleaned.settings.mapStyle)?cleaned.settings.mapStyle:mapPrefs.defaultStyle;
+ cleaned.settings.mapStyle=normalizeMapStyle(cleaned.settings.mapStyle);
  if(!['driving','walking','hiking','cycling'].includes(cleaned.settings.travelMode))cleaned.settings.travelMode='driving';
  const center=cleaned.settings.startCenter;
  if(center&&!(Number.isFinite(+center.lat)&&Math.abs(+center.lat)<=90&&Number.isFinite(+center.lng)&&Math.abs(+center.lng)<=180&&Number.isFinite(+center.zoom)&&+center.zoom>=2&&+center.zoom<=19))delete cleaned.settings.startCenter;

@@ -1,0 +1,15 @@
+{
+  "version": "114",
+  "date": "2026-11-01",
+  "notes": [
+    "הוסרו OpenTopoMap הרגילה, Esri Topographic ו־Esri Streets מבנק המפות, מבורר המפות וממתג ההחלפה המהירה.",
+    "נותרו שש מפות בשלוש קבוצות: OpenTopoMap-R ו־OpenHikingMap, שתי מפות תצ״א, OpenStreetMap ו־CyclOSM.",
+    "עודכנה התאימות לטיולים ולהעדפות שמורות: מפות שהוסרו מוחלפות אוטומטית במפות הקיימות מאותו סוג.",
+    "שירותי הרקע של המפות שהוסרו אינם נטענים עוד; שני סוגי תצלום האוויר של Esri נשמרו."
+  ],
+  "technical": [
+    "Legacy topo/esri-topo -> topo-r, streets -> osm; default quick pair [satellite, topo-r].",
+    "Print/export defaults to OSM instead of removed Esri streets, legacy branches removed.",
+    "Unit/E2E assertions updated to six maps and legacy preferences migration."
+  ]
+}
