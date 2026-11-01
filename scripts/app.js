@@ -4470,25 +4470,44 @@ function initPointTree(){
 }
 function showPointTypeTreeExpanded(group){const p=currentContext;if(!p)return;const el=$('map-context'),x=parseFloat(el.style.left),y=parseFloat(el.style.top);el.innerHTML=mapTreeMarkup(group);el.style.left=x+'px';el.style.top=y+'px';keepMapPopoverVisible(el);refreshIcons();}
 
+const MAP_PICKER_STYLES=['satellite-labels','osm','hiking','cyclosm','topo-r','esri-topo','streets'];
 function syncMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
  const selected=state.settings.mapStyle==='topo'?'topo':state.settings.mapStyle==='satellite'?'satellite':'other';wrapper.dataset.style=selected;
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{const current=btn.dataset.mapBase===selected;btn.setAttribute('aria-checked',String(current));btn.tabIndex=current?0:-1});
+ const picker=$('map-picker-toggle'),menu=$('map-picker-menu'),active=MAP_PICKER_STYLES.includes(state.settings.mapStyle);
+ if(picker){picker.setAttribute('aria-pressed',String(active));picker.title=active?'מפה נוכחית: '+MAP_LABELS[state.settings.mapStyle]:'בחר מפת רקע';}
+ if(menu&&!menu.hidden)menu.querySelectorAll('[data-map-choice]').forEach(btn=>btn.setAttribute('aria-checked',String(btn.dataset.mapChoice===state.settings.mapStyle)));
 }
 function initMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
  const toggle=()=>setMapStyle(state.settings.mapStyle==='topo'?'satellite':'topo');
  // Click anywhere on the capsule, including the already selected half.
- wrapper.onclick=toggle;
+ wrapper.onclick=()=>{const menu=$('map-picker-menu'),trigger=$('map-picker-toggle');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false');toggle()};
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{
   btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();toggle();wrapper.querySelector('[aria-checked="true"]')?.focus()};
  });
  syncMapBaseSwitch();
 }
 function initMapQuickPickers(){
- const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu');initMapBaseSwitch();bindGoogleMapsCurrentView();if(!dayTrigger||!dayMenu)return;
+ const dayTrigger=$('map-day-trigger'),dayMenu=$('map-day-menu'),mapTrigger=$('map-picker-toggle'),mapMenu=$('map-picker-menu');
+ initMapBaseSwitch();bindGoogleMapsCurrentView();if(!dayTrigger||!dayMenu||!mapTrigger||!mapMenu)return;
  const close=()=>{dayMenu.hidden=true;dayTrigger.setAttribute('aria-expanded','false')};
+ const closeMaps=()=>{mapMenu.hidden=true;mapTrigger.setAttribute('aria-expanded','false')};
+ mapTrigger.onclick=()=>{
+  if(!mapMenu.hidden){closeMaps();return}
+  close();
+  const available=MAP_PICKER_STYLES.filter(k=>mapPrefs.enabledMaps.includes(k));
+  mapMenu.innerHTML='<div class="map-quick-title">מפות נוספות</div>'+available.map(k=>
+   `<button type="button" class="map-quick-choice" role="menuitemradio" data-map-choice="${k}" aria-checked="${state.settings.mapStyle===k}"><span class="map-picker-option-label">${esc(MAP_LABELS[k])}</span>${state.settings.mapStyle===k?`<span class="choice-check">${icon('check')}</span>`:''}</button>`).join('');
+  mapMenu.hidden=false;mapTrigger.setAttribute('aria-expanded','true');refreshIcons();
+  mapMenu.querySelectorAll('[data-map-choice]').forEach(btn=>btn.onclick=()=>{
+   const choice=btn.dataset.mapChoice;
+   closeMaps();setMapStyle(choice);
+  });
+ };
  dayTrigger.onclick=()=>{
+  closeMaps();
   if(!dayMenu.hidden){close();return}
   const select=$('map-scope');
   dayMenu.innerHTML=`<div class="map-quick-title">בחירת יום ותצוגה</div>`+
@@ -4499,8 +4518,8 @@ function initMapQuickPickers(){
   dayMenu.querySelectorAll('[data-map-pick]').forEach(option=>option.onclick=()=>{select.value=option.dataset.mapPick;close();select.dispatchEvent(new Event('change',{bubbles:true}))});
   dayMenu.querySelectorAll('[data-map-day]').forEach(option=>option.onclick=()=>{close();selectDay(+option.dataset.mapDay)});
  };
- document.addEventListener('pointerdown',e=>{if(!e.target.closest('#map-quick-views'))close()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ document.addEventListener('pointerdown',e=>{if(!e.target.closest('#map-quick-views')){close();closeMaps()}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!mapMenu.hidden){closeMaps();mapTrigger.focus()}close()}});
 }
 
 function initMapGroupToggles(){const pane=document.querySelector('.map-pane');

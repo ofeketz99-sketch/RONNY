@@ -2469,3 +2469,12 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 .ronny-map-bank-controls [data-map-choose][aria-pressed="true"]{background:#dcece1;color:#244935;border-color:#7ca68a}
 .ronny-map-bank-controls [data-map-choose]:focus-visible{outline:2px solid #568b6a;outline-offset:2px}
 @media(max-width:570px){.map-bank-item{grid-template-columns:1fr}.ronny-map-bank-controls{justify-content:space-between}}
+
+/* Patch 111 — map-background picker aligned with the left map tool rail. */
+.map-pane #map-picker-menu{top:158px;left:54px;width:270px;max-width:min(290px,calc(100vw - 95px));min-width:0;max-height:min(440px,calc(100vh - 220px));overflow-y:auto;overscroll-behavior:contain;z-index:15;box-sizing:border-box}
+#map-picker-menu .map-quick-choice{min-height:42px}
+#map-picker-menu .map-picker-option-label{min-width:0;flex:1;white-space:normal}
+#map-picker-toggle[aria-pressed="true"]{background:#dbece0;border-color:#77aa8a;color:#305a42}
+#map-picker-toggle:focus-visible,#map-picker-menu [data-map-choice]:focus-visible{outline:2px solid #5d9571;outline-offset:2px}
+@media(max-width:760px){.map-pane #map-picker-menu{top:145px;left:49px;width:min(260px,calc(100vw - 75px));max-height:min(440px,calc(100vh - 195px))}}
+@media(prefers-reduced-motion:reduce){.map-pane #map-picker-menu{animation:none}}

@@ -1,0 +1,13 @@
+{
+  "version": "111",
+  "date": "2026-11-01",
+  "notes": [
+    "נוסף כפתור בורר מפות לסרגל הכלים שעל המפה לצד שכבות ומדידת מרחק.",
+    "שבע המפות הנוספות מופיעות בתפריט צף, ובחירה מחליפה מיד את הרקע ונשמרת.",
+    "מתג ההחלפה המהירה נותר עם תצ״א נקייה וטופוגרפית בלבד; בנק המפות בהגדרות ממשיך לכלול את כל תשע המפות."
+  ],
+  "technical": [
+    "Separate on-map picker catalog for future shortlist while the settings bank retains all maps.",
+    "Menu supports selection status, outside click and Escape. Live tile provider behavior not tested."
+  ]
+}
