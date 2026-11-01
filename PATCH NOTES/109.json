@@ -1,0 +1,11 @@
+{
+  "version": "109",
+  "date": "2026-11-01",
+  "notes": [
+    "הוסרו שני כפתורי הוספת העצירה הכפולים: מהסרגל העליון ומהפינה התחתונה של המפה.",
+    "הוספת עצירות דרך פאנל תכנון היום נשארה זמינה ללא שינוי."
+  ],
+  "technical": [
+    "Removed top-add/map-add markup and their event handlers from source and generated script; preserved panel-add binding."
+  ]
+}
