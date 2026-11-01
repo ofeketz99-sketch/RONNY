@@ -155,17 +155,30 @@ function openSettings(focus='trip'){
   list.querySelectorAll('[data-map-choose]').forEach(btn=>btn.onclick=()=>{selectedStyle=btn.dataset.mapChoose;renderBank()});
   list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
   list.querySelectorAll('[data-map-quick]').forEach(btn=>btn.onclick=()=>assignQuickMap(btn.dataset.mapQuick,quickTargetSlot));
+  // Native drag events can be delivered to nested controls; keep a trusted
+  // source value and also accept drops on the surrounding area.
+  let draggedMapStyle=null;
   const quickSlots=quickArea.querySelectorAll('[data-quick-slot]');
+  quickArea.ondragover=e=>{if(e.target.closest('[data-quick-slot]'))e.preventDefault()};
+  quickArea.ondrop=e=>{
+   const target=e.target.closest('[data-quick-slot]');
+   if(!target)return;
+   e.preventDefault();
+   const style=e.dataTransfer?.getData('text/plain')||draggedMapStyle;
+   draggedMapStyle=null;
+   assignQuickMap(style,Number(target.dataset.quickSlot));
+  };
   quickSlots.forEach(btn=>{
    const slot=Number(btn.dataset.quickSlot);
    btn.onclick=()=>{quickTargetSlot=slot;renderBank()};
-   btn.ondragstart=e=>{e.dataTransfer.setData('text/plain',quickDraft[slot]);e.dataTransfer.effectAllowed='move'};
+   btn.ondragstart=e=>{draggedMapStyle=quickDraft[slot];e.dataTransfer.setData('text/plain',draggedMapStyle);e.dataTransfer.effectAllowed='move'};
    btn.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';btn.classList.add('is-drop-target')};
    btn.ondragleave=()=>btn.classList.remove('is-drop-target');
-   btn.ondrop=e=>{e.preventDefault();e.stopPropagation();btn.classList.remove('is-drop-target');assignQuickMap(e.dataTransfer.getData('text/plain'),slot)};
+   btn.ondrop=e=>{e.preventDefault();e.stopPropagation();btn.classList.remove('is-drop-target');const style=e.dataTransfer.getData('text/plain')||draggedMapStyle;draggedMapStyle=null;assignQuickMap(style,slot)};
   });
-  list.querySelectorAll('[data-map-drag]').forEach(card=>card.ondragstart=e=>{
-   e.dataTransfer.setData('text/plain',card.dataset.mapDrag);e.dataTransfer.effectAllowed='copyMove';
+  list.querySelectorAll('[data-map-drag]').forEach(card=>{
+   card.ondragstart=e=>{draggedMapStyle=card.dataset.mapDrag;e.dataTransfer.setData('text/plain',draggedMapStyle);e.dataTransfer.effectAllowed='copyMove'};
+   card.ondragend=()=>{draggedMapStyle=null};
   });
   refreshIcons();
  }

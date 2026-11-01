@@ -422,6 +422,8 @@ function revealPlanningCardFromMap(id,kind='day'){
    outline?el.dataset.zoomCard===id:(el.dataset.stop===id||el.dataset.sidePoint===id));
   if(!target)return false;
   root.querySelectorAll('.ronny-map-reveal').forEach(el=>el.classList.remove('ronny-map-reveal'));
+  // Only one schedule card can be focused, even when the previous day was displayed.
+  root.querySelectorAll('.stop.focused').forEach(el=>{if(el!==target)el.classList.remove('focused')});
   target.classList.add('ronny-map-reveal');
   if(target.matches('.stop'))target.classList.add('focused');
   const parentBounds=container.getBoundingClientRect(),targetBounds=target.getBoundingClientRect();

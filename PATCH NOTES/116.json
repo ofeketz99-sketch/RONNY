@@ -1,0 +1,15 @@
+{
+  "version": "116",
+  "date": "2026-11-01",
+  "notes": [
+    "סנכרון משופר בין בחירת סיכה על המפה לבין כרטיס העצירה הפעיל בלוח היום, ללא סימונים כפולים.",
+    "בחירה בעצירה שכבר נראית במפה לא מקפיצה יותר את הזום או את מרכז המפה; נקודות מרוחקות ממוקדות תוך שימור הזום ככל שניתן.",
+    "חוזק מנגנון הגרירה לשיוך מפות למתג המהיר בבנק המפות, גם כשהאירוע מגיע דרך רכיב פנימי.",
+    "עודכנו בדיקות הזום כך שיתאימו למקורות המפות שנשארו באתר, ונוספה בדיקת דפדפן לסנכרון בין המפה ללוח היום."
+  ],
+  "technical": [
+    "Map marker editing remains available on a single click; selection now rebuilds the schedule highlight.",
+    "Map card focus uses an inset bounds check before panning or zooming.",
+    "Baseline browser CI had separate failures in marker drag / map picker; this patch should not be considered a full regression clearance until browser tests pass."
+  ]
+}

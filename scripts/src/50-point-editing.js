@@ -55,6 +55,8 @@ function openPointQuick(id){
  // Display current computed arrival before allowing manual departure edits.
  if(!isMapOnlyPoint(obj.stop))retimeAfterOrderChange(obj.day);
  selectedStop=id;
+ // Keep the schedule's selected row in sync with the map marker, even across days.
+ renderSchedule();
  const s=obj.stop,el=$('point-quick'),pt=map.latLngToContainerPoint([+s.lat,+s.lng]);
  const actualColor=pointColor(s,obj.day);
  const hexColor=validCustomColor(actualColor)?actualColor:(types[s.type]?.color||'#668b74');
@@ -295,10 +297,17 @@ function focusStop(id){
  }
  selectedStop=id;renderMarkers();renderSchedule();
  if(window.innerWidth<=760)showMap();
- const target=[+obj.stop.lat,+obj.stop.lng];
- const zoom=Math.max(11,map.getZoom());
- const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
- map.flyTo(target,zoom,{duration:reduced?0:.65,animate:!reduced});
+ const target=L.latLng(+obj.stop.lat,+obj.stop.lng);
+ if(!Number.isFinite(target.lat)||!Number.isFinite(target.lng))return;
+ const zoom=map.getZoom(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ // Do not unnecessarily recenter (or zoom) when the stop is already comfortably on screen.
+ const bounds=map.getBounds?.();
+ const inside=bounds?.isValid?.()&&bounds.pad(-.14).contains(target);
+ if(!inside){
+  const preferred=Math.max(10,zoom);
+  if(preferred===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});
+  else map.flyTo(target,preferred,{duration:reduced?0:.55,animate:!reduced});
+ }
  const idToPulse=id;
  window.setTimeout(()=>{
   markerLayer?.eachLayer?.(m=>{
@@ -306,11 +315,11 @@ function focusStop(id){
    const badge=m.getElement?.()?.querySelector('.point-pin');
    if(badge?.animate&&!reduced)badge.animate([
     {transform:'scale(1)',filter:'brightness(1)'},
-    {transform:'scale(1.24)',filter:'brightness(1.2)',offset:.47},
+    {transform:'scale(1.16)',filter:'brightness(1.12)',offset:.47},
     {transform:'scale(1)',filter:'brightness(1)'}
-   ],{duration:570,easing:'ease-out'});
+   ],{duration:430,easing:'ease-out'});
   });
- },reduced?0:250);
+ },reduced?0:180);
 }
 // Drawer history retains DOM elements, listeners, form state, and scroll offset.
 const ronnyDrawerHistory=[];

@@ -3255,6 +3255,8 @@ function revealPlanningCardFromMap(id,kind='day'){
    outline?el.dataset.zoomCard===id:(el.dataset.stop===id||el.dataset.sidePoint===id));
   if(!target)return false;
   root.querySelectorAll('.ronny-map-reveal').forEach(el=>el.classList.remove('ronny-map-reveal'));
+  // Only one schedule card can be focused, even when the previous day was displayed.
+  root.querySelectorAll('.stop.focused').forEach(el=>{if(el!==target)el.classList.remove('focused')});
   target.classList.add('ronny-map-reveal');
   if(target.matches('.stop'))target.classList.add('focused');
   const parentBounds=container.getBoundingClientRect(),targetBounds=target.getBoundingClientRect();
@@ -4006,6 +4008,8 @@ function openPointQuick(id){
  // Display current computed arrival before allowing manual departure edits.
  if(!isMapOnlyPoint(obj.stop))retimeAfterOrderChange(obj.day);
  selectedStop=id;
+ // Keep the schedule's selected row in sync with the map marker, even across days.
+ renderSchedule();
  const s=obj.stop,el=$('point-quick'),pt=map.latLngToContainerPoint([+s.lat,+s.lng]);
  const actualColor=pointColor(s,obj.day);
  const hexColor=validCustomColor(actualColor)?actualColor:(types[s.type]?.color||'#668b74');
@@ -4246,10 +4250,17 @@ function focusStop(id){
  }
  selectedStop=id;renderMarkers();renderSchedule();
  if(window.innerWidth<=760)showMap();
- const target=[+obj.stop.lat,+obj.stop.lng];
- const zoom=Math.max(11,map.getZoom());
- const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
- map.flyTo(target,zoom,{duration:reduced?0:.65,animate:!reduced});
+ const target=L.latLng(+obj.stop.lat,+obj.stop.lng);
+ if(!Number.isFinite(target.lat)||!Number.isFinite(target.lng))return;
+ const zoom=map.getZoom(),reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ // Do not unnecessarily recenter (or zoom) when the stop is already comfortably on screen.
+ const bounds=map.getBounds?.();
+ const inside=bounds?.isValid?.()&&bounds.pad(-.14).contains(target);
+ if(!inside){
+  const preferred=Math.max(10,zoom);
+  if(preferred===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});
+  else map.flyTo(target,preferred,{duration:reduced?0:.55,animate:!reduced});
+ }
  const idToPulse=id;
  window.setTimeout(()=>{
   markerLayer?.eachLayer?.(m=>{
@@ -4257,11 +4268,11 @@ function focusStop(id){
    const badge=m.getElement?.()?.querySelector('.point-pin');
    if(badge?.animate&&!reduced)badge.animate([
     {transform:'scale(1)',filter:'brightness(1)'},
-    {transform:'scale(1.24)',filter:'brightness(1.2)',offset:.47},
+    {transform:'scale(1.16)',filter:'brightness(1.12)',offset:.47},
     {transform:'scale(1)',filter:'brightness(1)'}
-   ],{duration:570,easing:'ease-out'});
+   ],{duration:430,easing:'ease-out'});
   });
- },reduced?0:250);
+ },reduced?0:180);
 }
 // Drawer history retains DOM elements, listeners, form state, and scroll offset.
 const ronnyDrawerHistory=[];
@@ -4423,17 +4434,30 @@ function openSettings(focus='trip'){
   list.querySelectorAll('[data-map-choose]').forEach(btn=>btn.onclick=()=>{selectedStyle=btn.dataset.mapChoose;renderBank()});
   list.querySelectorAll('[name=map-default]').forEach(el=>el.onchange=()=>{defaultStyle=el.value;renderBank()});
   list.querySelectorAll('[data-map-quick]').forEach(btn=>btn.onclick=()=>assignQuickMap(btn.dataset.mapQuick,quickTargetSlot));
+  // Native drag events can be delivered to nested controls; keep a trusted
+  // source value and also accept drops on the surrounding area.
+  let draggedMapStyle=null;
   const quickSlots=quickArea.querySelectorAll('[data-quick-slot]');
+  quickArea.ondragover=e=>{if(e.target.closest('[data-quick-slot]'))e.preventDefault()};
+  quickArea.ondrop=e=>{
+   const target=e.target.closest('[data-quick-slot]');
+   if(!target)return;
+   e.preventDefault();
+   const style=e.dataTransfer?.getData('text/plain')||draggedMapStyle;
+   draggedMapStyle=null;
+   assignQuickMap(style,Number(target.dataset.quickSlot));
+  };
   quickSlots.forEach(btn=>{
    const slot=Number(btn.dataset.quickSlot);
    btn.onclick=()=>{quickTargetSlot=slot;renderBank()};
-   btn.ondragstart=e=>{e.dataTransfer.setData('text/plain',quickDraft[slot]);e.dataTransfer.effectAllowed='move'};
+   btn.ondragstart=e=>{draggedMapStyle=quickDraft[slot];e.dataTransfer.setData('text/plain',draggedMapStyle);e.dataTransfer.effectAllowed='move'};
    btn.ondragover=e=>{e.preventDefault();e.dataTransfer.dropEffect='move';btn.classList.add('is-drop-target')};
    btn.ondragleave=()=>btn.classList.remove('is-drop-target');
-   btn.ondrop=e=>{e.preventDefault();e.stopPropagation();btn.classList.remove('is-drop-target');assignQuickMap(e.dataTransfer.getData('text/plain'),slot)};
+   btn.ondrop=e=>{e.preventDefault();e.stopPropagation();btn.classList.remove('is-drop-target');const style=e.dataTransfer.getData('text/plain')||draggedMapStyle;draggedMapStyle=null;assignQuickMap(style,slot)};
   });
-  list.querySelectorAll('[data-map-drag]').forEach(card=>card.ondragstart=e=>{
-   e.dataTransfer.setData('text/plain',card.dataset.mapDrag);e.dataTransfer.effectAllowed='copyMove';
+  list.querySelectorAll('[data-map-drag]').forEach(card=>{
+   card.ondragstart=e=>{draggedMapStyle=card.dataset.mapDrag;e.dataTransfer.setData('text/plain',draggedMapStyle);e.dataTransfer.effectAllowed='copyMove'};
+   card.ondragend=()=>{draggedMapStyle=null};
   });
   refreshIcons();
  }

@@ -12,6 +12,12 @@ const journey=()=>({
   {dayId:'day3',label:'יום שלישי',stops:[s('e','start',48,9.4),s('f','end',48.02,9.42,{fromId:'e',mode:'straight',minutes:15,path:[]})]}
  ]
 });
+// Both Esri (/tile/z/y/x) and OSM-derived (/z/x/y.png) raster tiles are supported.
+const mapTileZoom=page=>page.evaluate(()=>{
+ const urls=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>i.src);
+ const levels=urls.map(url=>Number(url.match(/(?:\/tile\/|\/)(\d{1,2})\/\d+\/\d+(?:\.png)?(?:[?#]|$)/)?.[1])).filter(z=>Number.isFinite(z)&&z>=2&&z<=22);
+ return levels.length?Math.max(...levels):0;
+});
 async function boot(page,trip){
  await page.addInitScript(data=>{
   if(location.hostname==='127.0.0.1'&&!localStorage.getItem('ronny-focus-fixture')){
@@ -41,11 +47,7 @@ test('choosing a compact day fits the map more closely than the former zoom limi
  await boot(page,journey());
  await page.locator('[data-day="0"].day-pill').click();
  await expect(page.locator('#map-scope')).toHaveValue('day');
- await expect.poll(async()=>page.evaluate(()=>{
-  const sources=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>i.src);
-  const levels=sources.map(url=>Number(url.match(/\/tile\/(\d+)\//)?.[1])).filter(Number.isFinite);
-  return levels.length?Math.max(...levels):0;
- })).toBeGreaterThan(12);
+ await expect.poll(()=>mapTileZoom(page)).toBeGreaterThan(12);
 });
 test('day focus ignores distant ideas from another day',async({page})=>{
  const data=journey();
@@ -53,10 +55,7 @@ test('day focus ignores distant ideas from another day',async({page})=>{
  await boot(page,data);
  await page.locator('[data-day="0"].day-pill').click();
  await expect(page.locator('#map-scope')).toHaveValue('day');
- await expect.poll(async()=>page.evaluate(()=>{
-  const levels=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>Number(i.src.split('/tile/')[1]?.split('/')[0])).filter(Number.isFinite);
-  return levels.length?Math.max(...levels):0;
- })).toBeGreaterThan(12);
+ await expect.poll(()=>mapTileZoom(page)).toBeGreaterThan(12);
 });
 test('stage focus ignores distant ideas outside the stage',async({page})=>{
  const data=journey();
@@ -64,10 +63,7 @@ test('stage focus ignores distant ideas outside the stage',async({page})=>{
  await boot(page,data);
  await page.locator('[data-ronny-group-view="stage1"]').click();
  await expect(page.locator('[data-ronny-group-view="stage1"]')).toHaveClass(/selected/);
- await expect.poll(async()=>page.evaluate(()=>{
-  const levels=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>Number(i.src.split('/tile/')[1]?.split('/')[0])).filter(Number.isFinite);
-  return levels.length?Math.max(...levels):0;
- })).toBeGreaterThan(6);
+ await expect.poll(()=>mapTileZoom(page)).toBeGreaterThan(6);
 });
 test('retrace mode is named out-and-back on the walking route editor',async({page})=>{
  const data=journey();
@@ -96,11 +92,7 @@ test('first day and first stage ignore remote map-only pins without changing oth
   s('d','end',46.07,7.88,{fromId:'c',mode:'straight',minutes:15,path:[]})
  ];
  await boot(page,fixture);
- const zoom=()=>page.evaluate(()=>{
-  const urls=[...document.querySelectorAll('#map .leaflet-tile-pane img.leaflet-tile')].map(i=>i.src);
-  const levels=urls.map(u=>Number(u.split('/tile/')[1]?.split('/')[0])).filter(n=>Number.isFinite(n));
-  return levels.length?Math.max(...levels):0;
- });
+ const zoom=()=>mapTileZoom(page);
  // The faraway idea should still be counted in the true whole-trip overview.
  await page.locator('[data-ronny-group-view=""]').click();
  await expect.poll(zoom).toBeLessThan(10);
