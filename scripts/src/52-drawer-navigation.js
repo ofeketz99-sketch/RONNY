@@ -320,7 +320,7 @@ function syncMapBaseSwitch(){
   btn.setAttribute('aria-label',MAP_LABELS[style]);
   btn.title=MAP_LABELS[style];
   const current=selected===style;
-  btn.setAttribute('aria-checked',String(current));btn.tabIndex=current?0:-1;
+  btn.setAttribute('aria-checked',String(current));btn.tabIndex=current||(slot<0&&i===0)?0:-1;
  });
  if(iconsChanged)refreshIcons();
  const picker=$('map-picker-toggle'),menu=$('map-picker-menu');

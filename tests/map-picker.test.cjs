@@ -7,13 +7,17 @@ test('map picker is a distinct on-map control with an accessible popup',()=>{
  assert.match(html,/id="map-picker-menu"[^>]*role="menu"/);
  assert.equal((html.match(/data-map-base=/g)||[]).length,2);
 });
-test('seven supplemental maps, quick toggle and settings bank stay independent',()=>{
- const start=script.indexOf('const MAP_PICKER_STYLES='),end=script.indexOf(';',start);assert.ok(start>=0);
- const names=[...script.slice(start,end).matchAll(/'([^']+)'/g)].map(x=>x[1]);
- assert.equal(names.length,7);
- assert.ok(!names.includes('satellite')&&!names.includes('topo'));
- assert.match(script,/function renderBank\(\)/);assert.match(script,/AVAILABLE_MAP_STYLES\.map\(/);
+test('all nine maps are exposed in three sorted groups, independently of quick slots',()=>{
+ const initial=read('scripts/src/00-initial-state.js');
+ const groupSection=initial.slice(initial.indexOf('const MAP_STYLE_GROUPS='),initial.indexOf('const AVAILABLE_MAP_STYLES='));
+ const members=[...groupSection.matchAll(/styles:\[([^\]]+)\]/g)].map(m=>[...m[1].matchAll(/'([^']+)'/g)].map(x=>x[1]));
+ assert.deepEqual(members.map(x=>x.length),[4,2,3]);
+ assert.equal(new Set(members.flat()).size,9);
+ assert.ok(script.includes('const MAP_PICKER_STYLES=MAP_STYLE_GROUPS.flatMap(group=>group.styles)'));
+ assert.match(script,/MAP_STYLE_GROUPS\.map\(group=>/);
+ assert.match(script,/function renderBank\(\)/);
  assert.match(script,/setMapStyle\(choice\)/);
+ assert.match(script,/wrapper\.dataset\.activeSlot=slot/);
  assert.match(script,/mapMenu\.hidden=false/);
  assert.match(script,/if\(!e\.target\.closest\('#map-quick-views'\)\)/);
 });

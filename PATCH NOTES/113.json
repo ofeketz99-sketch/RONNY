@@ -1,0 +1,12 @@
+{
+  "version": "113",
+  "date": "2026-11-01",
+  "notes": [
+    "עודכנה בדיקת הרגרסיה של בורר המפות כך שתתאים לכל תשע המפות בשלוש קבוצות.",
+    "שופרה נגישות המתג המהיר כאשר מוצגת מפה אחרת מזו המשויכת אליו."
+  ],
+  "technical": [
+    "Corrected obsolete map-picker test asserting seven hardcoded maps.",
+    "Keep first quick-switch radio keyboard-focusable when neither quick style is active."
+  ]
+}
