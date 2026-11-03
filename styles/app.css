@@ -2510,3 +2510,59 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 /* Patch 115: do not expose partially loaded basemap tiles during a map switch. */
 .leaflet-tile-pane .ronny-smooth-basemap{transition:opacity 220ms ease-in-out}
 @media(prefers-reduced-motion:reduce){.leaflet-tile-pane .ronny-smooth-basemap{transition:none}}
+
+
+/* 120 — map search: compact hover, visible progress, detailed suggestions and preview marker. */
+.map-search #search-btn{
+ position:relative;flex:0 0 48px;width:48px;min-width:48px;height:46px;
+ border-radius:14px 0 0 14px;overflow:hidden;transform:none!important;
+}
+.map-search #search-btn:hover{background:#eaf1e9;color:#4d7560}
+.map-search #search-btn svg{display:block;flex:none;margin:auto;transform:none!important}
+.map-search.is-searching #search-btn svg{visibility:hidden}
+.map-search.is-searching #search-btn::after,.ronny-search-spinner{
+ content:'';display:inline-block;width:17px;height:17px;flex:none;
+ border-radius:50%;border:2px solid #d5e5da;border-top-color:#4e8267;
+ animation:ronny-search-rotate .75s linear infinite;
+}
+.map-search.is-searching #search-btn::after{position:absolute;left:50%;top:50%;margin:-9px 0 0 -9px}
+@keyframes ronny-search-rotate{to{transform:rotate(360deg)}}
+.map-search .search-results{overflow-x:hidden;overflow-y:auto}
+.map-search .search-results .search-loading{display:flex;align-items:center;gap:10px;font-weight:700;color:#4d7664}
+.map-search .ronny-search-result-row{border-bottom:1px solid #e8eee6;background:#fffdf9}
+.map-search .ronny-search-result-row:hover{background:#f3f7ef}
+.map-search .search-results button.result{
+ border:0!important;border-radius:0!important;width:100%!important;
+ height:auto!important;min-height:78px!important;padding:10px 13px!important;
+ transform:none!important;white-space:normal;align-items:flex-start!important;
+}
+.map-search .search-results button.result:hover{background:#edf4e9!important}
+.map-search .search-results button.result .search-item-text{min-width:0;overflow-wrap:anywhere}
+.map-search .search-results button.result .ronny-search-category{
+ display:block;color:#5b7a65;font-size:11px;font-weight:700;margin:2px 0 3px;
+}
+.map-search .search-results button.result .ronny-search-coordinates{
+ display:block;direction:ltr;text-align:right;font-size:10px;color:#84918b;
+ margin-top:4px;font-variant-numeric:tabular-nums;
+}
+.map-search .search-results .ronny-search-verify{
+ display:flex;align-items:center;justify-content:flex-start;gap:6px;
+ padding:3px 53px 11px 14px;font-size:11px;font-weight:700;
+ color:#436f59;text-decoration:none;
+}
+.map-search .search-results .ronny-search-verify:hover{text-decoration:underline}
+.ronny-search-preview-host{background:transparent!important;border:0!important;overflow:visible!important}
+.ronny-search-preview-pin{
+ width:38px;height:38px;display:grid;place-items:center;
+ border-radius:50% 50% 50% 9px;transform:rotate(-45deg);
+ border:3px solid #fffdf8;background:#20836f;
+ box-shadow:0 5px 16px #173d3080,0 0 0 4px #52a88458;
+ cursor:pointer;transition:filter .15s;
+}
+.ronny-search-preview-host:hover .ronny-search-preview-pin{filter:brightness(1.17)}
+.ronny-search-preview-core{
+ display:block;width:12px;height:12px;border:3px solid #fffdf8;border-radius:50%;
+}
+@media(prefers-reduced-motion:reduce){
+ .map-search.is-searching #search-btn::after,.ronny-search-spinner{animation-duration:1.6s}
+}

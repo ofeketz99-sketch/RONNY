@@ -1,0 +1,11 @@
+{
+  "version": "120",
+  "date": "2026-11-03",
+  "notes": [
+    "תוצאות החיפוש מציגות סוג מקום, פרטי כתובת, קואורדינטות וקישור לבדיקה ב־Google Maps.",
+    "בחירת תוצאה מתמקדת במיקום ומציגה סיכה זמנית בלבד; לחיצה על הסיכה פותחת את אפשרויות הוספת הנקודה.",
+    "לחיצה אחרת על המפה, חיפוש חדש או Escape מסירים את הסיכה הזמנית.",
+    "נוספו חיווי חיפוש פעיל ותיקון לריחוף על סמל החיפוש."
+  ],
+  "technical": "Source: scripts/src/52-drawer-navigation.js, map click dismissal in 30-map-tools.js, generated scripts/app.js, styles/app.css. Photon metadata used when available; mocked regression coverage added."
+}
