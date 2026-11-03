@@ -2566,3 +2566,13 @@ input:not([type=color]):focus-visible,textarea:focus-visible,select:focus-visibl
 @media(prefers-reduced-motion:reduce){
  .map-search.is-searching #search-btn::after,.ronny-search-spinner{animation-duration:1.6s}
 }
+
+/* Search results stay available when inspecting several places on the map. */
+.map-search .search-results button.result.search-preview-active{
+ background:#eaf2e8!important;
+ box-shadow:inset 3px 0 #5a947b;
+}
+.map-search .ronny-search-retain-hint{
+ padding:8px 13px 10px;color:#597565;font-size:11px;
+ background:#f3f8f1;border-top:1px solid #e7ede4;
+}

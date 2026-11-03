@@ -387,6 +387,7 @@ function initMapGroupToggles(){const pane=document.querySelector('.map-pane');
 // Photon supports search-as-you-type; unlike the public Nominatim endpoint.
 let searchDebounce=null,searchController=null,searchSeq=0,searchChoices=[],searchFocus=-1;
 const searchCache=new Map();
+let searchResultsQuery='';
 // The temporary search marker belongs to the map UI, never to the saved trip.
 let searchPreviewMarker=null;
 document.addEventListener('pointerdown',event=>{
@@ -434,13 +435,23 @@ function showSearchPreviewMarker(p){
  // Search selection intentionally changes the map view without opening an editor.
  map.flyTo([+p.lat,+p.lng],Math.max(12,Math.min(map.getZoom(),15)),{duration:.6});
 }
-function hideSearch(){clearTimeout(searchDebounce);searchController?.abort();searchSeq++;setSearchLoading(false);$('search-results').classList.remove('open');searchFocus=-1;searchChoices=[];}
+function hideSearch(discard=false){
+ clearTimeout(searchDebounce);searchController?.abort();searchSeq++;setSearchLoading(false);
+ $('search-results').classList.remove('open');searchFocus=-1;
+ if(discard){searchChoices=[];searchResultsQuery='';}
+}
+function reopenPlaceSearchResults(){
+ const q=$('place-search').value.trim(),panel=$('search-results');
+ if(!q||q!==searchResultsQuery||!panel.childElementCount||$('search-box').classList.contains('is-searching'))return false;
+ panel.classList.add('open');
+ return true;
+}
 function googlePlacesSearchLink(query){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query)}
 function externalSearchMarkup(query,empty=false){
  return `<div class="search-external">${empty?'<div class="search-help">לא נמצאה התאמה במאגר המקומות הפתוח. מלונות ועסקים מסוימים לא מופיעים בו.</div>':''}<a href="${esc(googlePlacesSearchLink(query))}" target="_blank" rel="noopener noreferrer">${icon('external-link','small-icon')} חיפוש ״${esc(query)}״ ב־Google Maps</a><div class="search-help" style="margin:8px 1px 0">נפתח בטאב נפרד · לא נדרש מפתח API. אפשר להוסיף מקום ידנית על המפה.</div></div>`;
 }
 function paintSearchResults(choices,query){
- const panel=$('search-results');searchChoices=choices;searchFocus=-1;setSearchLoading(false);
+ const panel=$('search-results');searchChoices=choices;searchResultsQuery=query;searchFocus=-1;setSearchLoading(false);
  const credit='<div class="search-credit">תוצאות ממאגר Photon · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></div>';
  const items=choices.map((p,i)=>{
   const category=esc(p.category||'נקודה בטיול'),details=esc(p.description||'מיקום במפה');
@@ -449,14 +460,21 @@ function paintSearchResults(choices,query){
    '<span class="search-item-icon">'+icon('map-pin','small-icon')+'</span><span class="search-item-text"><strong>'+esc(p.name)+'</strong><span class="ronny-search-category">'+category+'</span><small>'+details+'</small><span class="ronny-search-coordinates" dir="ltr">'+esc(coords)+'</span></span>'+
    icon('locate-fixed','small-icon')+'</button><a class="ronny-search-verify" href="'+esc(searchPlaceGoogleLink(p))+'" target="_blank" rel="noopener noreferrer" aria-label="בדוק את '+esc(p.name)+' ב-Google Maps">'+icon('external-link','small-icon')+' בדוק ב־Google Maps</a></div>';
  }).join('');
- panel.innerHTML=(choices.length?items:'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+externalSearchMarkup(query,!choices.length)+credit;
+ panel.innerHTML=(choices.length?items+'<div class="ronny-search-retain-hint">אפשר לעבור בין התוצאות בלי לחפש מחדש.</div>':'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+externalSearchMarkup(query,!choices.length)+credit;
  panel.classList.add('open');
  panel.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>selectSearchResult(choices[+b.dataset.result]));
  refreshIcons();
 }
 function selectSearchResult(p){
  if(!p)return;
- $('place-search').value=p.name;hideSearch();
+ // Preserve the original query and full result list while inspecting candidates.
+ searchFocus=-1;
+ const index=searchChoices.indexOf(p);
+ $('search-results').querySelectorAll('[data-result]').forEach(button=>{
+  const selected=Number(button.dataset.result)===index;
+  button.classList.toggle('search-preview-active',selected);
+  button.setAttribute('aria-current',String(selected));
+ });
  showSearchPreviewMarker(p);
 }
 function ronnyLocalSearchMatches(q){
@@ -467,7 +485,8 @@ function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
  clearSearchPreviewMarker();
  const q=$('place-search').value.trim();
- if(!q){hideSearch();return}
+ if(!q){hideSearch(true);return}
+ searchResultsQuery='';searchChoices=[];searchFocus=-1;
  const local=ronnyLocalSearchMatches(q);
  if(q.length<2){
   setSearchLoading(false);
@@ -485,6 +504,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
  clearTimeout(searchDebounce);
  const q=String(overrideQuery??$('place-search').value).trim();
  if(q.length<2){setSearchLoading(false);return}
+ searchResultsQuery='';
  local=ronnyLocalSearchMatches(q);
  const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
  setSearchLoading(true);
@@ -520,7 +540,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
   if(e.name==='AbortError'||seq!==searchSeq||q!==$('place-search').value.trim())return;
   setSearchLoading(false);
   if(local.length)paintSearchResults(local,q);
-  else{$('search-results').innerHTML='<div class="search-state">שירות החיפוש הפתוח אינו זמין כרגע.</div>'+externalSearchMarkup(q,true);$('search-results').classList.add('open');refreshIcons()}
+  else{searchResultsQuery=q;$('search-results').innerHTML='<div class="search-state">שירות החיפוש הפתוח אינו זמין כרגע.</div>'+externalSearchMarkup(q,true);$('search-results').classList.add('open');refreshIcons()}
  }
 }
 function searchKeydown(e){

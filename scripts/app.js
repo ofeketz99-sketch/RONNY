@@ -4668,6 +4668,7 @@ function initMapGroupToggles(){const pane=document.querySelector('.map-pane');
 // Photon supports search-as-you-type; unlike the public Nominatim endpoint.
 let searchDebounce=null,searchController=null,searchSeq=0,searchChoices=[],searchFocus=-1;
 const searchCache=new Map();
+let searchResultsQuery='';
 // The temporary search marker belongs to the map UI, never to the saved trip.
 let searchPreviewMarker=null;
 document.addEventListener('pointerdown',event=>{
@@ -4715,13 +4716,23 @@ function showSearchPreviewMarker(p){
  // Search selection intentionally changes the map view without opening an editor.
  map.flyTo([+p.lat,+p.lng],Math.max(12,Math.min(map.getZoom(),15)),{duration:.6});
 }
-function hideSearch(){clearTimeout(searchDebounce);searchController?.abort();searchSeq++;setSearchLoading(false);$('search-results').classList.remove('open');searchFocus=-1;searchChoices=[];}
+function hideSearch(discard=false){
+ clearTimeout(searchDebounce);searchController?.abort();searchSeq++;setSearchLoading(false);
+ $('search-results').classList.remove('open');searchFocus=-1;
+ if(discard){searchChoices=[];searchResultsQuery='';}
+}
+function reopenPlaceSearchResults(){
+ const q=$('place-search').value.trim(),panel=$('search-results');
+ if(!q||q!==searchResultsQuery||!panel.childElementCount||$('search-box').classList.contains('is-searching'))return false;
+ panel.classList.add('open');
+ return true;
+}
 function googlePlacesSearchLink(query){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(query)}
 function externalSearchMarkup(query,empty=false){
  return `<div class="search-external">${empty?'<div class="search-help">לא נמצאה התאמה במאגר המקומות הפתוח. מלונות ועסקים מסוימים לא מופיעים בו.</div>':''}<a href="${esc(googlePlacesSearchLink(query))}" target="_blank" rel="noopener noreferrer">${icon('external-link','small-icon')} חיפוש ״${esc(query)}״ ב־Google Maps</a><div class="search-help" style="margin:8px 1px 0">נפתח בטאב נפרד · לא נדרש מפתח API. אפשר להוסיף מקום ידנית על המפה.</div></div>`;
 }
 function paintSearchResults(choices,query){
- const panel=$('search-results');searchChoices=choices;searchFocus=-1;setSearchLoading(false);
+ const panel=$('search-results');searchChoices=choices;searchResultsQuery=query;searchFocus=-1;setSearchLoading(false);
  const credit='<div class="search-credit">תוצאות ממאגר Photon · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></div>';
  const items=choices.map((p,i)=>{
   const category=esc(p.category||'נקודה בטיול'),details=esc(p.description||'מיקום במפה');
@@ -4730,14 +4741,21 @@ function paintSearchResults(choices,query){
    '<span class="search-item-icon">'+icon('map-pin','small-icon')+'</span><span class="search-item-text"><strong>'+esc(p.name)+'</strong><span class="ronny-search-category">'+category+'</span><small>'+details+'</small><span class="ronny-search-coordinates" dir="ltr">'+esc(coords)+'</span></span>'+
    icon('locate-fixed','small-icon')+'</button><a class="ronny-search-verify" href="'+esc(searchPlaceGoogleLink(p))+'" target="_blank" rel="noopener noreferrer" aria-label="בדוק את '+esc(p.name)+' ב-Google Maps">'+icon('external-link','small-icon')+' בדוק ב־Google Maps</a></div>';
  }).join('');
- panel.innerHTML=(choices.length?items:'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+externalSearchMarkup(query,!choices.length)+credit;
+ panel.innerHTML=(choices.length?items+'<div class="ronny-search-retain-hint">אפשר לעבור בין התוצאות בלי לחפש מחדש.</div>':'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+externalSearchMarkup(query,!choices.length)+credit;
  panel.classList.add('open');
  panel.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>selectSearchResult(choices[+b.dataset.result]));
  refreshIcons();
 }
 function selectSearchResult(p){
  if(!p)return;
- $('place-search').value=p.name;hideSearch();
+ // Preserve the original query and full result list while inspecting candidates.
+ searchFocus=-1;
+ const index=searchChoices.indexOf(p);
+ $('search-results').querySelectorAll('[data-result]').forEach(button=>{
+  const selected=Number(button.dataset.result)===index;
+  button.classList.toggle('search-preview-active',selected);
+  button.setAttribute('aria-current',String(selected));
+ });
  showSearchPreviewMarker(p);
 }
 function ronnyLocalSearchMatches(q){
@@ -4748,7 +4766,8 @@ function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
  clearSearchPreviewMarker();
  const q=$('place-search').value.trim();
- if(!q){hideSearch();return}
+ if(!q){hideSearch(true);return}
+ searchResultsQuery='';searchChoices=[];searchFocus=-1;
  const local=ronnyLocalSearchMatches(q);
  if(q.length<2){
   setSearchLoading(false);
@@ -4766,6 +4785,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
  clearTimeout(searchDebounce);
  const q=String(overrideQuery??$('place-search').value).trim();
  if(q.length<2){setSearchLoading(false);return}
+ searchResultsQuery='';
  local=ronnyLocalSearchMatches(q);
  const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
  setSearchLoading(true);
@@ -4801,7 +4821,7 @@ async function searchPlaces(overrideQuery=null,local=[]){
   if(e.name==='AbortError'||seq!==searchSeq||q!==$('place-search').value.trim())return;
   setSearchLoading(false);
   if(local.length)paintSearchResults(local,q);
-  else{$('search-results').innerHTML='<div class="search-state">שירות החיפוש הפתוח אינו זמין כרגע.</div>'+externalSearchMarkup(q,true);$('search-results').classList.add('open');refreshIcons()}
+  else{searchResultsQuery=q;$('search-results').innerHTML='<div class="search-state">שירות החיפוש הפתוח אינו זמין כרגע.</div>'+externalSearchMarkup(q,true);$('search-results').classList.add('open');refreshIcons()}
  }
 }
 function searchKeydown(e){
@@ -5234,7 +5254,7 @@ initResolutionUI();initDayNavigation();
  const descToggle=$('map-description-toggle');if(descToggle){const sync=()=>{const on=state.settings.showMapDescriptions!==false;descToggle.setAttribute('aria-pressed',String(on));descToggle.title=on?'הסתר תיאורים קבועים':'הצג תיאורים שסומנו';};sync();descToggle.addEventListener('click',()=>{state.settings.showMapDescriptions=state.settings.showMapDescriptions===false;sync();save();if(planningResolution==='outline')renderOutlineMap();else renderMarkers()})}
 $('trip-name').value=state.title;$('trip-name').onchange=()=>{state.title=$('trip-name').value.trim()||'הטיול שלי';save();renderTripDashboard()};$('trip-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.title=$('trip-name').value.trim()||'הטיול שלי';$('trip-name').value=state.title;save();$('trip-name').blur();toast('שם הטיול נשמר')}});$('start-date').value=state.startDate;$('start-date-trigger').onclick=()=>{const field=$('start-date');try{field.showPicker()}catch(e){field.focus();field.click()}};$('start-date').onchange=()=>{state.startDate=$('start-date').value||state.startDate;save();renderDays()};$('travel-mode').value=state.settings.travelMode;$('travel-mode').onchange=()=>{closeLegEditor();stopLegDrawing();state.settings.travelMode=$('travel-mode').value;invalidate();retimeAfterOrderChange(selectedDay);save();drawRoute();renderSchedule();renderMarkers()};rebuildMapOptions();
 initMapSelectClickTargets();$('map-scope').onchange=()=>{if(drawLegSession)stopLegDrawing();closeLegEditor();const requested=$('map-scope').value;wholeTripFocusSeq++;ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope=requested;selectedStop=null;renderAll();fitMap()};$('map-style').onchange=()=>setMapStyle($('map-style').value);$('panel-add').onclick=()=>openStopForm();$('fit-route').onclick=()=>{ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope='all';$('map-scope').value='all';selectedStop=null;closeLegEditor();hidePointQuick();renderAll();fitMap();};$('auto-time').onclick=autoSchedule;$('close-drawer').onclick=$('drawer-backdrop').onclick=closeDrawer;$('close-planner').onclick=showMap;
-$('search-btn').onclick=()=>searchPlaces(null,[]);$('place-search').addEventListener('input',schedulePlaceSearch);$('layer-filter-toggle').onclick=()=>toggleLayerFilterPanel('layers');$('map-outline-guide-toggle').onclick=()=>toggleLayerFilterPanel('contours');ronnyMeasureBindControls();$('photo-add').onclick=()=>{photoPlacement=null;$('photo-file').click()};$('photo-file').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;await handlePhotos(files,photoPlacement);e.target.value='';photoPlacement=null;updateMapHint()};$('route-edit-toggle').onclick=()=>{cancelPointMove();routeEdit=!routeEdit;document.querySelector('.map-pane')?.classList.remove('map-tools-expanded');$('map-tools-toggle')?.setAttribute('aria-expanded','false');if(routeEdit){quickStreetMode=false;$('street-link-mode').setAttribute('aria-pressed','false')}viewScope='day';$('map-scope').value='day';$('route-edit-toggle').setAttribute('aria-pressed',String(routeEdit));updateMapHint();renderMap()};$('street-link-mode').onclick=()=>{quickStreetMode=!quickStreetMode;hideContext();if(quickStreetMode&&googleMode)toggleGoogleCoverage();if(quickStreetMode&&routeEdit){routeEdit=false;$('route-edit-toggle').setAttribute('aria-pressed','false');renderMap()}$('street-link-mode').setAttribute('aria-pressed',String(quickStreetMode));updateMapHint();toast(quickStreetMode?'כעת לחיצה על כל נקודה במפה פותחת את Google Street View בטאב חדש — ללא מפתח API':'מצב Street View הסתיים')};$('google-coverage-toggle').onclick=toggleGoogleCoverage;$('place-search').addEventListener('keydown',searchKeydown);document.addEventListener('pointerdown',e=>{if(document.getElementById('ronny-time-dialog')?.open)return;// Allow the Leaflet map-click handler to consume the first outside click as dismissal.
+$('search-btn').onclick=()=>{if(!reopenPlaceSearchResults())searchPlaces(null,[])};$('place-search').addEventListener('input',schedulePlaceSearch);$('place-search').addEventListener('focus',reopenPlaceSearchResults);$('place-search').addEventListener('click',reopenPlaceSearchResults);$('layer-filter-toggle').onclick=()=>toggleLayerFilterPanel('layers');$('map-outline-guide-toggle').onclick=()=>toggleLayerFilterPanel('contours');ronnyMeasureBindControls();$('photo-add').onclick=()=>{photoPlacement=null;$('photo-file').click()};$('photo-file').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;await handlePhotos(files,photoPlacement);e.target.value='';photoPlacement=null;updateMapHint()};$('route-edit-toggle').onclick=()=>{cancelPointMove();routeEdit=!routeEdit;document.querySelector('.map-pane')?.classList.remove('map-tools-expanded');$('map-tools-toggle')?.setAttribute('aria-expanded','false');if(routeEdit){quickStreetMode=false;$('street-link-mode').setAttribute('aria-pressed','false')}viewScope='day';$('map-scope').value='day';$('route-edit-toggle').setAttribute('aria-pressed',String(routeEdit));updateMapHint();renderMap()};$('street-link-mode').onclick=()=>{quickStreetMode=!quickStreetMode;hideContext();if(quickStreetMode&&googleMode)toggleGoogleCoverage();if(quickStreetMode&&routeEdit){routeEdit=false;$('route-edit-toggle').setAttribute('aria-pressed','false');renderMap()}$('street-link-mode').setAttribute('aria-pressed',String(quickStreetMode));updateMapHint();toast(quickStreetMode?'כעת לחיצה על כל נקודה במפה פותחת את Google Street View בטאב חדש — ללא מפתח API':'מצב Street View הסתיים')};$('google-coverage-toggle').onclick=toggleGoogleCoverage;$('place-search').addEventListener('keydown',searchKeydown);document.addEventListener('pointerdown',e=>{if(document.getElementById('ronny-time-dialog')?.open)return;// Allow the Leaflet map-click handler to consume the first outside click as dismissal.
 // Hiding the editor here on pointerdown would make the subsequent click create an unwanted new point.
 if(!e.target.closest('#point-quick')&&!e.target.closest('.leaflet-marker-icon')&&!e.target.closest('#map')&&!e.target.closest('[data-zoom-card]'))hidePointQuick();if(!e.target.closest('#leg-editor')&&!e.target.closest('#map')&&!e.target.closest('.leg-open'))closeLegEditor();if(!e.target.closest('#layer-filter-panel')&&!e.target.closest('#layer-filter-toggle')&&!e.target.closest('#map-outline-guide-toggle'))closeLayerFilterPanel();if(!e.target.closest('#search-box'))$('search-results').classList.remove('open');if(!e.target.closest('#map-context')&&!e.target.closest('#map'))hideContext()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&savedPinPlacementId){savedPinPlacementId=null;toast('בחירת מיקום בוטלה');return}if(e.key==='Escape'&&newTripSetupDraft){newTripSetupDraft=null;updateMapHint();toast('בחירת מיקום לטיול בוטלה');return}if(e.key==='Escape'&&forcedRelocateSession){cancelForcedRelocate();return}if(e.key==='Escape'){outlineMoveModeId=null;hidePointQuick();cancelPointMove();updateMapHint();if(drawLegSession)stopLegDrawing();closeLegEditor();closeLayerFilterPanel();closeDrawer();hideContext();photoPlacement=null;homePickMode=false;updateMapHint();$('search-results').classList.remove('open')}});
 initPointTree();

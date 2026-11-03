@@ -1,0 +1,11 @@
+{
+  "version": "121",
+  "date": "2026-11-03",
+  "notes": [
+    "בחירה בתוצאת חיפוש אינה מוחקת עוד את החיפוש המקורי או את רשימת התוצאות.",
+    "אפשר לבדוק כמה תוצאות על המפה זו אחר זו ללא המתנה או חיפוש מחדש; המיקום הנבחר מסומן ברשימה.",
+    "לאחר לחיצה על המפה או על הסיכה הזמנית אפשר לחזור מיד לתוצאות בלחיצה על שורת החיפוש או על כפתור החיפוש.",
+    "הקלדת שאילתה חדשה מתחילה חיפוש חדש ומחליפה את הרשימה הקודמת."
+  ],
+  "technical": "Retain searchChoices and original search text, allow immediate dropdown reopen, invalidate only on new query. Includes Playwright regression scenarios."
+}

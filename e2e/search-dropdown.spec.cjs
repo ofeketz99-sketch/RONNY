@@ -26,7 +26,7 @@ test('map search suggestions extend below the search bar and can be selected',as
  })).toBe(true);
  await result.click();
  await expect(page.locator('#place-search')).toHaveValue('Search Test Zurich');
- await expect(page.locator('#search-results')).not.toHaveClass(/open/);
+ await expect(page.locator('#search-results')).toHaveClass(/open/);
  await expect.poll(()=>page.evaluate(()=>{
   const map=window.document.querySelector('#map');
   return !!map?.classList.contains('leaflet-container');
