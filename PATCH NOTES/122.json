@@ -1,0 +1,11 @@
+{
+  "version": "122",
+  "date": "2026-11-03",
+  "notes": [
+    "החיפוש מתעדף התאמת שמות וקרבה למרכז המפה; תוצאות רלוונטיות וקרובות מופיעות לפני מקומות רחוקים בעלי שמות דומים.",
+    "כשחיפוש ממוקד מחזיר תוצאות חלשות או רחוקות, מתבצע חיפוש עולמי משלים; התוצאות מאוחדות ללא כפילויות.",
+    "אפשר לחפש ישירות לפי קו רוחב וקו אורך, למשל 56.55806, -3.61333, ולקבל סיכה זמנית בלי שירות חיפוש.",
+    "נוספו בדיקות לשמות Hermitage, קואורדינטות, ביטול חיפוש מיותר וטיפול בכישלון חיפוש משלים."
+  ],
+  "technical": "Source: scripts/src/52-drawer-navigation.js and generated scripts/app.js. Photon 18 result limit, optional global retry for weak remote candidates, scoring by normalized name and geodesic proximity; direct coordinates and safe error handling. Browser tests mock Photon and do not prove a specific live place is in Photon index."
+}

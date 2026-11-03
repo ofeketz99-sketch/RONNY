@@ -416,8 +416,67 @@ function searchPhotonPlace(feature){
  const street=[p.street&&p.street!==p.name?p.street:null,p.street?p.housenumber:null].filter(Boolean).join(' ');
  const parts=[street,p.neighbourhood,p.suburb,p.district,p.city,p.county,p.state,p.country,p.postcode].filter(Boolean);
  const address=parts.filter((part,i)=>parts.findIndex(other=>String(other).toLocaleLowerCase()===String(part).toLocaleLowerCase())===i).join(' · ');
- return {lat:+coords[1],lng:+coords[0],name,description:address||'מיקום במפה',address,category:searchPhotonCategory(p)};
+ return {lat:+coords[1],lng:+coords[0],name,description:address||'מיקום במפה',address,category:searchPhotonCategory(p),osmRef:p.osm_id&&p.osm_type?String(p.osm_type)+':'+String(p.osm_id):null};
 }
+
+const RONNY_GEO_SEARCH_LIMIT=18;
+function ronnySearchCoordinate(q){
+ const match=String(q||'').trim().match(/^([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*(?:[,;]\s*|\s+)([+-]?(?:\d+(?:\.\d+)?|\.\d+))$/);
+ if(!match)return null;
+ const lat=+match[1],lng=+match[2];
+ if(!Number.isFinite(lat)||!Number.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return {invalid:true};
+ return {lat,lng,name:lat+', '+lng,description:'מיקום ישיר לפי קואורדינטות',category:'קואורדינטות',coordinateSearch:true};
+}
+function ronnySearchNormalize(value){
+ return String(value||'').normalize('NFKD').replace(/[\u0300-\u036f\u0591-\u05c7]/g,'').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim().replace(/^(?:the|a|an)\s+/,'');
+}
+function ronnySearchNameScore(q,p){
+ const needle=ronnySearchNormalize(q),name=ronnySearchNormalize(p.name);
+ if(!needle||!name)return 0;
+ if(name===needle)return 1;
+ if(name.startsWith(needle+' ')||name.endsWith(' '+needle))return .88;
+ if(name.includes(needle))return .76;
+ const parts=needle.split(' ').filter(Boolean),full=name+' '+ronnySearchNormalize(p.description);
+ const matches=parts.filter(word=>full.split(' ').some(x=>x===word)).length;
+ const inName=parts.filter(word=>name.split(' ').includes(word)).length;
+ return .54*(inName/parts.length)+.32*(matches/parts.length);
+}
+function ronnySearchDistanceKm(p,center){
+ if(!center||!Number.isFinite(+center.lat)||!Number.isFinite(+center.lng))return Infinity;
+ const a=+center.lat*Math.PI/180,b=+p.lat*Math.PI/180,d=(+p.lat-+center.lat)*Math.PI/180,e=(+p.lng-+center.lng)*Math.PI/180;
+ const h=Math.sin(d/2)**2+Math.cos(a)*Math.cos(b)*Math.sin(e/2)**2;
+ return 12742*Math.atan2(Math.sqrt(Math.min(1,h)),Math.sqrt(Math.max(0,1-h)));
+}
+function ronnySearchShouldExpand(q,results,center){
+ if(!results.length)return true;
+ if(!center)return false; // Without a map center the initial lookup is already global.
+ const candidates=results.map(p=>({name:ronnySearchNameScore(q,p),distance:ronnySearchDistanceKm(p,center)}));
+ if(candidates.some(p=>p.name>=.95&&p.distance<=35))return false;
+ if(candidates.some(p=>p.name>=.85&&p.distance<=35)&&results.length>=4)return false;
+ if(candidates.every(p=>p.distance>120))return true;
+ if(candidates.every(p=>p.name<.66))return true;
+ return results.length<=5&&!candidates.some(p=>p.name>=.85&&p.distance<=70);
+}
+function ronnyRankSearchResults(q,items,center){
+ const seen=new Set();
+ return items.filter(p=>{
+  if(!Number.isFinite(+p.lat)||!Number.isFinite(+p.lng))return false;
+  const key=p.osmRef||ronnySearchNormalize(p.name)+'|'+Number(p.lat).toFixed(4)+'|'+Number(p.lng).toFixed(4);
+  if(seen.has(key))return false;
+  seen.add(key);return true;
+ }).map((p,index)=>{
+  const d=ronnySearchDistanceKm(p,center);
+  const near=Number.isFinite(d)?d<5?.52:d<25?.38:d<75?.23:d<200?.1:0:0;
+  return {p,index,score:ronnySearchNameScore(q,p)+near+(p.localTripPoint?.16:0),distance:d};
+ }).sort((a,b)=>b.score-a.score||a.distance-b.distance||a.index-b.index).map(x=>x.p);
+}
+function ronnySearchInvalidCoordinates(q){
+ const panel=$('search-results');
+ searchChoices=[];searchResultsQuery=q;searchFocus=-1;setSearchLoading(false);
+ panel.innerHTML='<div class="search-state">קואורדינטות לא תקינות. קו רוחב חייב להיות בין ‎-90 ל־90, וקו אורך בין ‎-180 ל־180.</div>';
+ panel.classList.add('open');
+}
+
 function searchPlaceGoogleLink(p){
  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.lat+','+p.lng);
 }
@@ -452,7 +511,7 @@ function externalSearchMarkup(query,empty=false){
 }
 function paintSearchResults(choices,query){
  const panel=$('search-results');searchChoices=choices;searchResultsQuery=query;searchFocus=-1;setSearchLoading(false);
- const credit='<div class="search-credit">תוצאות ממאגר Photon · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></div>';
+ const credit=choices.some(p=>p.coordinateSearch)?'<div class="search-credit">קואורדינטות שהוזנו · ללא שירות חיפוש</div>':'<div class="search-credit">תוצאות ממאגר Photon · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a></div>';
  const items=choices.map((p,i)=>{
   const category=esc(p.category||'נקודה בטיול'),details=esc(p.description||'מיקום במפה');
   const coords=Number(p.lat).toFixed(5)+', '+Number(p.lng).toFixed(5);
@@ -460,7 +519,7 @@ function paintSearchResults(choices,query){
    '<span class="search-item-icon">'+icon('map-pin','small-icon')+'</span><span class="search-item-text"><strong>'+esc(p.name)+'</strong><span class="ronny-search-category">'+category+'</span><small>'+details+'</small><span class="ronny-search-coordinates" dir="ltr">'+esc(coords)+'</span></span>'+
    icon('locate-fixed','small-icon')+'</button><a class="ronny-search-verify" href="'+esc(searchPlaceGoogleLink(p))+'" target="_blank" rel="noopener noreferrer" aria-label="בדוק את '+esc(p.name)+' ב-Google Maps">'+icon('external-link','small-icon')+' בדוק ב־Google Maps</a></div>';
  }).join('');
- panel.innerHTML=(choices.length?items+'<div class="ronny-search-retain-hint">אפשר לעבור בין התוצאות בלי לחפש מחדש.</div>':'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+externalSearchMarkup(query,!choices.length)+credit;
+ panel.innerHTML=(choices.length?items+'<div class="ronny-search-retain-hint">אפשר לעבור בין התוצאות בלי לחפש מחדש.</div>':'<div class="search-state">לא נמצאו התאמות במאגר המקומות הפתוח. אפשר להמשיך בחיפוש ב־Google Maps.</div>')+(choices.some(p=>p.coordinateSearch)?'':externalSearchMarkup(query,!choices.length))+credit;
  panel.classList.add('open');
  panel.querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>selectSearchResult(choices[+b.dataset.result]));
  refreshIcons();
@@ -479,7 +538,7 @@ function selectSearchResult(p){
 }
 function ronnyLocalSearchMatches(q){
  const normalized=q.toLocaleLowerCase();
- return state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng}));
+ return state.days.flatMap(d=>d.stops).filter(p=>validPoint(p)&&p.name?.toLocaleLowerCase().includes(normalized)).slice(0,5).map(p=>({name:p.name,description:'נקודה מהטיול שלך',lat:+p.lat,lng:+p.lng,localTripPoint:true}));
 }
 function schedulePlaceSearch(){
  clearTimeout(searchDebounce);searchController?.abort();searchSeq++;
@@ -487,6 +546,12 @@ function schedulePlaceSearch(){
  const q=$('place-search').value.trim();
  if(!q){hideSearch(true);return}
  searchResultsQuery='';searchChoices=[];searchFocus=-1;
+ const coordinate=ronnySearchCoordinate(q);
+ if(coordinate){
+  if(coordinate.invalid)ronnySearchInvalidCoordinates(q);
+  else paintSearchResults([coordinate],q);
+  return;
+ }
  const local=ronnyLocalSearchMatches(q);
  if(q.length<2){
   setSearchLoading(false);
@@ -505,37 +570,49 @@ async function searchPlaces(overrideQuery=null,local=[]){
  const q=String(overrideQuery??$('place-search').value).trim();
  if(q.length<2){setSearchLoading(false);return}
  searchResultsQuery='';
+ const seq=++searchSeq;searchController?.abort();
+ const coordinate=ronnySearchCoordinate(q);
+ if(coordinate){
+  if(coordinate.invalid)ronnySearchInvalidCoordinates(q);
+  else paintSearchResults([coordinate],q);
+  return;
+ }
  local=ronnyLocalSearchMatches(q);
- const seq=++searchSeq;searchController?.abort();searchController=new AbortController();
+ searchController=new AbortController();
+ const signal=searchController.signal;
  setSearchLoading(true);
  $('search-results').innerHTML='<div class="search-state search-loading" role="status"><span class="ronny-search-spinner" aria-hidden="true"></span> מחפש מקומות…</div>'+externalSearchMarkup(q);
  $('search-results').classList.add('open');
  try{
   const near=map?.getCenter();
-  const bucket=near&&Number.isFinite(near.lat)&&Number.isFinite(near.lng)
-   ?Math.round(near.lat*5)/5+','+Math.round(near.lng*5)/5:'global';
+  const hasCenter=near&&Number.isFinite(near.lat)&&Number.isFinite(near.lng);
+  const bucket=hasCenter?Math.round(near.lat*5)/5+','+Math.round(near.lng*5)/5:'global';
   const cacheKey=q.toLocaleLowerCase()+'|'+bucket;
   let results=searchCache.get(cacheKey);
   if(!results){
-   const params=new URLSearchParams({q,limit:'9'});
-   if(near){params.set('lat',near.lat.toFixed(5));params.set('lon',near.lng.toFixed(5));}
-   const res=await fetch('https://photon.komoot.io/api/?'+params.toString(),{signal:searchController.signal,headers:{Accept:'application/json'}});
-   if(!res.ok)throw Error('שירות החיפוש אינו זמין');
-   const json=await res.json();
-   results=(json.features||[]).filter(f=>f.geometry?.coordinates?.length===2&&f.geometry.coordinates.every(Number.isFinite)).map(searchPhotonPlace);
-   if(!results.length&&q.length>=5){
+   const fetchPhoton=async biased=>{
+    const params=new URLSearchParams({q,limit:String(RONNY_GEO_SEARCH_LIMIT)});
+    if(biased&&hasCenter){params.set('lat',near.lat.toFixed(5));params.set('lon',near.lng.toFixed(5));params.set('zoom','10');}
+    const response=await fetch('https://photon.komoot.io/api/?'+params.toString(),{signal,headers:{Accept:'application/json'}});
+    if(!response.ok)throw Error('שירות החיפוש אינו זמין');
+    const json=await response.json();
+    return (json.features||[]).filter(f=>f.geometry?.coordinates?.length===2&&f.geometry.coordinates.every(Number.isFinite)).map(searchPhotonPlace);
+   };
+   results=await fetchPhoton(!!hasCenter);
+   // Poor or remote biased results must not prevent a second, world-wide search.
+   if(hasCenter&&ronnySearchShouldExpand(q,results,near)){
     try{
-     const globalParams=new URLSearchParams({q,limit:'9',lang:'en'});
-     const alternate=await fetch('https://photon.komoot.io/api/?'+globalParams.toString(),{signal:searchController.signal,headers:{Accept:'application/json'}});
-     if(alternate.ok){const alt=await alternate.json();results=(alt.features||[]).filter(f=>f.geometry?.coordinates?.length===2&&f.geometry.coordinates.every(Number.isFinite)).map(searchPhotonPlace)}
-    }catch(retryError){if(retryError.name==='AbortError')throw retryError}
+     const global=await fetchPhoton(false);
+     results=results.concat(global);
+    }catch(retryError){if(retryError.name==='AbortError')throw retryError; /* Keep valid first-pass results. */}
    }
-   if(searchCache.size>=40)searchCache.delete(searchCache.keys().next().value);
-   searchCache.set(cacheKey,results);
+   if(!signal.aborted){
+    if(searchCache.size>=40)searchCache.delete(searchCache.keys().next().value);
+    searchCache.set(cacheKey,results);
+   }
   }
   if(seq!==searchSeq||q!==$('place-search').value.trim())return;
-  const unique=new Set();
-  paintSearchResults([...local,...results].filter(p=>{const key=p.name+'|'+p.lat.toFixed(4)+'|'+p.lng.toFixed(4);if(unique.has(key))return false;unique.add(key);return true}).slice(0,9),q);
+  paintSearchResults(ronnyRankSearchResults(q,[...local,...results],near).slice(0,15),q);
  }catch(e){
   if(e.name==='AbortError'||seq!==searchSeq||q!==$('place-search').value.trim())return;
   setSearchLoading(false);
