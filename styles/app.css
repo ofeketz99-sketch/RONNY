@@ -1317,7 +1317,7 @@ body.ronny-no-times .planner #auto-time{display:none!important}
   border-radius:16px;
   border:1px solid #dde7ed;
   box-shadow:0 10px 26px #17384c1c;
-  overflow:hidden;
+  overflow:visible; /* Keep autocomplete suggestions outside the 48px input bar. */
   display:flex;
   align-items:stretch;
   gap:0;

@@ -1,0 +1,9 @@
+{
+  "version": "119",
+  "date": "2026-11-03",
+  "notes": [
+    "תוקנה תצוגת תוצאות החיפוש במפה: הרשימה נפתחת מתחת לשורת החיפוש ואינה נחתכת בגבולותיה.",
+    "נוספו בדיקות דפדפן לתצוגה ולבחירה בתוצאות ולחלופת החיפוש בגוגל מפות."
+  ],
+  "technical": "Focused CSS overflow correction in styles/app.css; added deterministic Photon-mocked Playwright search regressions. No changes to search routing, map geometry or trip data."
+}
