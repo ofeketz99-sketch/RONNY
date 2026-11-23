@@ -52,8 +52,8 @@ function routeTimeTextForLeg(index,arr=stops()){
  return depart&&arrive?`${depart} → ${arrive}`:'';
 }
 function markerVisibleForStop(stop){
- if(stop?.type==='idea')return layerOn('ideas');
- if(stop?.type==='note')return layerOn('notes');
+ if(isIdeaPoint(stop))return layerOn('ideas');
+ if(stop?.type==='note'&&isMapOnlyPoint(stop))return layerOn('notes');
  if(isMapOnlyPoint(stop))return layerOn('poi');
  return layerOn('routeStops');
 }

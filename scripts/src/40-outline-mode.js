@@ -303,7 +303,7 @@ function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggl
  }
  renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
-function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save();ronnyRememberWorkspace()}
+function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save();ronnyRememberWorkspace()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
 function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
 function selectDay(i){if(i<0||i>=state.days.length)return;

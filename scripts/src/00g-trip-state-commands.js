@@ -65,6 +65,6 @@ function planRouteStep(arr,id,delta){
 function renumberGenericDayLabels(trip){
  trip.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
 }
-function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const linked=isDayView?synchronizeDayStarts():false;const loopLinked=synchronizeLoopDays();const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
+function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const linked=isDayView?synchronizeDayStarts():false;const loopLinked=synchronizeLoopDays();const nightLinked=isDayView&&synchronizeNightIdentity?synchronizeNightIdentity():false;const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||nightLinked||chronoLinked)}
 return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,routeUnits,planRouteSwap,planRouteStep,renumberGenericDayLabels,synchronizeForRender});
 })();

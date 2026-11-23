@@ -376,3 +376,78 @@ body.ronny-no-times #planner #schedule .drive-note:before{display:none!important
  #planner .panel-head h2{margin:0!important;font-size:15px!important;line-height:1.2!important}
  #planner #close-planner{width:30px!important;height:30px!important;min-height:0!important;padding:0!important}
 }
+
+/* Role, category and overnight model (patch 126) */
+:root{--rx-night:#3f4a7a;--rx-night-soft:#e9ebf6;--rx-transfer:#b4532a;--rx-transfer-soft:#fbeee6;--rx-idea:#8a6804;--rx-idea-soft:#fbf3d6}
+.ronny-role-chip{display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;height:17px;padding:0 6px;border-radius:999px;background:var(--rx-surface-3);color:var(--rx-ink-2);font-size:10px;font-weight:700;line-height:1;white-space:nowrap}
+.ronny-role-chip svg{width:10px!important;height:10px!important;flex:none}
+.ronny-role-chip.role-stop{background:var(--rx-accent-soft);color:var(--rx-accent-strong)}
+.ronny-role-chip.role-side{background:#e8eef3;color:#3f5a70}
+.ronny-role-chip.role-idea{background:var(--rx-idea-soft);color:var(--rx-idea)}
+.ronny-role-chip.role-night{background:var(--rx-night-soft);color:var(--rx-night)}
+.ronny-role-chip.role-walk{background:#e2efe9;color:#2f6b55}
+#planner #schedule .stop-secondary>.ronny-role-chip{flex:0 0 auto!important;overflow:visible!important}
+#planner #schedule .ronny-side-copy small .ronny-role-chip{height:15px;margin-inline-end:4px;vertical-align:1px}
+#planner #schedule .ronny-side-schedule{flex:0 0 auto!important;display:inline-flex!important;align-items:center!important;gap:3px!important;height:24px!important;padding:0 7px!important;border:1px solid var(--rx-line-strong)!important;border-radius:var(--rx-r-s)!important;background:var(--rx-card)!important;color:var(--rx-accent-strong)!important;font-size:11px!important;font-weight:700!important;cursor:pointer!important}
+#planner #schedule .ronny-side-schedule:hover{background:var(--rx-accent-soft)!important;border-color:var(--rx-accent)!important}
+#planner #schedule .ronny-side-schedule svg{width:12px!important;height:12px!important}
+
+#planner #days .ronny-day-link{flex:0 0 22px!important;align-self:center!important;display:grid!important;place-items:center!important;width:22px!important;height:22px!important;margin:0 -2px!important;padding:0!important;border:1px solid transparent!important;border-radius:50%!important;cursor:pointer!important;z-index:1}
+#planner #days .ronny-day-link svg{width:13px!important;height:13px!important}
+#planner #days .ronny-day-link.is-night{background:var(--rx-night-soft)!important;color:var(--rx-night)!important;border-color:#cfd3ea!important}
+#planner #days .ronny-day-link.is-transfer{background:var(--rx-transfer-soft)!important;color:var(--rx-transfer)!important;border-color:#e9b99f!important;border-style:dashed!important}
+#planner #days .ronny-day-link:hover{filter:brightness(.95)}
+#planner #schedule .ronny-link-band{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;margin:0 0 6px!important;padding:6px 9px!important;border:1px dashed #e0a688!important;border-radius:var(--rx-r-m)!important;background:var(--rx-transfer-soft)!important;color:var(--rx-transfer)!important;text-align:start!important;cursor:pointer!important}
+#planner #schedule .ronny-link-band>span{flex:1 1 auto!important;min-width:0!important}
+#planner #schedule .ronny-link-band strong{display:block!important;font-size:12px!important;line-height:1.3!important}
+#planner #schedule .ronny-link-band small{display:block!important;font-size:10.5px!important;line-height:1.25!important;color:#7d4a31!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#planner #schedule .ronny-link-band svg{flex:none!important;width:14px!important;height:14px!important}
+
+.ronny-night-badge,.ronny-transfer-badge{position:absolute;top:-7px;inset-inline-start:-5px;z-index:3;display:grid;place-items:center;width:17px;height:17px;border:1.5px solid #fff;border-radius:50%;background:var(--rx-night);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);pointer-events:none}
+.ronny-transfer-badge{background:var(--rx-transfer)}
+.ronny-night-badge svg,.ronny-transfer-badge svg{width:10px!important;height:10px!important}
+.ronny-transfer-map-badge{display:grid;place-items:center;width:26px;height:26px;border:2px solid #fff;border-radius:50%;background:var(--rx-transfer);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+.ronny-transfer-map-badge svg{width:14px!important;height:14px!important}
+
+#point-quick .point-quick-form{grid-auto-rows:max-content!important}
+/* Older rules pin fields to fixed rows, which would push the role below them. */
+#point-quick .point-quick-form>*{grid-row:auto!important}
+#point-quick .point-quick-form>.ronny-role-field{order:-30!important}
+#point-quick .point-quick-form>.ronny-night-card,#point-quick .point-quick-form>.ronny-transfer-card{order:-29!important}
+#point-quick .point-quick-form>.ronny-role-field,#point-quick .point-quick-form>.ronny-night-card,#point-quick .point-quick-form>.ronny-transfer-card{grid-column:1/-1!important;min-width:0}
+#point-quick .ronny-role-field{display:grid;gap:4px;margin:0}
+#point-quick .ronny-role-field.is-fixed{grid-template-columns:auto auto 1fr;align-items:center;gap:6px}
+#point-quick .ronny-role-title{font-size:11.5px;font-weight:700;color:var(--rx-ink-2)}
+#point-quick .ronny-role-field small{font-size:10.5px;line-height:1.3;color:var(--rx-ink-3)}
+#point-quick .ronny-role-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:2px;border-radius:var(--rx-r-s);background:var(--rx-surface-3)}
+#point-quick .ronny-role-options button{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:29px;padding:2px 3px;border:0;border-radius:5px;background:transparent;color:var(--rx-ink-2);font-size:11px;font-weight:650;line-height:1.1;cursor:pointer}
+#point-quick .ronny-role-options button svg{flex:none;width:12px;height:12px}
+#point-quick .ronny-role-options button:hover{background:rgba(255,255,255,.65)}
+#point-quick .ronny-role-options button.selected{background:var(--rx-card);color:var(--rx-accent-strong);box-shadow:var(--rx-shadow-1)}
+#point-quick .ronny-night-card,#point-quick .ronny-transfer-card{display:grid;gap:6px;margin:0;padding:7px 9px;border:1px solid #cfd3ea;border-radius:var(--rx-r-m);background:var(--rx-night-soft)}
+#point-quick .ronny-transfer-card{border:1px dashed #e0a688;background:var(--rx-transfer-soft)}
+#point-quick .ronny-night-card header,#point-quick .ronny-transfer-card header{display:flex;align-items:flex-start;gap:6px;color:var(--rx-night)}
+#point-quick .ronny-transfer-card header{color:var(--rx-transfer)}
+#point-quick .ronny-night-card header svg,#point-quick .ronny-transfer-card header svg{flex:none;width:15px;height:15px;margin-top:1px}
+#point-quick .ronny-night-card strong,#point-quick .ronny-transfer-card strong{display:block;font-size:12px;line-height:1.3}
+#point-quick .ronny-night-card header small,#point-quick .ronny-transfer-card header small{display:block;font-size:10.5px;line-height:1.3;color:var(--rx-ink-2)}
+#point-quick .ronny-night-times{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#point-quick .ronny-night-times span{display:flex;align-items:baseline;justify-content:space-between;gap:4px;padding:3px 6px;border-radius:5px;background:rgba(255,255,255,.7);font-size:10.5px;color:var(--rx-ink-2)}
+#point-quick .ronny-night-times b{font-size:12px;color:var(--rx-ink);direction:ltr}
+#point-quick .ronny-night-cost{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:650;color:var(--rx-ink-2)}
+#point-quick .ronny-night-cost input{width:92px;height:28px;padding:0 6px;border:1px solid var(--rx-line-strong);border-radius:5px;background:#fff}
+#point-quick .ronny-night-conflict{margin:0;padding:4px 6px;border-radius:5px;background:var(--rx-idea-soft);color:#6b5203;font-size:10.5px;line-height:1.35}
+#point-quick .ronny-transfer-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#point-quick .ronny-transfer-fields label{display:grid;gap:2px;min-width:0;font-size:10.5px;font-weight:650;color:var(--rx-ink-2)}
+#point-quick .ronny-transfer-fields select,#point-quick .ronny-transfer-fields input{width:100%;min-width:0;height:28px;padding:0 5px;border:1px solid var(--rx-line-strong);border-radius:5px;background:#fff;font-size:11.5px}
+#point-quick .ronny-night-break{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:27px;padding:2px 7px;border:1px solid rgba(63,74,122,.28);border-radius:5px;background:rgba(255,255,255,.75);color:var(--rx-ink-2);font-size:11px;font-weight:650;cursor:pointer}
+#point-quick .ronny-night-break:hover{background:#fff}
+#point-quick .ronny-night-break svg{width:12px;height:12px}
+
+#map-context .tree-role-choice{display:grid;gap:3px;padding:5px 9px 6px;border-bottom:1px solid var(--rx-line)}
+#map-context .tree-role-choice>span{font-size:11px;font-weight:700;color:var(--rx-ink-2)}
+#map-context .tree-role-choice>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+#map-context .tree-role-choice button{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:27px;padding:2px;border:1px solid var(--rx-line-strong);border-radius:5px;background:var(--rx-card);color:var(--rx-ink-2);font-size:10.5px;font-weight:650;line-height:1.1;cursor:pointer}
+#map-context .tree-role-choice button svg{flex:none;width:11px;height:11px}
+#map-context .tree-role-choice button.selected{border-color:var(--rx-accent);background:var(--rx-accent-soft);color:var(--rx-accent-strong)}
+#map-context .tree-role-choice small{font-size:10px;color:var(--rx-ink-3)}

@@ -1,0 +1,12 @@
+{
+  "version": "126",
+  "date": "2026-11-23",
+  "notes": [
+    "לכל נקודה יש עכשיו תפקיד וקטגוריה בנפרד: עצירה בלו״ז, נקודת צד או רעיון, לצד אוכל, טבע, צילום, דלק, חניה ועוד.",
+    "מסעדה עוברת בלחיצה אחת בין עצירה מתוזמנת לנקודת צד, ושומרת שם, מיקום, אייקון, עלות והערות.",
+    "לינה היא מקום אחד לשני ימים: סמן אחד, עריכה אחת של שם, מיקום ועלות, וספירה אחת בתקציב וברשימת הלינות.",
+    "נוסף מצב גלוי של מעבר בין ימים (טיסה, מעבורת לילה, רכבת, החזרת רכב) עם סימון שרשרת שבורה ברצף הימים, בלוח הזמנים ובמפה.",
+    "מחיקת יום כבר לא מזיזה את התחלת היום הבא. הפער מוצג במקום זאת."
+  ],
+  "technical": "Adds scripts/src/00k-trip-model.js (TripModel). type remains the saved category; optional stop.role is stored only when it differs from the category default. Nights are derived from the existing end/start pair; optional start.dayTransfer records a labelled gap. No destructive migration. Equal amounts on one night count once; different amounts are kept, summed and flagged. Firefox not tested."
+}

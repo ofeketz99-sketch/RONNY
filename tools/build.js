@@ -15,6 +15,7 @@ const parts=[
   "00h-route-geometry",
   "00i-routing-service",
   "00j-route-plan",
+  "00k-trip-model",
   "00-initial-state",
   "05-storage-trips",
   "10-days-groups",
