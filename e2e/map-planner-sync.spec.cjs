@@ -21,6 +21,7 @@ test('clicking map markers keeps exactly one matching schedule card highlighted'
  const via=page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="via"]');
  const origin=page.locator('#map .leaflet-marker-icon[data-ronny-stop-id="origin"]');
  await expect(via).toBeVisible();
+ await page.waitForTimeout(1200); // The first trip fit must settle before opening an editor.
  await via.click();
  await expect(page.locator('#point-quick')).toHaveClass(/open/);
  await expect(page.locator('#schedule .stop.focused')).toHaveCount(1);

@@ -337,8 +337,12 @@ function firstEntityFocusPositions(days){
  const nearbyLimitKm=Math.max(35,Math.min(100,spread*1.5));
  return planned.concat(mapOnly.filter(p=>planned.some(anchor=>kmBetween(anchor,p)<=nearbyLimitKm)));
 }
+let ronnyFitRequest=0;
 function fitMap(){
  if(!map)return;
+ // Leaflet silently ignores a new zoom during a zoom animation. Keep only the latest request.
+ const fitRequest=++ronnyFitRequest;
+ if(map._animatingZoom){map.once('zoomend',()=>{if(fitRequest===ronnyFitRequest)fitMap()});return}
  if(planningResolution!=='day'){fitOutlineMap();return}
  // All other days, stages and the full-trip view retain their existing fit.
  const days=ronnyVisibleDayIndices(),firstGroup=ronnyDayGroups()[0];

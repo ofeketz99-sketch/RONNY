@@ -248,12 +248,23 @@ function walkRetraceSegments(arr,shapes){
  }
  return {outbound,returns};
 }
+// Shifts a projected path sideways by a constant screen distance. Direction is read
+// from points at least minSpan pixels away, so dense vertices cannot create spikes.
+function offsetScreenPath(points,pixels,minSpan=4,maxLook=24){
+ return points.map((point,i)=>{
+  let a=i,b=i;
+  while(a>0&&i-a<maxLook&&Math.hypot(points[a].x-point.x,points[a].y-point.y)<minSpan)a--;
+  while(b<points.length-1&&b-i<maxLook&&Math.hypot(points[b].x-point.x,points[b].y-point.y)<minSpan)b++;
+  const dx=points[b].x-points[a].x,dy=points[b].y-points[a].y,length=Math.hypot(dx,dy);
+  return length?{x:point.x-dy*pixels/length,y:point.y+dx*pixels/length}:{x:point.x,y:point.y};
+ });
+}
 function ronnyMeasureMeters(points,kmBetween){
  let total=0;
  for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
  return total;
 }
-return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters,walkRetraceSegments});
+return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters,walkRetraceSegments,offsetScreenPath});
 })();
 // Routing network boundary. fetch and AbortSignal are supplied by the caller.
 const RoutingService=(()=>{
@@ -2197,28 +2208,34 @@ function addDrawPointOnLine(index,location){
  leg.path.splice(at,0,[+location.lat.toFixed(6),+location.lng.toFixed(6)]);
  save();drawRoute();renderViaHandles();toast('נוספה נקודת שרטוט. גרור אותה כדי לדייק את התוואי.');
 }
-function ronnyRetraceShift(coords,pixels=3.4){
- if(!map||!Array.isArray(coords)||coords.length<2)return coords;
- return coords.map((point,i)=>{
-  const prev=coords[Math.max(0,i-1)],next=coords[Math.min(coords.length-1,i+1)];
-  const p=map.latLngToLayerPoint(point),a=map.latLngToLayerPoint(prev),b=map.latLngToLayerPoint(next);
-  const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1;
-  const shifted=map.layerPointToLatLng(L.point(p.x-dy*pixels/length,p.y+dx*pixels/length));
-  return [shifted.lat,shifted.lng];
+// Keeps outbound and return lines a constant distance apart at every zoom.
+// The offset is applied whenever Leaflet projects the line; route geometry never changes.
+let RonnyRetraceLine=null;
+function ronnyRetracePolyline(coords,options,pixels=3.4){
+ RonnyRetraceLine=RonnyRetraceLine||L.Polyline.extend({
+  _projectLatlngs(latlngs,result,bounds){
+   if(!latlngs.length||!(latlngs[0] instanceof L.LatLng))return L.Polyline.prototype._projectLatlngs.call(this,latlngs,result,bounds);
+   const origin=this._map.getPixelOrigin();
+   const raw=latlngs.map(latlng=>{const p=this._map.project(latlng);return {x:p.x-origin.x,y:p.y-origin.y}});
+   const ring=RouteGeometry.offsetScreenPath(raw,this.options.ronnyOffsetPx).map(p=>L.point(p.x,p.y));
+   ring.forEach(p=>bounds.extend(p));
+   result.push(ring);
+  }
  });
+ return new RonnyRetraceLine(coords,{...options,ronnyOffsetPx:pixels});
 }
 function drawLegLine(coords,mode,index,unavailable=false,retraceRole=null){
  const current=stops(),point=current[index];
  if(point?.type==='walkStart')return;
  const walkingAccess=point?.type==='walkStart';const unverified=!!unavailable||!!point?.leg?.walkRetraceUnverified;
  if(!Array.isArray(coords)||coords.length<2)return;
- if(retraceRole)coords=ronnyRetraceShift(coords);
+ const visibleLine=(path,lineOptions)=>retraceRole?ronnyRetracePolyline(path,lineOptions):L.polyline(path,lineOptions);
  const color=retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(point,selectedDay),index),showLine=layerOn('routeLines');
  paintedLegCoordinates.set(index,coords);
  if(showLine){
   const options={color:unverified?'#998d77':color,weight:unverified?3:mode==='straight'?3:5,opacity:unverified?.72:.98,dashArray:unverified?'4 9':walkingAccess?'5 8':mode==='straight'?'7 9':undefined,lineCap:'round',interactive:false,className:'leg-map-path'+(unverified?' leg-route-unverified':'')+(retraceRole?' ronny-retrace-'+retraceRole:'')};
-  L.polyline(coords,{color:'#fff8ec',weight:mode==='straight'?6:9,opacity:.94,interactive:false}).addTo(routeLayer);
-  L.polyline(coords,options).addTo(routeLayer);
+  visibleLine(coords,{color:'#fff8ec',weight:mode==='straight'?6:9,opacity:.94,interactive:false}).addTo(routeLayer);
+  visibleLine(coords,options).addTo(routeLayer);
   const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:0.002,lineCap:'round',lineJoin:'round',interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
   hit.on('mouseover',()=>spotlightLeg(index));
   hit.on('mouseout',()=>spotlightLeg(index,false));
@@ -2338,6 +2355,9 @@ function renderDrawVertices(){
   const include=(x,y)=>{x=clamp(x,margin,maxX);y=clamp(y,margin,maxY);candidates.set(Math.round(x)+','+Math.round(y),{x,y,w,h})};
   include(xClick+near,yClick+near);include(xClick-w-near,yClick-h-near);
   for(const x of xValues)for(const y of yValues)include(x,y);
+  // Also try positions just beside the closest markers, so the editor can leave them clickable.
+  const closestMarkers=[...features.markers].sort((a,b)=>Math.hypot(a.x-xClick,a.y-yClick)-Math.hypot(b.x-xClick,b.y-yClick)).slice(0,8);
+  for(const marker of closestMarkers)for(const x of [marker.x+24,marker.x-w-24])for(const y of yValues)include(x,y);
   let best=null,bestCost=Infinity;
   for(const r of candidates.values()){
    // Distance is only a tie-breaker: visible points and controls have priority.
@@ -3663,11 +3683,11 @@ function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
  const stageOverview=ronnyStageOverviewMode();
  const color=stageOverview?(ronnyGroupColorForDay(di)||routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index)):
   retraceRole==='outbound'?'#2d8071':retraceRole==='return'?'#c38b47':routeDisplayColor(pointColor(state.days[di]?.stops[index],di),di*11+index);
- const visual=retraceRole&&!stageOverview?ronnyRetraceShift(coords):coords;
+ const visibleLine=(path,options)=>retraceRole&&!stageOverview?ronnyRetracePolyline(path,options):L.polyline(path,options);
  if(layerOn('routeLines')){
-  L.polyline(visual,{color:'#fffaf0',weight:stageOverview?9:8,opacity:stageOverview?1:.9,interactive:false,dashArray:mode==='straight'?'9 7':undefined,lineCap:'round',lineJoin:'round'}).addTo(routeLayer);
-  L.polyline(visual,{color,weight:stageOverview?5.4:4.6,dashArray:stageOverview?(mode==='straight'?'9 7':undefined):(mode==='straight'?'8 9':mode==='auto'?'7 8':undefined),opacity:1,interactive:false,lineCap:'round',lineJoin:'round',className:retraceRole?'ronny-retrace-'+retraceRole:''}).addTo(routeLayer);
-  const hit=L.polyline(visual,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
+  visibleLine(coords,{color:'#fffaf0',weight:stageOverview?9:8,opacity:stageOverview?1:.9,interactive:false,dashArray:mode==='straight'?'9 7':undefined,lineCap:'round',lineJoin:'round'}).addTo(routeLayer);
+  visibleLine(coords,{color,weight:stageOverview?5.4:4.6,dashArray:stageOverview?(mode==='straight'?'9 7':undefined):(mode==='straight'?'8 9':mode==='auto'?'7 8':undefined),opacity:1,interactive:false,lineCap:'round',lineJoin:'round',className:retraceRole?'ronny-retrace-'+retraceRole:''}).addTo(routeLayer);
+  const hit=L.polyline(coords,{color:'#ffffff',weight:34,opacity:.002,interactive:true,bubblingMouseEvents:false,className:'leg-hit-target'}).addTo(routeLayer);
   hit.on('click',e=>{
    if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
    selectedDay=di;viewScope='day';$('map-scope').value='day';selectedStop=null;
@@ -4125,8 +4145,12 @@ function firstEntityFocusPositions(days){
  const nearbyLimitKm=Math.max(35,Math.min(100,spread*1.5));
  return planned.concat(mapOnly.filter(p=>planned.some(anchor=>kmBetween(anchor,p)<=nearbyLimitKm)));
 }
+let ronnyFitRequest=0;
 function fitMap(){
  if(!map)return;
+ // Leaflet silently ignores a new zoom during a zoom animation. Keep only the latest request.
+ const fitRequest=++ronnyFitRequest;
+ if(map._animatingZoom){map.once('zoomend',()=>{if(fitRequest===ronnyFitRequest)fitMap()});return}
  if(planningResolution!=='day'){fitOutlineMap();return}
  // All other days, stages and the full-trip view retain their existing fit.
  const days=ronnyVisibleDayIndices(),firstGroup=ronnyDayGroups()[0];

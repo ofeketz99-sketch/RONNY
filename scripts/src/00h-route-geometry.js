@@ -57,10 +57,21 @@ function walkRetraceSegments(arr,shapes){
  }
  return {outbound,returns};
 }
+// Shifts a projected path sideways by a constant screen distance. Direction is read
+// from points at least minSpan pixels away, so dense vertices cannot create spikes.
+function offsetScreenPath(points,pixels,minSpan=4,maxLook=24){
+ return points.map((point,i)=>{
+  let a=i,b=i;
+  while(a>0&&i-a<maxLook&&Math.hypot(points[a].x-point.x,points[a].y-point.y)<minSpan)a--;
+  while(b<points.length-1&&b-i<maxLook&&Math.hypot(points[b].x-point.x,points[b].y-point.y)<minSpan)b++;
+  const dx=points[b].x-points[a].x,dy=points[b].y-points[a].y,length=Math.hypot(dx,dy);
+  return length?{x:point.x-dy*pixels/length,y:point.y+dx*pixels/length}:{x:point.x,y:point.y};
+ });
+}
 function ronnyMeasureMeters(points,kmBetween){
  let total=0;
  for(let i=1;i<points.length;i++)total+=kmBetween(points[i-1],points[i]);
  return total;
 }
-return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters,walkRetraceSegments});
+return Object.freeze({legCoords,splitRoutedLegs,segmentOfPathNearest,manualLeg,ronnyMeasureMeters,walkRetraceSegments,offsetScreenPath});
 })();

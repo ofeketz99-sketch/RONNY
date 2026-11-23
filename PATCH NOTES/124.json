@@ -1,0 +1,11 @@
+{
+  "version": "124",
+  "date": "2026-11-23",
+  "notes": [
+    "תוקן קו מסלול הלוך־חזור שהתפרק למדרגות אחרי התקרבות במפה. שני הקווים נשארים צמודים לשביל ובמרחק קבוע בכל רמת זום.",
+    "התיקון משפיע על התצוגה בלבד: תוואי ההליכה השמור בטיול לא משתנה.",
+    "מעבר מהיר בין יום, מקטע או כל הטיול כבר לא משאיר את המפה בזום הקודם.",
+    "חלונית עריכת נקודה מתמקמת כך שתשאיר גלויים ולחיצים את הסמנים הקרובים, כשיש מקום לכך במפה."
+  ],
+  "technical": "Source: 00h, 20, 30 and generated scripts/app.js. Replaces coordinate-baked ronnyRetraceShift with a Leaflet polyline that applies a sub-pixel screen offset during projection. Click targets, labels and saved geometry use the true route. Verified on a real user trip in an isolated browser with mocked routing and tiles; Firefox not tested. fitMap now waits for an active Leaflet zoom animation and keeps only the latest request. The map-planner-sync E2E waits for the initial fit. positionMapPopover also evaluates positions beside the eight closest markers."
+}
