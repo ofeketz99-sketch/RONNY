@@ -50,9 +50,12 @@ test('walking start offers pencil immediately without drawing first',async({page
  await page.locator('#map-scope').evaluate(node=>{node.value='day';node.dispatchEvent(new Event('change',{bubbles:true}))});
  const marker=page.locator('.leaflet-marker-icon[data-ronny-stop-id="walk"]');
  await expect(marker).toBeAttached();
- await marker.evaluate(node=>node.click());
  const quick=page.locator('#point-quick[data-mode="day"]');
- await expect(quick).toHaveClass(/open/);
+ // The scope change redraws markers; retry if the first click reached a replaced marker.
+ await expect(async()=>{
+  await marker.evaluate(node=>node.click());
+  await expect(quick).toHaveClass(/open/,{timeout:900});
+ }).toPass({timeout:12000});
  await expect(quick.locator('details[data-ronny-point-section="timing"]')).toHaveAttribute('open','');
  await expect(quick.locator('#walk-edit-pencil-leg')).toBeVisible();
  await quick.locator('#walk-edit-pencil-leg').click();

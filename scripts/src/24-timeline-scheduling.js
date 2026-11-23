@@ -95,18 +95,18 @@ function retimeAfterOrderChange(dayIndex,anchor=0){
 function initializePlannerVerticalResize(){
  const upper=$('planner-upper'),handle=$('planner-upper-resizer'),planner=$('planner');if(!upper||!handle||!planner)return;
  function bounds(){const max=Math.max(72,planner.clientHeight-190);return {min:72,max:Math.min(Math.round(planner.clientHeight*.72),max)}}
- function setHeight(n,persist=true){const b=bounds(),h=Math.max(b.min,Math.min(b.max,Math.round(n)));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px';if(persist){state.settings.plannerUpperHeight=h;save()}handle.setAttribute('aria-valuenow',String(h));return h}
- function reset(){upper.style.height='';upper.style.flex='';delete state.settings.plannerUpperHeight;save();handle.removeAttribute('aria-valuenow')}
- const stored=Number(state.settings.plannerUpperHeight);if(Number.isFinite(stored)&&stored>0)setHeight(stored,false);
+ function setHeight(n,persist=true){const b=bounds(),h=Math.max(b.min,Math.min(b.max,Math.round(n)));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px';if(persist){state.settings.plannerUpperHeightV2=h;save()}handle.setAttribute('aria-valuenow',String(h));return h}
+ function reset(){upper.style.height='';upper.style.flex='';delete state.settings.plannerUpperHeightV2;save();handle.removeAttribute('aria-valuenow')}
+ const stored=Number(state.settings.plannerUpperHeightV2);if(Number.isFinite(stored)&&stored>0)setHeight(stored,false);
  let y=null,h=0,moved=false;
  handle.addEventListener('pointerdown',e=>{if(e.button!==0)return;y=e.clientY;h=upper.getBoundingClientRect().height;moved=false;handle.classList.add('dragging');handle.setPointerCapture(e.pointerId);e.preventDefault()});
  handle.addEventListener('pointermove',e=>{if(y===null)return;const delta=e.clientY-y;if(Math.abs(delta)>3)moved=true;setHeight(h+delta,false)});
- const finish=e=>{if(y===null)return;y=null;handle.classList.remove('dragging');if(moved){state.settings.plannerUpperHeight=Math.round(upper.getBoundingClientRect().height);save()}};
+ const finish=e=>{if(y===null)return;y=null;handle.classList.remove('dragging');if(moved){state.settings.plannerUpperHeightV2=Math.round(upper.getBoundingClientRect().height);save()}};
  handle.addEventListener('pointerup',e=>{const clicked=y!==null&&!moved;finish(e);if(clicked)toggleExtreme()});handle.addEventListener('pointercancel',finish);
  function toggleExtreme(){const v=bounds(),height=upper.getBoundingClientRect().height;setHeight(height<=(v.min+v.max)/2?v.max:v.min)}
  handle.addEventListener('click',e=>{if(e.detail===0)toggleExtreme()});
  handle.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();setHeight(upper.getBoundingClientRect().height+(e.key==='ArrowDown'?24:-24))}else if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleExtreme()}else if(e.key==='Home'){e.preventDefault();setHeight(bounds().min)}else if(e.key==='End'){e.preventDefault();setHeight(bounds().max)}});
- window.addEventListener('resize',()=>{if(state.settings.plannerUpperHeight)setHeight(state.settings.plannerUpperHeight,false)});
+ window.addEventListener('resize',()=>{if(state.settings.plannerUpperHeightV2)setHeight(state.settings.plannerUpperHeightV2,false)});
 }
 
 function repairExistingSchedules(){
@@ -119,7 +119,7 @@ function repairExistingSchedules(){
 }
 function restorePlannerUpperHeight(){
  const upper=$('planner-upper'),planner=$('planner');if(!upper||!planner)return;
- const val=Number(state.settings.plannerUpperHeight);
+ const val=Number(state.settings.plannerUpperHeightV2);
  if(Number.isFinite(val)&&val>0){const max=Math.min(planner.clientHeight*.72,planner.clientHeight-190);const h=Math.max(72,Math.min(Math.max(72,max),val));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px'}
  else{upper.style.height='';upper.style.flex=''}
 }

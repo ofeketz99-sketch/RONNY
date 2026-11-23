@@ -2833,18 +2833,18 @@ function retimeAfterOrderChange(dayIndex,anchor=0){
 function initializePlannerVerticalResize(){
  const upper=$('planner-upper'),handle=$('planner-upper-resizer'),planner=$('planner');if(!upper||!handle||!planner)return;
  function bounds(){const max=Math.max(72,planner.clientHeight-190);return {min:72,max:Math.min(Math.round(planner.clientHeight*.72),max)}}
- function setHeight(n,persist=true){const b=bounds(),h=Math.max(b.min,Math.min(b.max,Math.round(n)));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px';if(persist){state.settings.plannerUpperHeight=h;save()}handle.setAttribute('aria-valuenow',String(h));return h}
- function reset(){upper.style.height='';upper.style.flex='';delete state.settings.plannerUpperHeight;save();handle.removeAttribute('aria-valuenow')}
- const stored=Number(state.settings.plannerUpperHeight);if(Number.isFinite(stored)&&stored>0)setHeight(stored,false);
+ function setHeight(n,persist=true){const b=bounds(),h=Math.max(b.min,Math.min(b.max,Math.round(n)));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px';if(persist){state.settings.plannerUpperHeightV2=h;save()}handle.setAttribute('aria-valuenow',String(h));return h}
+ function reset(){upper.style.height='';upper.style.flex='';delete state.settings.plannerUpperHeightV2;save();handle.removeAttribute('aria-valuenow')}
+ const stored=Number(state.settings.plannerUpperHeightV2);if(Number.isFinite(stored)&&stored>0)setHeight(stored,false);
  let y=null,h=0,moved=false;
  handle.addEventListener('pointerdown',e=>{if(e.button!==0)return;y=e.clientY;h=upper.getBoundingClientRect().height;moved=false;handle.classList.add('dragging');handle.setPointerCapture(e.pointerId);e.preventDefault()});
  handle.addEventListener('pointermove',e=>{if(y===null)return;const delta=e.clientY-y;if(Math.abs(delta)>3)moved=true;setHeight(h+delta,false)});
- const finish=e=>{if(y===null)return;y=null;handle.classList.remove('dragging');if(moved){state.settings.plannerUpperHeight=Math.round(upper.getBoundingClientRect().height);save()}};
+ const finish=e=>{if(y===null)return;y=null;handle.classList.remove('dragging');if(moved){state.settings.plannerUpperHeightV2=Math.round(upper.getBoundingClientRect().height);save()}};
  handle.addEventListener('pointerup',e=>{const clicked=y!==null&&!moved;finish(e);if(clicked)toggleExtreme()});handle.addEventListener('pointercancel',finish);
  function toggleExtreme(){const v=bounds(),height=upper.getBoundingClientRect().height;setHeight(height<=(v.min+v.max)/2?v.max:v.min)}
  handle.addEventListener('click',e=>{if(e.detail===0)toggleExtreme()});
  handle.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();setHeight(upper.getBoundingClientRect().height+(e.key==='ArrowDown'?24:-24))}else if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleExtreme()}else if(e.key==='Home'){e.preventDefault();setHeight(bounds().min)}else if(e.key==='End'){e.preventDefault();setHeight(bounds().max)}});
- window.addEventListener('resize',()=>{if(state.settings.plannerUpperHeight)setHeight(state.settings.plannerUpperHeight,false)});
+ window.addEventListener('resize',()=>{if(state.settings.plannerUpperHeightV2)setHeight(state.settings.plannerUpperHeightV2,false)});
 }
 
 function repairExistingSchedules(){
@@ -2857,7 +2857,7 @@ function repairExistingSchedules(){
 }
 function restorePlannerUpperHeight(){
  const upper=$('planner-upper'),planner=$('planner');if(!upper||!planner)return;
- const val=Number(state.settings.plannerUpperHeight);
+ const val=Number(state.settings.plannerUpperHeightV2);
  if(Number.isFinite(val)&&val>0){const max=Math.min(planner.clientHeight*.72,planner.clientHeight-190);const h=Math.max(72,Math.min(Math.max(72,max),val));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px'}
  else{upper.style.height='';upper.style.flex=''}
 }
@@ -5178,7 +5178,7 @@ async function exportTrip(){
 }
 
 // Only this device's panel sizes carry over; a trip's structure never leaks into another trip.
-function ronnyDeviceLayoutSettings(){const out={};for(const key of ['plannerWidth','railWidth','drawerWidth','plannerUpperHeight'])if(key in (state.settings||{}))out[key]=state.settings[key];return out}
+function ronnyDeviceLayoutSettings(){const out={};for(const key of ['plannerWidth','railWidth','drawerWidth','plannerUpperHeightV2'])if(key in (state.settings||{}))out[key]=state.settings[key];return out}
 function validateTrip(d){if(!d||typeof d.title!=='string'||!Array.isArray(d.days)||d.days.length<1||d.days.length>100)throw Error('מבנה קובץ לא תקין');for(const day of d.days){day.segments=Array.isArray(day.segments)?day.segments.filter(x=>x&&typeof x.id==='string'&&typeof x.label==='string'&&/^\d{2}:\d{2}$/.test(x.start||'')&&/^\d{2}:\d{2}$/.test(x.end||'')).slice(0,32):[];if(!Array.isArray(day.stops)||day.stops.length>300)throw Error('רשימת עצירות לא תקינה');for(const s of day.stops){if(typeof s.name!=='string'||!Number.isFinite(+s.lat)||!Number.isFinite(+s.lng)||Math.abs(+s.lat)>90||Math.abs(+s.lng)>180)throw Error('קואורדינטות או שמות לא תקינים');s.id=typeof s.id==='string'?s.id:uid();s.type=types[s.type]?s.type:'other';s.time=/^\d{2}:\d{2}$/.test(s.time||'')?s.time:'09:00';s.duration=Math.max(0,Number(s.duration)||0);s.cost=Math.max(0,Number(s.cost)||0);s.notes=String(s.notes||'');s.description=String(s.description||'');if(s.leg){const l=s.leg;if(!l||typeof l!=='object'||!['auto','draw','pencil','straight'].includes(l.mode)||typeof l.fromId!=='string'){delete s.leg}else{s.leg={fromId:l.fromId,mode:l.mode,label:String(l.label||'').slice(0,90),minutes:routeLegMinutes(l),minutesMode:l.minutesMode==='extra'&&l.mode==='auto'?'extra':'total',profile:Object.hasOwn(TRAVEL_MODES,l.profile)?l.profile:null,viaPoints:Array.isArray(l.viaPoints)?l.viaPoints.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,16).map(p=>[+p[0],+p[1]]):[],path:Array.isArray(l.path)?l.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,120).map(p=>[+p[0],+p[1]]):[]}}}}}if(d.settings){delete d.settings.mapyKey;delete d.settings.routingProvider;}return {...d,photos:Array.isArray(d.photos)?d.photos.filter(p=>p&&typeof p.id==='string'&&validPoint(p)&&typeof p.data==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(p.data)&&p.data.length<600000).slice(0,120):[],settings:{...ronnyDeviceLayoutSettings(),...d.settings,googleKey:'',mapStyle:normalizeMapStyle(d.settings?.mapStyle),layerVisibility:normalizeLayerVisibility(d.settings?.layerVisibility)}}}
 function setRail(name){document.querySelectorAll('.rail-btn').forEach(e=>e.classList.remove('active'));$('rail-'+name)?.classList.add('active')}
 function setPlannerCollapsed(flag){

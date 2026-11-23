@@ -1,0 +1,13 @@
+{
+  "version": "125",
+  "date": "2026-11-23",
+  "notes": [
+    "הסרגל הימני נבנה מחדש: לוח הזמנים הוא עכשיו האזור המרכזי, והניווט בין ימים ומקטעים קומפקטי יותר.",
+    "כרטיסי העצירות קטנים וברורים יותר, ופעולות העריכה מופיעות בריחוף.",
+    "חלונית עריכת הנקודה נפתחת בגודל התוכן ונשארת בתוך המפה.",
+    "עורך הדרך הפך מחלון רחב לעמודה צרה שלא מסתירה את המסלול.",
+    "חלונית השכבות נכנסת למסך בלי גלילה.",
+    "ריחופים, מיקוד, אנימציות פתיחה, פינות וצללים אוחדו לשפה אחת בכל החלונות."
+  ],
+  "technical": "Adds styles/ui-refresh.css after app.css and moves the date, fit and schedule-time controls in index.html. Planner height now uses plannerUpperHeightV2 so old saved heights cannot squeeze the schedule; the old value stays in trip data. No trip schema, routing or scheduling logic changed. Role/category model and report section 8 proposals are not implemented. Tests: Node and Chromium locally; Firefox not tested. Added e2e/ui-layout.spec.cjs and stabilized a marker-redraw race in e2e/workspace-pencil.spec.cjs."
+}
