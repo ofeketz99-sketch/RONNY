@@ -2,13 +2,81 @@ function openLibraryDB(){return TripStorage.open(window.indexedDB,LIB_DB,LIB_STO
 function transact(method,record){return TripStorage.transact(db,LIB_STORE,method,record)}
 function fallbackRead(){return TripStorage.readFallback(()=>localStorage.getItem(LIB_FALLBACK))}
 async function getStoredTrips(){return usingFallback?fallbackRead():await transact('getAll')}
-async function putTrip(record){if(usingFallback){const all=Array.from(library.values());TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),all);return}await transact('put',record)}
-async function deleteTrip(id){if(usingFallback){TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),Array.from(library.values()));return}await transact('delete',id)}
+const ronnyTripRevs=new Map(),ronnyUnsavedTrips=new Set();
+let ronnyTripChannel=null,ronnyConflictPrompted=false,ronnyPendingWrites=0,ronnyTitleSaveTimer=null;
+const RONNY_UNLOAD_DRAFT_KEY='ronny-unload-draft-v1',RONNY_FALLBACK_MERGED_KEY='ronny-fallback-merged-v1';
+async function putTrip(record){
+ if(usingFallback){const all=Array.from(library.values());TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),all);return}
+ const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,ronnyTripRevs.get(record.id)||0);
+ if(result.conflict){const conflict=Error('הטיול עודכן בטאב אחר');conflict.name='TripConflictError';throw conflict}
+ ronnyTripRevs.set(record.id,result.rev);record.rev=result.rev;ronnyBroadcastTripChange(record.id,result.rev);
+}
+async function deleteTrip(id){if(usingFallback){TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),Array.from(library.values()));return}await transact('delete',id);ronnyTripRevs.delete(id);ronnyBroadcastTripChange(id,0,true)}
+function ronnyBroadcastTripChange(id,rev,deleted=false){try{ronnyTripChannel?.postMessage({id,rev,deleted})}catch(e){}}
+async function ronnyPromptTripReload(){
+ if(ronnyConflictPrompted)return;ronnyConflictPrompted=true;
+ const reload=await confirmOnMap('הטיול הזה עודכן בטאב אחר. כדי לא לדרוס את העבודה שם, שינויים בטאב הזה לא נשמרים עד לטעינה מחדש.',{title:'הטיול עודכן בטאב אחר',accept:'טען את הגרסה העדכנית'});
+ if(reload)location.reload();
+}
+async function ronnyOnRemoteTripChange(message){
+ if(!message?.id)return;
+ if(message.id===activeTripId){
+  if(message.deleted||(Number(message.rev)||0)>(ronnyTripRevs.get(message.id)||0)){ronnyUnsavedTrips.add(message.id);ronnyLocalSaveStatus('conflict');if(!document.hidden)ronnyPromptTripReload()}
+  return;
+ }
+ if(message.deleted){library.delete(message.id);ronnyTripRevs.delete(message.id);return}
+ try{const fresh=await transact('get',message.id);if(fresh?.trip){library.set(fresh.id,fresh);ronnyTripRevs.set(fresh.id,Number(fresh.rev)||0)}}catch(e){}
+}
+function ronnyInitTripChannel(){
+ try{ronnyTripChannel=new BroadcastChannel('ronny-trip-library-v1');ronnyTripChannel.onmessage=event=>ronnyOnRemoteTripChange(event.data)}catch(e){ronnyTripChannel=null}
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&document.getElementById('ronny-local-save-status')?.querySelector('.ronny-local-save-label')?.textContent.includes('טאב אחר'))ronnyPromptTripReload()});
+}
+function ronnyCommitTripTitle(){
+ const pending=ronnyTitleSaveTimer!==null;clearTimeout(ronnyTitleSaveTimer);ronnyTitleSaveTimer=null;
+ const input=$('trip-name');if(!input||(!pending&&document.activeElement!==input))return;
+ const next=input.value.trim().slice(0,64);
+ if(next&&next!==state.title){state.title=next;save();renderTripDashboard()}
+}
+function ronnyWriteUnloadDraft(){
+ if(usingFallback||!libraryReady||!activeTripId||ronnyPendingWrites<1)return;
+ try{const draft=JSON.stringify({id:activeTripId,baseRev:ronnyTripRevs.get(activeTripId)||0,updatedAt:Date.now(),trip:state});if(draft.length<=3500000)localStorage.setItem(RONNY_UNLOAD_DRAFT_KEY,draft)}catch(e){}
+}
+async function ronnyRestoreUnloadDraft(){
+ let draft=null;try{draft=JSON.parse(localStorage.getItem(RONNY_UNLOAD_DRAFT_KEY)||'null');localStorage.removeItem(RONNY_UNLOAD_DRAFT_KEY)}catch(e){}
+ if(!draft?.id||!draft.trip)return;
+ const stored=library.get(draft.id);
+ if(stored&&(Number(stored.rev)||0)>(Number(draft.baseRev)||0))return; // The interrupted write finished.
+ const record={...(stored||{}),id:draft.id,title:draft.trip.title||stored?.title||'טיול ללא שם',startDate:draft.trip.startDate||'',updatedAt:draft.updatedAt||Date.now(),trip:draft.trip};
+ const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,Number(stored?.rev)||0);
+ if(!result.conflict){record.rev=result.rev;library.set(record.id,record);ronnyTripRevs.set(record.id,result.rev)}
+}
+function ronnyIsUntouchedDemo(trip){
+ const sample=demo(),names=t=>JSON.stringify((t.days||[]).map(d=>(d.stops||[]).filter(s=>!s.autoLoopEnd).map(s=>s.name)));
+ return trip?.title===sample.title&&names(trip)===names(sample);
+}
+// Work saved while IndexedDB was unavailable returns to the library; nothing is deleted.
+async function ronnyMergeFallbackTrips(){
+ const fallback=fallbackRead();if(!Array.isArray(fallback)||!fallback.length)return;
+ let merged=[];try{merged=JSON.parse(localStorage.getItem(RONNY_FALLBACK_MERGED_KEY)||'[]')}catch(e){}
+ const seen=new Set(Array.isArray(merged)?merged:[]);let restored=0;
+ for(const item of fallback){
+  if(!item?.id||!item.trip)continue;
+  const mark=item.id+':'+(item.updatedAt||0);if(seen.has(mark))continue;
+  const stored=library.get(item.id);
+  if(ronnyIsUntouchedDemo(item.trip)||(stored&&JSON.stringify(stored.trip)===JSON.stringify(item.trip))){seen.add(mark);continue}
+  const title=stored?(item.title||'טיול')+' — שוחזר':item.title;
+  const record={...item,id:stored?uid():item.id,title,updatedAt:Date.now(),trip:{...item.trip,title}};delete record.rev;
+  try{const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,0);if(result.conflict)continue;record.rev=result.rev;library.set(record.id,record);ronnyTripRevs.set(record.id,result.rev);seen.add(mark);restored++}catch(e){}
+ }
+ try{localStorage.setItem(RONNY_FALLBACK_MERGED_KEY,JSON.stringify([...seen]))}catch(e){}
+ if(restored)setTimeout(()=>toast('שוחזרו '+restored+' טיולים מהאחסון הזמני'),900);
+}
 function libraryRecord(){return {id:activeTripId,title:state.title||'טיול ללא שם',startDate:state.startDate||'',updatedAt:Date.now(),trip:cloneValue(state)}}
 function ronnyLocalSaveStatus(kind='saved'){
  const el=document.getElementById('ronny-local-save-status');if(!el)return;
- const text={saving:'שומר בדפדפן...',saved:'נשמר בדפדפן זה',error:'שמירה נכשלה · ייצא גיבוי'};
- el.dataset.status=kind;el.querySelector('.ronny-local-save-label').textContent=text[kind]||text.saved;
+ if(kind==='saved'&&usingFallback)kind='temporary';
+ const text={saving:'שומר בדפדפן...',saved:'נשמר בדפדפן זה',error:'שמירה נכשלה · ייצא גיבוי',conflict:'עודכן בטאב אחר · לא נשמר',temporary:'אחסון זמני · ייצא גיבוי'};
+ el.dataset.status=kind==='conflict'||kind==='temporary'?'error':kind;el.querySelector('.ronny-local-save-label').textContent=text[kind]||text.saved;
 }
 // Explicit, bounded undo history for structural planner actions. Never persisted
 // or shared across trips; avoids recording asynchronous routing-cache updates.
@@ -52,19 +120,29 @@ function save(){
  ronnyLocalSaveStatus('saving');ronnyUpdateUndoButton();
  const walkingUpdated=state.days.some(day=>syncWalkingLoops(day));const loopsUpdated=synchronizeLoopDays();if(loopsUpdated||walkingUpdated)invalidate();
  ensureStableViaColors();
- const record=libraryRecord();library.set(record.id,record);
+ const record=libraryRecord(),previous=library.get(record.id);
+ // An unchanged trip is not rewritten, so opening it cannot disturb another tab.
+ if(previous&&!ronnyUnsavedTrips.has(record.id)&&JSON.stringify(previous.trip)===JSON.stringify(record.trip)){
+  saveQueue=saveQueue.then(ok=>{if(ok!==false)ronnyLocalSaveStatus('saved');return ok!==false});return;
+ }
+ ronnyUnsavedTrips.add(record.id);library.set(record.id,record);ronnyPendingWrites++;
  try{localStorage.setItem(LIB_ACTIVE,record.id)}catch(e){}
  // Capture each immutable snapshot now, in order, to prevent cross-trip overwrites.
- saveQueue=saveQueue.catch(()=>{}).then(()=>putTrip(record)).then(()=>{lastSaveError=false;ronnyLocalSaveStatus('saved');return true}).catch(e=>{lastSaveError=true;ronnyLocalSaveStatus('error');toast('לא ניתן לשמור את הטיול. בצע ייצוא JSON לגיבוי. '+(e.name==='QuotaExceededError'?'האחסון מלא.':''));return false});
+ saveQueue=saveQueue.catch(()=>{}).then(()=>putTrip(record)).then(()=>{ronnyUnsavedTrips.delete(record.id);lastSaveError=false;ronnyLocalSaveStatus('saved');return true}).catch(e=>{lastSaveError=true;if(e?.name==='TripConflictError'){ronnyLocalSaveStatus('conflict');ronnyPromptTripReload();return false}ronnyLocalSaveStatus('error');toast('לא ניתן לשמור את הטיול. בצע ייצוא JSON לגיבוי. '+(e.name==='QuotaExceededError'?'האחסון מלא.':''));return false}).finally(()=>{ronnyPendingWrites=Math.max(0,ronnyPendingWrites-1)});
 }
 async function initTripLibrary(){
  try{db=await openLibraryDB()}catch(e){usingFallback=true}
  let records=[];try{records=await getStoredTrips()}catch(e){usingFallback=true;records=fallbackRead()}
- records.filter(r=>r&&r.id&&r.trip).forEach(r=>library.set(r.id,r));
+ records.filter(r=>r&&r.id&&r.trip).forEach(r=>{library.set(r.id,r);ronnyTripRevs.set(r.id,Number(r.rev)||0)});
+ if(!usingFallback){try{await ronnyRestoreUnloadDraft();await ronnyMergeFallbackTrips()}catch(e){console.error('RONNY storage recovery failed',e)}}
+ ronnyInitTripChannel();
+ if(usingFallback)setTimeout(()=>confirmOnMap('אחסון הטיולים של הדפדפן אינו זמין כרגע. הטיולים השמורים לא נמחקו, אך לא ניתן לטעון אותם. שינויים נשמרים באחסון זמני, ולכן כדאי לייצא גיבוי JSON.',{title:'אחסון הטיולים אינו זמין',accept:'הבנתי',hideCancel:true}),700);
  if(!library.size){
-  let first=demo();
-  try{const legacy=localStorage.getItem('roam-trip-v2');if(legacy)first=prepareTrip(JSON.parse(legacy))}catch(e){first=demo()}
-  activeTripId=uid();state=prepareTrip(first);libraryReady=true;save();await saveQueue;
+  let first=demo(),isDemo=true;
+  try{const legacy=localStorage.getItem('roam-trip-v2');if(legacy){first=prepareTrip(JSON.parse(legacy));isDemo=false}}catch(e){first=demo();isDemo=true}
+  activeTripId=uid();state=prepareTrip(first);libraryReady=true;
+  // During a storage failure the sample trip stays unsaved until the user actually edits it.
+  if(usingFallback&&isDemo)ronnyLocalSaveStatus('saved');else{save();await saveQueue}
  }else{
   const savedId=(()=>{try{return localStorage.getItem(LIB_ACTIVE)}catch(e){return null}})();
   let record=library.get(savedId);if(!record)record=Array.from(library.values()).sort((a,b)=>b.updatedAt-a.updatedAt)[0];
@@ -72,7 +150,7 @@ async function initTripLibrary(){
   try{localStorage.setItem(LIB_ACTIVE,activeTripId)}catch(e){}
  }
 }
-function freshTrip(){const date=new Date();return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...state.settings,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
+function freshTrip(){const date=new Date();const {tripLoop,dayGroups,defaultDepartureTime,planningResolution:previousResolution,...carried}=state.settings||{};return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...carried,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
 function tripMapPositions(){return TripQueries.tripMapPositions(state)}
 function fitWholeTrip(){
  if(!map||!window.L)return;
@@ -143,7 +221,7 @@ function queueWholeTripFocus(){
 }
 function applyCurrentTrip(){
  if(drawLegSession)stopLegDrawing();closeLegEditor();
- ronnyWorkspaceReady=false;wholeTripFocusSeq++;
+ ronnyWorkspaceReady=false;wholeTripFocusSeq++;ronnyConflictPrompted=false;
  resetPlannerBulk();state=prepareTrip(state);if(+state.settings.railWidth===72)state.settings.railWidth=54;const detailedPoints=(state.days||[]).some(d=>(d.stops||[]).some(validPoint));planningResolution=detailedPoints?'day':(['outline','stage'].includes(state.settings.planningResolution)?'outline':'day');selectedOutlineId=null;selectedStageId=null;outlineAddArmed=false;selectedDay=0;selectedStop=null;viewScope='all';ronnyActiveDayGroupId=null;invalidate();pendingRetimes.clear();scheduleQuality.clear();repairExistingSchedules();restorePlannerUpperHeight();
  const resume=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(resume);
  if(googleMode){googleMode=false;document.querySelector('.map-pane').classList.remove('google-mode');$('google-coverage-toggle').setAttribute('aria-pressed','false')}
@@ -186,7 +264,7 @@ async function selectTrip(id){
  if(id===activeTripId){await saveQueue;closeDrawer();applyCurrentTrip();return}
  await saveQueue;const rec=library.get(id);if(!rec){toast('הטיול לא נמצא');return}
  activeTripId=id;state=cloneValue(rec.trip);try{localStorage.setItem(LIB_ACTIVE,id)}catch(e){};
- closeDrawer();applyCurrentTrip();toast('הטיול נטען מהספרייה — אפשר להמשיך לערוך')
+ closeDrawer();applyCurrentTrip();if(!ronnyUnsavedTrips.has(id)){lastSaveError=false;ronnyLocalSaveStatus('saved')}toast('הטיול נטען מהספרייה — אפשר להמשיך לערוך')
 }
 async function duplicateTrip(id){
  await saveQueue;const from=library.get(id);if(!from)return;
@@ -340,16 +418,16 @@ function confirmOnMap(message,options={}){
  if(currentMapDialogFinish)currentMapDialogFinish(false);
  return new Promise(resolve=>{
   const overlay=document.createElement('div');overlay.className='map-confirm-overlay';overlay.setAttribute('role','presentation');
-  overlay.innerHTML=`<div class="map-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="map-confirm-heading" aria-describedby="map-confirm-question"><h3 id="map-confirm-heading">${esc(options.title||'אישור פעולה')}</h3><p id="map-confirm-question">${esc(message)}</p><div class="map-confirm-actions"><button type="button" class="map-confirm-approve">${esc(options.accept||'אישור')}</button><button type="button" class="map-confirm-cancel">ביטול</button></div></div>`;
+  overlay.innerHTML=`<div class="map-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="map-confirm-heading" aria-describedby="map-confirm-question"><h3 id="map-confirm-heading">${esc(options.title||'אישור פעולה')}</h3><p id="map-confirm-question">${esc(message)}</p><div class="map-confirm-actions"><button type="button" class="map-confirm-approve">${esc(options.accept||'אישור')}</button>${options.hideCancel?'':'<button type="button" class="map-confirm-cancel">ביטול</button>'}</div></div>`;
   pane.append(overlay);overlay.addEventListener('pointerdown',e=>e.stopPropagation());const previous=document.activeElement;
   const finish=accepted=>{if(currentMapDialogFinish!==finish)return;currentMapDialogFinish=null;document.removeEventListener('keydown',keyHandler,true);overlay.remove();previous?.focus?.();resolve(accepted)};
   currentMapDialogFinish=finish;
   const keyHandler=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();finish(false)}else if(e.key==='Enter'&&e.target.closest('.map-confirm-card')){e.preventDefault();finish(e.target.classList.contains('map-confirm-approve'))}};
   document.addEventListener('keydown',keyHandler,true);
   overlay.querySelector('.map-confirm-approve').onclick=()=>finish(true);
-  overlay.querySelector('.map-confirm-cancel').onclick=()=>finish(false);
+  const cancelButton=overlay.querySelector('.map-confirm-cancel');if(cancelButton)cancelButton.onclick=()=>finish(false);
   overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});
-  overlay.querySelector('.map-confirm-cancel').focus();
+  (cancelButton||overlay.querySelector('.map-confirm-approve')).focus();
  });
 }
 const svAvailabilityCache=new Map();

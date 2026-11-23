@@ -9,6 +9,8 @@ function seedScotlandMap(page){
  return page.addInitScript(()=>{
   if(location.hostname==='127.0.0.1'){
    localStorage.setItem('ronny-global-map-settings-v1',JSON.stringify({home:{lat:56.565,lng:-3.62,zoom:10}}));
+   // The map opens on the trip, so the seeded trip must also be in Scotland.
+   localStorage.setItem('roam-trip-v2',JSON.stringify({version:3,title:'סקוטלנד',startDate:'2026-11-03',settings:{travelMode:'driving',mapStyle:'osm'},days:[{label:'יום',stops:[{id:'scot',name:'Dunkeld',type:'start',lat:56.565,lng:-3.62,time:'09:00',duration:0,cost:0}]}]}));
   }
  });
 }

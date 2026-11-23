@@ -259,10 +259,17 @@ function animateScheduleReorder(before,movedIds=[]){
 // Start/end describe the first/last position rather than a permanently pinned place.
 function commitOrderedDaySlots(dayIndex,ordered){
  const day=state.days[dayIndex];if(!day)return;
- const last=ordered.length-1;
+ const last=ordered.length-1,hadStart=ordered.some(s=>s.type==='start'),hadEnd=ordered.some(s=>s.type==='end');
  for(let i=0;i<ordered.length;i++){
   const s=ordered[i],before=s.type;
-  const after=ordered.length<2?(before==='end'?'start':before):(i===0?'start':i===last?'end':(before==='start'||before==='end'?'via':before));
+  // Walking points and derived loop finishes keep their identity. A day gains
+  // a start or finish only when the user already defined that endpoint.
+  if(WALK_TYPES.has(before)||s.autoLoopEnd)continue;
+  let after=before;
+  if(ordered.length<2)after=before==='end'?'start':before;
+  else if(hadStart&&i===0)after='start';
+  else if(hadEnd&&i===last)after='end';
+  else if(before==='start'||before==='end')after='via';
   if(before===after)continue;
   const name=String(s.name||'').trim();
   const defaults={start:'נקודת התחלה',end:'נקודת סיום',via:'נקודת מעבר',rest:'נקודת עצירה'};
@@ -275,21 +282,19 @@ function commitOrderedDaySlots(dayIndex,ordered){
  renumberWaypoints(day);
 }
 function moveStop(id,delta){
- const arr=stops(),idx=arr.findIndex(s=>s.id===id),next=idx+delta;
- if(idx<0||next<0||next>=arr.length)return;
- ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions(),other=arr[next].id;
- [arr[idx],arr[next]]=[arr[next],arr[idx]];
- commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
- animateScheduleReorder(before,[id,other]);
+ const plan=TripStateCommands.planRouteStep(stops(),id,delta);
+ if(!plan)return;if(plan.error){toast(plan.error);return}
+ ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions();
+ commitOrderedDaySlots(selectedDay,plan.ordered);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
+ animateScheduleReorder(before,plan.moved);
 }
 function reorder(from,to){
- const arr=stops();let a=arr.findIndex(s=>s.id===from),b=arr.findIndex(s=>s.id===to);
- if(a<0||b<0||a===b)return;
+ // Two sequence positions exchange their cards; a walking loop moves as one block.
+ const plan=TripStateCommands.planRouteSwap(stops(),from,to);
+ if(!plan)return;if(plan.error){toast(plan.error);return}
  ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions();
- // Two fixed sequence positions exchange their cards, including their locations.
- [arr[a],arr[b]]=[arr[b],arr[a]];
- commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
- animateScheduleReorder(before,[from,to]);
+ commitOrderedDaySlots(selectedDay,plan.ordered);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
+ animateScheduleReorder(before,plan.moved);
 }
 
 function invalidate(){routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;routeError='';}

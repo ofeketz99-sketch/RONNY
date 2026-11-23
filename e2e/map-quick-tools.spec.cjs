@@ -58,6 +58,9 @@ test('switch uses two icons only and every click toggles even on the active half
  const capsule=page.locator('#map-base-switch');
  await expect(capsule.locator('span')).toHaveCount(0);
  await expect(capsule.locator('svg')).toHaveCount(2);
+ // The sample trip opens on a third map; enter the two-map pair before testing toggles.
+ await capsule.locator('[data-map-base="topo-r"]').click();
+ await expect(capsule).toHaveAttribute('data-style','topo-r');
  const initial=await capsule.getAttribute('data-style');
  await capsule.locator('[aria-checked="true"]').click();
  await expect(capsule).toHaveAttribute('data-style',initial==='topo-r'?'satellite':'topo-r');
@@ -70,6 +73,9 @@ test('switch uses two icons only and every click toggles even on the active half
 test('Google Maps quick button transfers currently displayed center zoom and type',async({page})=>{
  await page.goto('/index.html',{waitUntil:'domcontentloaded'});
  await expect(page.locator('#map.leaflet-container')).toBeVisible();
+ await page.locator('#map-base-switch [data-map-base="satellite"]').click();
+ await expect(page.locator('#map-base-switch')).toHaveAttribute('data-style','satellite');
+ await page.waitForTimeout(900); // Let the initial trip fit finish before reading the view.
  const link=page.locator('#map-google-view');
  const url=()=>link.evaluate(el=>{
   el.addEventListener('click',e=>e.preventDefault(),{once:true});
@@ -84,8 +90,8 @@ test('Google Maps quick button transfers currently displayed center zoom and typ
  const zoom=+first.searchParams.get('zoom');
  expect(zoom).toBeGreaterThan(0);
  await page.locator('.leaflet-control-zoom-in').click();
+ await expect.poll(async()=>+new URL(await url()).searchParams.get('zoom')).toBe(zoom+1);
  const second=new URL(await url());
- expect(+second.searchParams.get('zoom')).toBe(zoom+1);
  await page.locator('#map-base-switch [aria-checked="true"]').click();
  const third=new URL(await url());
  expect(third.searchParams.get('basemap')).not.toBe(second.searchParams.get('basemap'));

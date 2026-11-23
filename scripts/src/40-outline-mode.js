@@ -347,7 +347,9 @@ function fitMap(){
  const coords=isFirstEntity?firstEntityFocusPositions(days):TripQueries.focusMapPositions(state,days);
  if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
  if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
- map.fitBounds(L.latLngBounds(coords),{padding:[38,44],maxZoom:16,animate:true,duration:.65});
+ // Keep the fitted entity clear of the floating search bar and map tools.
+ const compact=map.getSize().x<520;
+ map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:compact?[64,92]:[92,96],paddingBottomRight:compact?[56,56]:[86,64],maxZoom:16,animate:true,duration:.65});
 }
 let activeQuickCommit=null;
 function hidePointQuick(){if(activeQuickCommit){const flush=activeQuickCommit;activeQuickCommit=null;flush()}const el=$('point-quick');if(el){el.classList.remove('ronny-point-drag-hidden');const wasOpen=el.classList.contains('open');el.classList.remove('open');if(wasOpen&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){el.classList.add('ronny-quick-exiting');setTimeout(()=>{if(!el.classList.contains('open'))el.classList.remove('ronny-quick-exiting')},175)}else el.classList.remove('ronny-quick-exiting');el.dataset.id='';el.dataset.mode=''}syncMarkerDragState()}

@@ -117,7 +117,15 @@ function ensureDayStart(i){
  let changed=false,existing=(curr.stops||[]).find(s=>s.type==='start');
  for(const extra of (curr.stops||[]).filter(s=>s.type==='start'&&s!==existing)){extra.type='via';changed=true}
  if(!existing){existing={id:uid(),name:'נקודת התחלה',type:'start',time:tripDefaultDepartureTime(),duration:0,cost:0,lat:+ending.lat,lng:+ending.lng,description:'',notes:'',autoInheritedStart:true};curr.stops.unshift(existing);curr.departureUsesDefault=true;changed=true}
- if(existing.fromPreviousDayEnd!==ending.id||+existing.lat!==+ending.lat||+existing.lng!==+ending.lng){existing.fromPreviousDayEnd=ending.id;existing.lat=+ending.lat;existing.lng=+ending.lng;changed=true}
+ const sameSpot=+existing.lat===+ending.lat&&+existing.lng===+ending.lng;
+ // A start edited or placed independently is the user's choice and is never overwritten.
+ if(existing.startDetached!==true&&!sameSpot&&existing.autoInheritedStart!==true&&!existing.fromPreviousDayEnd){existing.startDetached=true;changed=true}
+ if(existing.startDetached===true){
+  if(existing.fromPreviousDayEnd){delete existing.fromPreviousDayEnd;changed=true}
+  if(changed)positionRouteEndpoints(curr);
+  return changed;
+ }
+ if(existing.fromPreviousDayEnd!==ending.id||!sameSpot){existing.fromPreviousDayEnd=ending.id;existing.lat=+ending.lat;existing.lng=+ending.lng;changed=true}
  if(changed)positionRouteEndpoints(curr);
  return changed;
 }
@@ -134,6 +142,25 @@ function relocateConnectedDayOrigin(dayIndex,previous,next){
   if(!prior.loop)break;
   i--;
  }
+}
+// After days change order, keep each day's own start unless it still meets the previous finish.
+function ronnyPreserveDayStartsAfterReorder(){
+ state.days.forEach((day,i)=>{
+  const start=(day.stops||[]).find(s=>s.type==='start');if(!start)return;
+  if(i===0){start.autoInheritedStart=false;delete start.fromPreviousDayEnd;delete start.startDetached;return}
+  const ending=lastRouteStop(state.days[i-1]);
+  if(ending&&+ending.lat===+start.lat&&+ending.lng===+start.lng){delete start.startDetached;start.fromPreviousDayEnd=ending.id}
+  else{start.startDetached=true;start.autoInheritedStart=false;delete start.fromPreviousDayEnd}
+ });
+}
+function ronnyRelinkDayStart(id){
+ const found=getStop(id);if(!found||found.day<1||found.stop.type!=='start')return;
+ const ending=lastRouteStop(state.days[found.day-1]);
+ if(!ending){toast('ליום הקודם עדיין אין נקודת סיום');return}
+ ronnyRememberUndo('חיבור לסיום היום הקודם');
+ delete found.stop.startDetached;found.stop.fromPreviousDayEnd=ending.id;found.stop.lat=+ending.lat;found.stop.lng=+ending.lng;
+ hidePointQuick();synchronizeLoopDays();synchronizeDayStarts();synchronizeLoopDays();invalidate();retimeAfterOrderChange(found.day);save();renderAll();
+ toast('תחילת היום חוברה לסיום היום הקודם');
 }
 function synchronizeDayStarts(){let modified=false;for(let i=1;i<state.days.length;i++)modified=ensureDayStart(i)||modified;return modified}
 function reverseDayItinerary(day){
@@ -194,19 +221,19 @@ async function moveDay(from,to){
  let mode='cancel';
  try{mode=await chooseDayReorderMode(from,to)}finally{dayReorderPending=false}
  if(mode==='cancel'||!['preserve','adapt'].includes(mode))return;
+ ronnyRememberUndo('שינוי סדר ימים');
  const oldRects=new Map(Array.from($('days')?.querySelectorAll('[data-day-id]')||[]).map(el=>[el.dataset.dayId,el.getBoundingClientRect()]));
  const managerRects=new Map(Array.from($('days-manager-list')?.querySelectorAll('[data-day-row]')||[]).map(el=>[el.dataset.dayRow,el.getBoundingClientRect()]));
  const oldDays=[...state.days],active=state.days[selectedDay],day=state.days.splice(from,1)[0];state.days.splice(to,0,day);
  renumberGenericDayLabels();
  for(const photo of state.photos||[]){const oldDay=oldDays[photo.day];if(oldDay)photo.day=state.days.indexOf(oldDay)}
  selectedDay=state.days.indexOf(active);selectedStop=null;
- // Do not silently change the coordinates of a preserved route when its new
- // preceding day is different from its original preceding day.
- for(const d of state.days){const first=d.stops.find(s=>s.type==='start');if(first?.autoInheritedStart){first.autoInheritedStart=false;delete first.fromPreviousDayEnd}}
  if(mode==='adapt'){
   const first=Math.min(from,to),last=Math.max(from,to);
   for(let i=first;i<=last;i++)reverseDayItinerary(state.days[i]);
  }
+ // Do not silently change the coordinates of a route when its preceding day changes.
+ ronnyPreserveDayStartsAfterReorder();
  invalidate();
  if(mode==='adapt')for(let i=Math.min(from,to);i<=Math.max(from,to);i++)retimeAfterOrderChange(i,0);
  save();renderAll();fitMap();
@@ -267,6 +294,7 @@ function renderDays(){
  renderDayTimeMode();
  $('add-day').onclick=()=>{
   if(state.days.length>=100){toast('ניתן ליצור עד 100 ימים בטיול');return}
+  ronnyRememberUndo('הוספת יום');
   const after=Math.max(0,Math.min(selectedDay,state.days.length-1));
   const at=after+1;
   const inherited=inheritedStartForNewDay(after);
@@ -328,7 +356,8 @@ function editDay(){
  $('day-delete').onclick=async()=>{if(state.days.length===1)return;
   const msg=day.stops.length?`למחוק את היום ואת ${day.stops.length} הנקודות שבו?`:'למחוק את היום הנבחר?';
   if(!await confirmOnMap(msg,{title:'מחיקת יום',accept:'מחק יום'}))return;
-  ronnyRememberUndo('מחיקת יום');state.days.splice(selectedDay,1);renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
+  ronnyRememberUndo('מחיקת יום');const removedIndex=selectedDay;state.days.splice(removedIndex,1);
+  state.photos=(state.photos||[]).filter(p=>p.day!==removedIndex).map(p=>({...p,day:p.day>removedIndex?p.day-1:p.day}));renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
   synchronizeDayStarts();invalidate();save();closeDrawer();renderAll();fitMap();toast('היום נמחק')};
 }
 
@@ -364,12 +393,19 @@ function cloneDayForDuplicate(day){
   idMap.set(oldId,cloned.id);
   return cloned;
  });
- copy.stops.forEach(stop=>{if(stop.leg&&idMap.has(stop.leg.fromId))stop.leg.fromId=idMap.get(stop.leg.fromId)});
+ copy.stops.forEach(stop=>{
+  if(stop.leg&&idMap.has(stop.leg.fromId))stop.leg.fromId=idMap.get(stop.leg.fromId);
+  if(idMap.has(stop.walkLoopSource))stop.walkLoopSource=idMap.get(stop.walkLoopSource);
+  if(idMap.has(stop.fromLoopStart))stop.fromLoopStart=idMap.get(stop.fromLoopStart);
+ });
+ if(copy.timeAnchor&&idMap.has(copy.timeAnchor.stopId))copy.timeAnchor.stopId=idMap.get(copy.timeAnchor.stopId);
+ if(idMap.has(copy.preLoopEndId))copy.preLoopEndId=idMap.get(copy.preLoopEndId);
  return copy;
 }
 function duplicateDayAt(index,{reopenManager=false}={}){
  if(index<0||index>=state.days.length)return;
  if(state.days.length>=100){toast('ניתן ליצור עד 100 ימים');return;}
+ ronnyRememberUndo('שכפול יום');
  const copy=cloneDayForDuplicate(state.days[index]);
  state.days.splice(index+1,0,copy);
  state.photos=(state.photos||[]).map(p=>({...p,day:p.day>index?p.day+1:p.day}));
@@ -490,6 +526,7 @@ async function deleteDayFromManager(id){
  closeDaysManager(); // Show the built-in map confirmation above the map, not beneath this drawer.
  const approved=await confirmOnMap(`למחוק את ${day.label||'יום '+(idx+1)}${n?' ואת '+n+' הנקודות שבו':''}?`,{title:'מחיקת יום',accept:'מחק יום'});
  if(approved){
+  ronnyRememberUndo('מחיקת יום');
   const current=state.days[selectedDay];state.days.splice(idx,1);
   state.photos=(state.photos||[]).filter(p=>p.day!==idx).map(p=>({...p,day:p.day>idx?p.day-1:p.day}));renumberGenericDayLabels();
   selectedDay=state.days.indexOf(current);if(selectedDay<0)selectedDay=Math.min(idx,state.days.length-1);
@@ -575,7 +612,14 @@ function interceptOutsidePointer(e){
  if(document.getElementById('ronny-time-dialog')?.open)return;
  if(e.button!==undefined&&e.button!==0)return;
  if(e.target.closest('.rail'))return;
+ // The day-order question is its own modal; its first click must choose an option.
+ if(e.target.closest?.('.day-order-overlay'))return;
  const active=topMostActiveSurface();if(!active||isWithinSurface(e.target,active))return;
+ // Existing map objects stay directly usable: dismiss the surface and let this same click reach them.
+ if(active.el.id==='search-box'&&searchPreviewMarker&&e.target.closest?.('.map-pane')){active.close();return}
+ if(active.el.id==='point-quick'&&e.target.closest?.('.leaflet-marker-icon[data-ronny-stop-id]')){active.close();return}
+ if(active.el.id==='point-quick'&&e.target.closest?.('#schedule [data-stop]')){active.close();return}
+ if(active.el.id==='map-context'&&e.target.closest?.('#search-box')){active.close();return}
  active.close();suppressOutsideClick=true;outsideClickTime=Date.now();
  e.preventDefault();e.stopImmediatePropagation();
 }

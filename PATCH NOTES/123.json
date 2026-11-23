@@ -1,0 +1,17 @@
+{
+  "version": "123",
+  "date": "2026-11-23",
+  "notes": [
+    "שינוי סדר ימים עם \"שמור כיוון\" כבר לא דורס את נקודת ההתחלה של יום. התחלה שנקבעה בנפרד נשמרת, ואפשר לחבר אותה מחדש לסיום היום הקודם מחלונית הנקודה.",
+    "שינוי סדר נקודות כבר לא הורס מסלולי הליכה ולא הופך עצירה לנקודת סיום. מסלול הליכה זז כבלוק אחד.",
+    "עריכה בשני טאבים כבר לא מוחקת עבודה: טאב ישן לא דורס גרסה חדשה ומציע לטעון אותה.",
+    "בתקלת אחסון מוצגת הודעה ברורה, ועבודה שנשמרה בזמן התקלה חוזרת לספרייה לאחר ההתאוששות.",
+    "שם טיול שהוקלד נשמר גם ברענון או בסגירה מיידית של הדף.",
+    "סך הק״מ מחושב גם בטיול עם מסלול הליכה, ובייצוא PDF המפה מוצגת שוב.",
+    "טיול חדש או מיובא לא יורש מקטעים וחזרת טיול מהטיול הפתוח.",
+    "מחיקת יום לא מעבירה תמונות ליום שגוי, ושכפול יום שומר את עוגן הזמן.",
+    "נוסף ביטול (Undo) לשינוי סדר ימים, הוספה, שכפול ומחיקה של ימים.",
+    "לחיצה על סמן, כרטיס או סיכת חיפוש עובדת בקליק אחד גם כשחלונית אחרת פתוחה; לחיצה על אייקון במתג המפות בוחרת את המפה שלו; התאמת הזום לא מסתירה נקודות מתחת לשורת החיפוש."
+  ],
+  "technical": "Source: 00e, 00g, 05, 10, 24, 40, 50, 52, 62, 66 and generated scripts/app.js. Adds trip revisions with compare-and-swap IndexedDB writes, BroadcastChannel tab notices, fallback-to-IndexedDB recovery, unload draft, startDetached day starts, walking-block route ordering, and .gitattributes (* -text) for byte-exact Windows checkouts. Tests: 111/111 Node and 65/65 Chromium locally. Updated stale E2E fixtures in map-picker, map-quick-tools and search-geocoding. Not fixed in this patch: schedule rounding, walk totals in day summary, retrace partial label, Excel grid overlaps, Takeout duplicate handling, accessibility findings. Firefox was not tested."
+}

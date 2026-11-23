@@ -59,15 +59,32 @@ function open(indexedDBApi,dbName,storeName){return new Promise((resolve,reject)
 })}
 function transact(database,storeName,method,record){return new Promise((resolve,reject)=>{
  if(!database)return reject(Error('מסד הנתונים אינו זמין'));
- const tx=database.transaction(storeName,method==='getAll'?'readonly':'readwrite');
+ const tx=database.transaction(storeName,method==='getAll'||method==='get'?'readonly':'readwrite');
  const store=tx.objectStore(storeName);let req;
- if(method==='getAll')req=store.getAll();else if(method==='delete')req=store.delete(record);else req=store.put(record);
+ if(method==='getAll')req=store.getAll();else if(method==='get')req=store.get(record);else if(method==='delete')req=store.delete(record);else req=store.put(record);
  let output;req.onsuccess=()=>{output=req.result};req.onerror=()=>reject(req.error||Error('שמירת טיול נכשלה'));
  tx.oncomplete=()=>resolve(output);tx.onerror=()=>reject(tx.error||Error('פעולת שמירה נכשלה'));tx.onabort=()=>reject(tx.error||Error('פעולת שמירה בוטלה'));
 })}
+// Writes only when no other tab advanced this trip since it was loaded.
+function putIfCurrent(database,storeName,record,expectedRev){return new Promise((resolve,reject)=>{
+ if(!database)return reject(Error('מסד הנתונים אינו זמין'));
+ const expected=Number(expectedRev)||0,tx=database.transaction(storeName,'readwrite'),store=tx.objectStore(storeName);
+ let outcome={conflict:false,rev:expected+1};
+ const read=store.get(record.id);
+ read.onerror=()=>reject(read.error||Error('קריאת טיול נכשלה'));
+ read.onsuccess=()=>{
+  const stored=read.result,storedRev=Number(stored?.rev)||0;
+  if(storedRev>expected||(!stored&&expected>0)){outcome={conflict:true,rev:storedRev};return}
+  try{
+   const write=store.put({...record,rev:outcome.rev});
+   write.onerror=()=>reject(write.error||Error('שמירת טיול נכשלה'));
+  }catch(error){reject(error);try{tx.abort()}catch(_){}}
+ };
+ tx.oncomplete=()=>resolve(outcome);tx.onerror=()=>reject(tx.error||Error('פעולת שמירה נכשלה'));tx.onabort=()=>reject(tx.error||Error('פעולת שמירה בוטלה'));
+})}
 function readFallback(read){try{return JSON.parse(read()||'[]')}catch(e){return []}}
 function writeFallback(write,records){write(JSON.stringify(records))}
-return Object.freeze({open,transact,readFallback,writeFallback});
+return Object.freeze({open,transact,putIfCurrent,readFallback,writeFallback});
 })();
 // Read-only trip queries. State and view selection are injected explicitly.
 const TripQueries=(()=>{
@@ -122,11 +139,55 @@ function enforceRouteEndpoints(day,updated){
  return replaced;
 }
 function commitRouteOrder(trip,dayIndex,ordered,isMapOnlyPoint){const day=trip.days[dayIndex];if(!day)return;day.stops=[...ordered,...day.stops.filter(isMapOnlyPoint)]}
+const WALK_POINT_TYPES=new Set(['walkStart','walkTurn','walkEnd']);
+const WALK_INNER_MESSAGE='נקודות בתוך מסלול הליכה נשארות בין תחילת ההליכה לסיומה. כדי להזיז את כל ההליכה יש להזיז את נקודת תחילת ההליכה.';
+// A complete walking loop moves as one block; every other route point is its own unit.
+function routeUnits(arr){
+ const units=[];
+ for(let i=0;i<arr.length;i++){
+  const point=arr[i];
+  if(point.type==='walkStart'){
+   let end=-1;
+   for(let j=i+1;j<arr.length;j++){
+    if(arr[j].type==='walkStart')break;
+    if(arr[j].type==='walkEnd'&&arr[j].walkLoopSource===point.id){end=j;break}
+   }
+   if(end>i){units.push({from:i,to:end,walk:true});i=end;continue}
+  }
+  units.push({from:i,to:i,walk:false});
+ }
+ return units;
+}
+function planRouteSwap(arr,fromId,toId){
+ const a=arr.findIndex(p=>p.id===fromId),b=arr.findIndex(p=>p.id===toId);
+ if(a<0||b<0||a===b)return null;
+ if(arr[a].autoLoopEnd||arr[b].autoLoopEnd)return {error:'נקודת הסיום של יום מעגלי נגזרת מההתחלה ואינה זזה בנפרד.'};
+ const units=routeUnits(arr),inUnit=i=>units.find(u=>i>=u.from&&i<=u.to),ua=inUnit(a),ub=inUnit(b);
+ if(ua===ub){
+  if(!ua.walk)return null;
+  if([a,b].some(i=>i===ua.from||i===ua.to))return {error:WALK_INNER_MESSAGE};
+  const ordered=[...arr];[ordered[a],ordered[b]]=[ordered[b],ordered[a]];
+  return {ordered,moved:[fromId,toId]};
+ }
+ if(ua.walk&&a!==ua.from)return {error:WALK_INNER_MESSAGE};
+ const next=[...units],ia=units.indexOf(ua),ib=units.indexOf(ub);next[ia]=ub;next[ib]=ua;
+ const ordered=next.flatMap(u=>arr.slice(u.from,u.to+1));
+ if(arr.some(p=>p.type==='start')&&WALK_POINT_TYPES.has(ordered[0]?.type))return {error:'מסלול הליכה לא יכול להתחיל לפני נקודת ההתחלה של היום.'};
+ if(arr.some(p=>p.type==='end')&&WALK_POINT_TYPES.has(ordered.at(-1)?.type))return {error:'מסלול הליכה לא יכול להסתיים אחרי נקודת הסיום של היום.'};
+ return {ordered,moved:[...arr.slice(ua.from,ua.to+1),...arr.slice(ub.from,ub.to+1)].map(p=>p.id)};
+}
+function planRouteStep(arr,id,delta){
+ const index=arr.findIndex(p=>p.id===id);if(index<0)return null;
+ const units=routeUnits(arr),unitIndex=units.findIndex(u=>index>=u.from&&index<=u.to),unit=units[unitIndex];
+ if(unit.walk&&index!==unit.from){const target=arr[index+delta];return target?planRouteSwap(arr,id,target.id):null}
+ const neighbor=units[unitIndex+delta];
+ return neighbor?planRouteSwap(arr,id,arr[neighbor.from].id):null;
+}
 function renumberGenericDayLabels(trip){
  trip.days.forEach((d,i)=>{if(/^יום\s+\d+$/u.test(String(d.label||'')))d.label='יום '+(i+1)});
 }
 function synchronizeForRender(trip,isDayView,{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames}){const walkingLinked=trip.days.some(day=>syncWalkingLoops(day));const linked=isDayView?synchronizeDayStarts():false;const loopLinked=synchronizeLoopDays();const chronoLinked=synchronizeChronologicalEndpointNames();return !!(linked||loopLinked||walkingLinked||chronoLinked)}
-return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,renumberGenericDayLabels,synchronizeForRender});
+return Object.freeze({ronnyIsAutoEndpointName,ronnyEndpointDayName,synchronizeChronologicalEndpointNames,positionRouteEndpoints,enforceRouteEndpoints,commitRouteOrder,routeUnits,planRouteSwap,planRouteStep,renumberGenericDayLabels,synchronizeForRender});
 })();
 // Geometry and manual-leg calculations; no browser, routing network, UI or trip state.
 const RouteGeometry=(()=>{
@@ -653,13 +714,81 @@ function openLibraryDB(){return TripStorage.open(window.indexedDB,LIB_DB,LIB_STO
 function transact(method,record){return TripStorage.transact(db,LIB_STORE,method,record)}
 function fallbackRead(){return TripStorage.readFallback(()=>localStorage.getItem(LIB_FALLBACK))}
 async function getStoredTrips(){return usingFallback?fallbackRead():await transact('getAll')}
-async function putTrip(record){if(usingFallback){const all=Array.from(library.values());TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),all);return}await transact('put',record)}
-async function deleteTrip(id){if(usingFallback){TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),Array.from(library.values()));return}await transact('delete',id)}
+const ronnyTripRevs=new Map(),ronnyUnsavedTrips=new Set();
+let ronnyTripChannel=null,ronnyConflictPrompted=false,ronnyPendingWrites=0,ronnyTitleSaveTimer=null;
+const RONNY_UNLOAD_DRAFT_KEY='ronny-unload-draft-v1',RONNY_FALLBACK_MERGED_KEY='ronny-fallback-merged-v1';
+async function putTrip(record){
+ if(usingFallback){const all=Array.from(library.values());TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),all);return}
+ const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,ronnyTripRevs.get(record.id)||0);
+ if(result.conflict){const conflict=Error('הטיול עודכן בטאב אחר');conflict.name='TripConflictError';throw conflict}
+ ronnyTripRevs.set(record.id,result.rev);record.rev=result.rev;ronnyBroadcastTripChange(record.id,result.rev);
+}
+async function deleteTrip(id){if(usingFallback){TripStorage.writeFallback(value=>localStorage.setItem(LIB_FALLBACK,value),Array.from(library.values()));return}await transact('delete',id);ronnyTripRevs.delete(id);ronnyBroadcastTripChange(id,0,true)}
+function ronnyBroadcastTripChange(id,rev,deleted=false){try{ronnyTripChannel?.postMessage({id,rev,deleted})}catch(e){}}
+async function ronnyPromptTripReload(){
+ if(ronnyConflictPrompted)return;ronnyConflictPrompted=true;
+ const reload=await confirmOnMap('הטיול הזה עודכן בטאב אחר. כדי לא לדרוס את העבודה שם, שינויים בטאב הזה לא נשמרים עד לטעינה מחדש.',{title:'הטיול עודכן בטאב אחר',accept:'טען את הגרסה העדכנית'});
+ if(reload)location.reload();
+}
+async function ronnyOnRemoteTripChange(message){
+ if(!message?.id)return;
+ if(message.id===activeTripId){
+  if(message.deleted||(Number(message.rev)||0)>(ronnyTripRevs.get(message.id)||0)){ronnyUnsavedTrips.add(message.id);ronnyLocalSaveStatus('conflict');if(!document.hidden)ronnyPromptTripReload()}
+  return;
+ }
+ if(message.deleted){library.delete(message.id);ronnyTripRevs.delete(message.id);return}
+ try{const fresh=await transact('get',message.id);if(fresh?.trip){library.set(fresh.id,fresh);ronnyTripRevs.set(fresh.id,Number(fresh.rev)||0)}}catch(e){}
+}
+function ronnyInitTripChannel(){
+ try{ronnyTripChannel=new BroadcastChannel('ronny-trip-library-v1');ronnyTripChannel.onmessage=event=>ronnyOnRemoteTripChange(event.data)}catch(e){ronnyTripChannel=null}
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&document.getElementById('ronny-local-save-status')?.querySelector('.ronny-local-save-label')?.textContent.includes('טאב אחר'))ronnyPromptTripReload()});
+}
+function ronnyCommitTripTitle(){
+ const pending=ronnyTitleSaveTimer!==null;clearTimeout(ronnyTitleSaveTimer);ronnyTitleSaveTimer=null;
+ const input=$('trip-name');if(!input||(!pending&&document.activeElement!==input))return;
+ const next=input.value.trim().slice(0,64);
+ if(next&&next!==state.title){state.title=next;save();renderTripDashboard()}
+}
+function ronnyWriteUnloadDraft(){
+ if(usingFallback||!libraryReady||!activeTripId||ronnyPendingWrites<1)return;
+ try{const draft=JSON.stringify({id:activeTripId,baseRev:ronnyTripRevs.get(activeTripId)||0,updatedAt:Date.now(),trip:state});if(draft.length<=3500000)localStorage.setItem(RONNY_UNLOAD_DRAFT_KEY,draft)}catch(e){}
+}
+async function ronnyRestoreUnloadDraft(){
+ let draft=null;try{draft=JSON.parse(localStorage.getItem(RONNY_UNLOAD_DRAFT_KEY)||'null');localStorage.removeItem(RONNY_UNLOAD_DRAFT_KEY)}catch(e){}
+ if(!draft?.id||!draft.trip)return;
+ const stored=library.get(draft.id);
+ if(stored&&(Number(stored.rev)||0)>(Number(draft.baseRev)||0))return; // The interrupted write finished.
+ const record={...(stored||{}),id:draft.id,title:draft.trip.title||stored?.title||'טיול ללא שם',startDate:draft.trip.startDate||'',updatedAt:draft.updatedAt||Date.now(),trip:draft.trip};
+ const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,Number(stored?.rev)||0);
+ if(!result.conflict){record.rev=result.rev;library.set(record.id,record);ronnyTripRevs.set(record.id,result.rev)}
+}
+function ronnyIsUntouchedDemo(trip){
+ const sample=demo(),names=t=>JSON.stringify((t.days||[]).map(d=>(d.stops||[]).filter(s=>!s.autoLoopEnd).map(s=>s.name)));
+ return trip?.title===sample.title&&names(trip)===names(sample);
+}
+// Work saved while IndexedDB was unavailable returns to the library; nothing is deleted.
+async function ronnyMergeFallbackTrips(){
+ const fallback=fallbackRead();if(!Array.isArray(fallback)||!fallback.length)return;
+ let merged=[];try{merged=JSON.parse(localStorage.getItem(RONNY_FALLBACK_MERGED_KEY)||'[]')}catch(e){}
+ const seen=new Set(Array.isArray(merged)?merged:[]);let restored=0;
+ for(const item of fallback){
+  if(!item?.id||!item.trip)continue;
+  const mark=item.id+':'+(item.updatedAt||0);if(seen.has(mark))continue;
+  const stored=library.get(item.id);
+  if(ronnyIsUntouchedDemo(item.trip)||(stored&&JSON.stringify(stored.trip)===JSON.stringify(item.trip))){seen.add(mark);continue}
+  const title=stored?(item.title||'טיול')+' — שוחזר':item.title;
+  const record={...item,id:stored?uid():item.id,title,updatedAt:Date.now(),trip:{...item.trip,title}};delete record.rev;
+  try{const result=await TripStorage.putIfCurrent(db,LIB_STORE,record,0);if(result.conflict)continue;record.rev=result.rev;library.set(record.id,record);ronnyTripRevs.set(record.id,result.rev);seen.add(mark);restored++}catch(e){}
+ }
+ try{localStorage.setItem(RONNY_FALLBACK_MERGED_KEY,JSON.stringify([...seen]))}catch(e){}
+ if(restored)setTimeout(()=>toast('שוחזרו '+restored+' טיולים מהאחסון הזמני'),900);
+}
 function libraryRecord(){return {id:activeTripId,title:state.title||'טיול ללא שם',startDate:state.startDate||'',updatedAt:Date.now(),trip:cloneValue(state)}}
 function ronnyLocalSaveStatus(kind='saved'){
  const el=document.getElementById('ronny-local-save-status');if(!el)return;
- const text={saving:'שומר בדפדפן...',saved:'נשמר בדפדפן זה',error:'שמירה נכשלה · ייצא גיבוי'};
- el.dataset.status=kind;el.querySelector('.ronny-local-save-label').textContent=text[kind]||text.saved;
+ if(kind==='saved'&&usingFallback)kind='temporary';
+ const text={saving:'שומר בדפדפן...',saved:'נשמר בדפדפן זה',error:'שמירה נכשלה · ייצא גיבוי',conflict:'עודכן בטאב אחר · לא נשמר',temporary:'אחסון זמני · ייצא גיבוי'};
+ el.dataset.status=kind==='conflict'||kind==='temporary'?'error':kind;el.querySelector('.ronny-local-save-label').textContent=text[kind]||text.saved;
 }
 // Explicit, bounded undo history for structural planner actions. Never persisted
 // or shared across trips; avoids recording asynchronous routing-cache updates.
@@ -703,19 +832,29 @@ function save(){
  ronnyLocalSaveStatus('saving');ronnyUpdateUndoButton();
  const walkingUpdated=state.days.some(day=>syncWalkingLoops(day));const loopsUpdated=synchronizeLoopDays();if(loopsUpdated||walkingUpdated)invalidate();
  ensureStableViaColors();
- const record=libraryRecord();library.set(record.id,record);
+ const record=libraryRecord(),previous=library.get(record.id);
+ // An unchanged trip is not rewritten, so opening it cannot disturb another tab.
+ if(previous&&!ronnyUnsavedTrips.has(record.id)&&JSON.stringify(previous.trip)===JSON.stringify(record.trip)){
+  saveQueue=saveQueue.then(ok=>{if(ok!==false)ronnyLocalSaveStatus('saved');return ok!==false});return;
+ }
+ ronnyUnsavedTrips.add(record.id);library.set(record.id,record);ronnyPendingWrites++;
  try{localStorage.setItem(LIB_ACTIVE,record.id)}catch(e){}
  // Capture each immutable snapshot now, in order, to prevent cross-trip overwrites.
- saveQueue=saveQueue.catch(()=>{}).then(()=>putTrip(record)).then(()=>{lastSaveError=false;ronnyLocalSaveStatus('saved');return true}).catch(e=>{lastSaveError=true;ronnyLocalSaveStatus('error');toast('לא ניתן לשמור את הטיול. בצע ייצוא JSON לגיבוי. '+(e.name==='QuotaExceededError'?'האחסון מלא.':''));return false});
+ saveQueue=saveQueue.catch(()=>{}).then(()=>putTrip(record)).then(()=>{ronnyUnsavedTrips.delete(record.id);lastSaveError=false;ronnyLocalSaveStatus('saved');return true}).catch(e=>{lastSaveError=true;if(e?.name==='TripConflictError'){ronnyLocalSaveStatus('conflict');ronnyPromptTripReload();return false}ronnyLocalSaveStatus('error');toast('לא ניתן לשמור את הטיול. בצע ייצוא JSON לגיבוי. '+(e.name==='QuotaExceededError'?'האחסון מלא.':''));return false}).finally(()=>{ronnyPendingWrites=Math.max(0,ronnyPendingWrites-1)});
 }
 async function initTripLibrary(){
  try{db=await openLibraryDB()}catch(e){usingFallback=true}
  let records=[];try{records=await getStoredTrips()}catch(e){usingFallback=true;records=fallbackRead()}
- records.filter(r=>r&&r.id&&r.trip).forEach(r=>library.set(r.id,r));
+ records.filter(r=>r&&r.id&&r.trip).forEach(r=>{library.set(r.id,r);ronnyTripRevs.set(r.id,Number(r.rev)||0)});
+ if(!usingFallback){try{await ronnyRestoreUnloadDraft();await ronnyMergeFallbackTrips()}catch(e){console.error('RONNY storage recovery failed',e)}}
+ ronnyInitTripChannel();
+ if(usingFallback)setTimeout(()=>confirmOnMap('אחסון הטיולים של הדפדפן אינו זמין כרגע. הטיולים השמורים לא נמחקו, אך לא ניתן לטעון אותם. שינויים נשמרים באחסון זמני, ולכן כדאי לייצא גיבוי JSON.',{title:'אחסון הטיולים אינו זמין',accept:'הבנתי',hideCancel:true}),700);
  if(!library.size){
-  let first=demo();
-  try{const legacy=localStorage.getItem('roam-trip-v2');if(legacy)first=prepareTrip(JSON.parse(legacy))}catch(e){first=demo()}
-  activeTripId=uid();state=prepareTrip(first);libraryReady=true;save();await saveQueue;
+  let first=demo(),isDemo=true;
+  try{const legacy=localStorage.getItem('roam-trip-v2');if(legacy){first=prepareTrip(JSON.parse(legacy));isDemo=false}}catch(e){first=demo();isDemo=true}
+  activeTripId=uid();state=prepareTrip(first);libraryReady=true;
+  // During a storage failure the sample trip stays unsaved until the user actually edits it.
+  if(usingFallback&&isDemo)ronnyLocalSaveStatus('saved');else{save();await saveQueue}
  }else{
   const savedId=(()=>{try{return localStorage.getItem(LIB_ACTIVE)}catch(e){return null}})();
   let record=library.get(savedId);if(!record)record=Array.from(library.values()).sort((a,b)=>b.updatedAt-a.updatedAt)[0];
@@ -723,7 +862,7 @@ async function initTripLibrary(){
   try{localStorage.setItem(LIB_ACTIVE,activeTripId)}catch(e){}
  }
 }
-function freshTrip(){const date=new Date();return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...state.settings,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
+function freshTrip(){const date=new Date();const {tripLoop,dayGroups,defaultDepartureTime,planningResolution:previousResolution,...carried}=state.settings||{};return {version:3,outline:{points:[],stagePlan:{}},title:'הטיול החדש שלי',startDate:[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-'),settings:{...carried,mapStyle:mapPrefs.defaultStyle,startCenter:{...mapPrefs.home}},photos:[],days:[{label:'יום 1',stops:[],segments:[]}]}}
 function tripMapPositions(){return TripQueries.tripMapPositions(state)}
 function fitWholeTrip(){
  if(!map||!window.L)return;
@@ -794,7 +933,7 @@ function queueWholeTripFocus(){
 }
 function applyCurrentTrip(){
  if(drawLegSession)stopLegDrawing();closeLegEditor();
- ronnyWorkspaceReady=false;wholeTripFocusSeq++;
+ ronnyWorkspaceReady=false;wholeTripFocusSeq++;ronnyConflictPrompted=false;
  resetPlannerBulk();state=prepareTrip(state);if(+state.settings.railWidth===72)state.settings.railWidth=54;const detailedPoints=(state.days||[]).some(d=>(d.stops||[]).some(validPoint));planningResolution=detailedPoints?'day':(['outline','stage'].includes(state.settings.planningResolution)?'outline':'day');selectedOutlineId=null;selectedStageId=null;outlineAddArmed=false;selectedDay=0;selectedStop=null;viewScope='all';ronnyActiveDayGroupId=null;invalidate();pendingRetimes.clear();scheduleQuality.clear();repairExistingSchedules();restorePlannerUpperHeight();
  const resume=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(resume);
  if(googleMode){googleMode=false;document.querySelector('.map-pane').classList.remove('google-mode');$('google-coverage-toggle').setAttribute('aria-pressed','false')}
@@ -837,7 +976,7 @@ async function selectTrip(id){
  if(id===activeTripId){await saveQueue;closeDrawer();applyCurrentTrip();return}
  await saveQueue;const rec=library.get(id);if(!rec){toast('הטיול לא נמצא');return}
  activeTripId=id;state=cloneValue(rec.trip);try{localStorage.setItem(LIB_ACTIVE,id)}catch(e){};
- closeDrawer();applyCurrentTrip();toast('הטיול נטען מהספרייה — אפשר להמשיך לערוך')
+ closeDrawer();applyCurrentTrip();if(!ronnyUnsavedTrips.has(id)){lastSaveError=false;ronnyLocalSaveStatus('saved')}toast('הטיול נטען מהספרייה — אפשר להמשיך לערוך')
 }
 async function duplicateTrip(id){
  await saveQueue;const from=library.get(id);if(!from)return;
@@ -991,16 +1130,16 @@ function confirmOnMap(message,options={}){
  if(currentMapDialogFinish)currentMapDialogFinish(false);
  return new Promise(resolve=>{
   const overlay=document.createElement('div');overlay.className='map-confirm-overlay';overlay.setAttribute('role','presentation');
-  overlay.innerHTML=`<div class="map-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="map-confirm-heading" aria-describedby="map-confirm-question"><h3 id="map-confirm-heading">${esc(options.title||'אישור פעולה')}</h3><p id="map-confirm-question">${esc(message)}</p><div class="map-confirm-actions"><button type="button" class="map-confirm-approve">${esc(options.accept||'אישור')}</button><button type="button" class="map-confirm-cancel">ביטול</button></div></div>`;
+  overlay.innerHTML=`<div class="map-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="map-confirm-heading" aria-describedby="map-confirm-question"><h3 id="map-confirm-heading">${esc(options.title||'אישור פעולה')}</h3><p id="map-confirm-question">${esc(message)}</p><div class="map-confirm-actions"><button type="button" class="map-confirm-approve">${esc(options.accept||'אישור')}</button>${options.hideCancel?'':'<button type="button" class="map-confirm-cancel">ביטול</button>'}</div></div>`;
   pane.append(overlay);overlay.addEventListener('pointerdown',e=>e.stopPropagation());const previous=document.activeElement;
   const finish=accepted=>{if(currentMapDialogFinish!==finish)return;currentMapDialogFinish=null;document.removeEventListener('keydown',keyHandler,true);overlay.remove();previous?.focus?.();resolve(accepted)};
   currentMapDialogFinish=finish;
   const keyHandler=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();finish(false)}else if(e.key==='Enter'&&e.target.closest('.map-confirm-card')){e.preventDefault();finish(e.target.classList.contains('map-confirm-approve'))}};
   document.addEventListener('keydown',keyHandler,true);
   overlay.querySelector('.map-confirm-approve').onclick=()=>finish(true);
-  overlay.querySelector('.map-confirm-cancel').onclick=()=>finish(false);
+  const cancelButton=overlay.querySelector('.map-confirm-cancel');if(cancelButton)cancelButton.onclick=()=>finish(false);
   overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});
-  overlay.querySelector('.map-confirm-cancel').focus();
+  (cancelButton||overlay.querySelector('.map-confirm-approve')).focus();
  });
 }
 const svAvailabilityCache=new Map();
@@ -1150,7 +1289,15 @@ function ensureDayStart(i){
  let changed=false,existing=(curr.stops||[]).find(s=>s.type==='start');
  for(const extra of (curr.stops||[]).filter(s=>s.type==='start'&&s!==existing)){extra.type='via';changed=true}
  if(!existing){existing={id:uid(),name:'נקודת התחלה',type:'start',time:tripDefaultDepartureTime(),duration:0,cost:0,lat:+ending.lat,lng:+ending.lng,description:'',notes:'',autoInheritedStart:true};curr.stops.unshift(existing);curr.departureUsesDefault=true;changed=true}
- if(existing.fromPreviousDayEnd!==ending.id||+existing.lat!==+ending.lat||+existing.lng!==+ending.lng){existing.fromPreviousDayEnd=ending.id;existing.lat=+ending.lat;existing.lng=+ending.lng;changed=true}
+ const sameSpot=+existing.lat===+ending.lat&&+existing.lng===+ending.lng;
+ // A start edited or placed independently is the user's choice and is never overwritten.
+ if(existing.startDetached!==true&&!sameSpot&&existing.autoInheritedStart!==true&&!existing.fromPreviousDayEnd){existing.startDetached=true;changed=true}
+ if(existing.startDetached===true){
+  if(existing.fromPreviousDayEnd){delete existing.fromPreviousDayEnd;changed=true}
+  if(changed)positionRouteEndpoints(curr);
+  return changed;
+ }
+ if(existing.fromPreviousDayEnd!==ending.id||!sameSpot){existing.fromPreviousDayEnd=ending.id;existing.lat=+ending.lat;existing.lng=+ending.lng;changed=true}
  if(changed)positionRouteEndpoints(curr);
  return changed;
 }
@@ -1167,6 +1314,25 @@ function relocateConnectedDayOrigin(dayIndex,previous,next){
   if(!prior.loop)break;
   i--;
  }
+}
+// After days change order, keep each day's own start unless it still meets the previous finish.
+function ronnyPreserveDayStartsAfterReorder(){
+ state.days.forEach((day,i)=>{
+  const start=(day.stops||[]).find(s=>s.type==='start');if(!start)return;
+  if(i===0){start.autoInheritedStart=false;delete start.fromPreviousDayEnd;delete start.startDetached;return}
+  const ending=lastRouteStop(state.days[i-1]);
+  if(ending&&+ending.lat===+start.lat&&+ending.lng===+start.lng){delete start.startDetached;start.fromPreviousDayEnd=ending.id}
+  else{start.startDetached=true;start.autoInheritedStart=false;delete start.fromPreviousDayEnd}
+ });
+}
+function ronnyRelinkDayStart(id){
+ const found=getStop(id);if(!found||found.day<1||found.stop.type!=='start')return;
+ const ending=lastRouteStop(state.days[found.day-1]);
+ if(!ending){toast('ליום הקודם עדיין אין נקודת סיום');return}
+ ronnyRememberUndo('חיבור לסיום היום הקודם');
+ delete found.stop.startDetached;found.stop.fromPreviousDayEnd=ending.id;found.stop.lat=+ending.lat;found.stop.lng=+ending.lng;
+ hidePointQuick();synchronizeLoopDays();synchronizeDayStarts();synchronizeLoopDays();invalidate();retimeAfterOrderChange(found.day);save();renderAll();
+ toast('תחילת היום חוברה לסיום היום הקודם');
 }
 function synchronizeDayStarts(){let modified=false;for(let i=1;i<state.days.length;i++)modified=ensureDayStart(i)||modified;return modified}
 function reverseDayItinerary(day){
@@ -1227,19 +1393,19 @@ async function moveDay(from,to){
  let mode='cancel';
  try{mode=await chooseDayReorderMode(from,to)}finally{dayReorderPending=false}
  if(mode==='cancel'||!['preserve','adapt'].includes(mode))return;
+ ronnyRememberUndo('שינוי סדר ימים');
  const oldRects=new Map(Array.from($('days')?.querySelectorAll('[data-day-id]')||[]).map(el=>[el.dataset.dayId,el.getBoundingClientRect()]));
  const managerRects=new Map(Array.from($('days-manager-list')?.querySelectorAll('[data-day-row]')||[]).map(el=>[el.dataset.dayRow,el.getBoundingClientRect()]));
  const oldDays=[...state.days],active=state.days[selectedDay],day=state.days.splice(from,1)[0];state.days.splice(to,0,day);
  renumberGenericDayLabels();
  for(const photo of state.photos||[]){const oldDay=oldDays[photo.day];if(oldDay)photo.day=state.days.indexOf(oldDay)}
  selectedDay=state.days.indexOf(active);selectedStop=null;
- // Do not silently change the coordinates of a preserved route when its new
- // preceding day is different from its original preceding day.
- for(const d of state.days){const first=d.stops.find(s=>s.type==='start');if(first?.autoInheritedStart){first.autoInheritedStart=false;delete first.fromPreviousDayEnd}}
  if(mode==='adapt'){
   const first=Math.min(from,to),last=Math.max(from,to);
   for(let i=first;i<=last;i++)reverseDayItinerary(state.days[i]);
  }
+ // Do not silently change the coordinates of a route when its preceding day changes.
+ ronnyPreserveDayStartsAfterReorder();
  invalidate();
  if(mode==='adapt')for(let i=Math.min(from,to);i<=Math.max(from,to);i++)retimeAfterOrderChange(i,0);
  save();renderAll();fitMap();
@@ -1300,6 +1466,7 @@ function renderDays(){
  renderDayTimeMode();
  $('add-day').onclick=()=>{
   if(state.days.length>=100){toast('ניתן ליצור עד 100 ימים בטיול');return}
+  ronnyRememberUndo('הוספת יום');
   const after=Math.max(0,Math.min(selectedDay,state.days.length-1));
   const at=after+1;
   const inherited=inheritedStartForNewDay(after);
@@ -1361,7 +1528,8 @@ function editDay(){
  $('day-delete').onclick=async()=>{if(state.days.length===1)return;
   const msg=day.stops.length?`למחוק את היום ואת ${day.stops.length} הנקודות שבו?`:'למחוק את היום הנבחר?';
   if(!await confirmOnMap(msg,{title:'מחיקת יום',accept:'מחק יום'}))return;
-  ronnyRememberUndo('מחיקת יום');state.days.splice(selectedDay,1);renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
+  ronnyRememberUndo('מחיקת יום');const removedIndex=selectedDay;state.days.splice(removedIndex,1);
+  state.photos=(state.photos||[]).filter(p=>p.day!==removedIndex).map(p=>({...p,day:p.day>removedIndex?p.day-1:p.day}));renumberGenericDayLabels();selectedDay=Math.min(selectedDay,state.days.length-1);selectedStop=null;
   synchronizeDayStarts();invalidate();save();closeDrawer();renderAll();fitMap();toast('היום נמחק')};
 }
 
@@ -1397,12 +1565,19 @@ function cloneDayForDuplicate(day){
   idMap.set(oldId,cloned.id);
   return cloned;
  });
- copy.stops.forEach(stop=>{if(stop.leg&&idMap.has(stop.leg.fromId))stop.leg.fromId=idMap.get(stop.leg.fromId)});
+ copy.stops.forEach(stop=>{
+  if(stop.leg&&idMap.has(stop.leg.fromId))stop.leg.fromId=idMap.get(stop.leg.fromId);
+  if(idMap.has(stop.walkLoopSource))stop.walkLoopSource=idMap.get(stop.walkLoopSource);
+  if(idMap.has(stop.fromLoopStart))stop.fromLoopStart=idMap.get(stop.fromLoopStart);
+ });
+ if(copy.timeAnchor&&idMap.has(copy.timeAnchor.stopId))copy.timeAnchor.stopId=idMap.get(copy.timeAnchor.stopId);
+ if(idMap.has(copy.preLoopEndId))copy.preLoopEndId=idMap.get(copy.preLoopEndId);
  return copy;
 }
 function duplicateDayAt(index,{reopenManager=false}={}){
  if(index<0||index>=state.days.length)return;
  if(state.days.length>=100){toast('ניתן ליצור עד 100 ימים');return;}
+ ronnyRememberUndo('שכפול יום');
  const copy=cloneDayForDuplicate(state.days[index]);
  state.days.splice(index+1,0,copy);
  state.photos=(state.photos||[]).map(p=>({...p,day:p.day>index?p.day+1:p.day}));
@@ -1523,6 +1698,7 @@ async function deleteDayFromManager(id){
  closeDaysManager(); // Show the built-in map confirmation above the map, not beneath this drawer.
  const approved=await confirmOnMap(`למחוק את ${day.label||'יום '+(idx+1)}${n?' ואת '+n+' הנקודות שבו':''}?`,{title:'מחיקת יום',accept:'מחק יום'});
  if(approved){
+  ronnyRememberUndo('מחיקת יום');
   const current=state.days[selectedDay];state.days.splice(idx,1);
   state.photos=(state.photos||[]).filter(p=>p.day!==idx).map(p=>({...p,day:p.day>idx?p.day-1:p.day}));renumberGenericDayLabels();
   selectedDay=state.days.indexOf(current);if(selectedDay<0)selectedDay=Math.min(idx,state.days.length-1);
@@ -1608,7 +1784,14 @@ function interceptOutsidePointer(e){
  if(document.getElementById('ronny-time-dialog')?.open)return;
  if(e.button!==undefined&&e.button!==0)return;
  if(e.target.closest('.rail'))return;
+ // The day-order question is its own modal; its first click must choose an option.
+ if(e.target.closest?.('.day-order-overlay'))return;
  const active=topMostActiveSurface();if(!active||isWithinSurface(e.target,active))return;
+ // Existing map objects stay directly usable: dismiss the surface and let this same click reach them.
+ if(active.el.id==='search-box'&&searchPreviewMarker&&e.target.closest?.('.map-pane')){active.close();return}
+ if(active.el.id==='point-quick'&&e.target.closest?.('.leaflet-marker-icon[data-ronny-stop-id]')){active.close();return}
+ if(active.el.id==='point-quick'&&e.target.closest?.('#schedule [data-stop]')){active.close();return}
+ if(active.el.id==='map-context'&&e.target.closest?.('#search-box')){active.close();return}
  active.close();suppressOutsideClick=true;outsideClickTime=Date.now();
  e.preventDefault();e.stopImmediatePropagation();
 }
@@ -2794,10 +2977,17 @@ function animateScheduleReorder(before,movedIds=[]){
 // Start/end describe the first/last position rather than a permanently pinned place.
 function commitOrderedDaySlots(dayIndex,ordered){
  const day=state.days[dayIndex];if(!day)return;
- const last=ordered.length-1;
+ const last=ordered.length-1,hadStart=ordered.some(s=>s.type==='start'),hadEnd=ordered.some(s=>s.type==='end');
  for(let i=0;i<ordered.length;i++){
   const s=ordered[i],before=s.type;
-  const after=ordered.length<2?(before==='end'?'start':before):(i===0?'start':i===last?'end':(before==='start'||before==='end'?'via':before));
+  // Walking points and derived loop finishes keep their identity. A day gains
+  // a start or finish only when the user already defined that endpoint.
+  if(WALK_TYPES.has(before)||s.autoLoopEnd)continue;
+  let after=before;
+  if(ordered.length<2)after=before==='end'?'start':before;
+  else if(hadStart&&i===0)after='start';
+  else if(hadEnd&&i===last)after='end';
+  else if(before==='start'||before==='end')after='via';
   if(before===after)continue;
   const name=String(s.name||'').trim();
   const defaults={start:'נקודת התחלה',end:'נקודת סיום',via:'נקודת מעבר',rest:'נקודת עצירה'};
@@ -2810,21 +3000,19 @@ function commitOrderedDaySlots(dayIndex,ordered){
  renumberWaypoints(day);
 }
 function moveStop(id,delta){
- const arr=stops(),idx=arr.findIndex(s=>s.id===id),next=idx+delta;
- if(idx<0||next<0||next>=arr.length)return;
- ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions(),other=arr[next].id;
- [arr[idx],arr[next]]=[arr[next],arr[idx]];
- commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
- animateScheduleReorder(before,[id,other]);
+ const plan=TripStateCommands.planRouteStep(stops(),id,delta);
+ if(!plan)return;if(plan.error){toast(plan.error);return}
+ ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions();
+ commitOrderedDaySlots(selectedDay,plan.ordered);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
+ animateScheduleReorder(before,plan.moved);
 }
 function reorder(from,to){
- const arr=stops();let a=arr.findIndex(s=>s.id===from),b=arr.findIndex(s=>s.id===to);
- if(a<0||b<0||a===b)return;
+ // Two sequence positions exchange their cards; a walking loop moves as one block.
+ const plan=TripStateCommands.planRouteSwap(stops(),from,to);
+ if(!plan)return;if(plan.error){toast(plan.error);return}
  ronnyRememberUndo('שינוי סדר נקודות');const before=captureSchedulePositions();
- // Two fixed sequence positions exchange their cards, including their locations.
- [arr[a],arr[b]]=[arr[b],arr[a]];
- commitOrderedDaySlots(selectedDay,arr);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
- animateScheduleReorder(before,[from,to]);
+ commitOrderedDaySlots(selectedDay,plan.ordered);invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();
+ animateScheduleReorder(before,plan.moved);
 }
 
 function invalidate(){routeToken++;clearTimeout(routeDebounce);routeController?.abort();routeController=null;routeData=null;routeError='';}
@@ -3947,7 +4135,9 @@ function fitMap(){
  const coords=isFirstEntity?firstEntityFocusPositions(days):TripQueries.focusMapPositions(state,days);
  if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
  if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
- map.fitBounds(L.latLngBounds(coords),{padding:[38,44],maxZoom:16,animate:true,duration:.65});
+ // Keep the fitted entity clear of the floating search bar and map tools.
+ const compact=map.getSize().x<520;
+ map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:compact?[64,92]:[92,96],paddingBottomRight:compact?[56,56]:[86,64],maxZoom:16,animate:true,duration:.65});
 }
 let activeQuickCommit=null;
 function hidePointQuick(){if(activeQuickCommit){const flush=activeQuickCommit;activeQuickCommit=null;flush()}const el=$('point-quick');if(el){el.classList.remove('ronny-point-drag-hidden');const wasOpen=el.classList.contains('open');el.classList.remove('open');if(wasOpen&&!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){el.classList.add('ronny-quick-exiting');setTimeout(()=>{if(!el.classList.contains('open'))el.classList.remove('ronny-quick-exiting')},175)}else el.classList.remove('ronny-quick-exiting');el.dataset.id='';el.dataset.mode=''}syncMarkerDragState()}
@@ -4027,6 +4217,7 @@ function openPointQuick(id){
  <div class="quick-departure"><span>${s.type==='walkStart'?'יציאה להליכה · חזרה בסיום':s.type==='start'?'יציאה':s.type==='end'?'הגעה':'הגעה · עצירה · יציאה'}</span><span class="quick-save-state" id="quick-save-state">שמירה אוטומטית</span></div>
  ${s.type==='walkStart'?`<section class="walk-loop-options" aria-label="${s.walkRetrace?'מסלול הלוך חזור':'מסלול הליכה מעגלי'}"><div class="walk-loop-head"><div><strong>${s.walkRetrace?'מסלול הלוך חזור':'מסלול רגלי מעגלי'}</strong><small>נקודת היציאה היא גם נקודת הסיום, בלי סיכה כפולה</small></div><span class="walk-loop-badge">קבוע</span></div><label class="walk-retrace-switch"><input id="walk-retrace-check" type="checkbox" ${s.walkRetrace?'checked':''}><span class="walk-retrace-track" aria-hidden="true"></span><span class="walk-retrace-copy"><strong>הלוך וחזור באותו התוואי</strong><small>כבוי: ניתן לצייר שביל חזרה נפרד</small></span></label><div class="ronny-walk-clock-grid"><label>הגעה לנקודת הסיבוב<div class="ronny-time-control"><input id="ronny-walk-turn-time" class="ronny-time-input" data-ronny-allow-empty="true" type="text" inputmode="numeric" maxlength="5" placeholder="אוטומטי" value="${esc(s.walkTurnClock||'')}" aria-label="שעת הגעה לנקודת הסיבוב; ריק לחישוב"><button type="button" class="ronny-time-trigger" aria-label="בחר שעת סיבוב" title="בחר שעה">${icon('clock','small-icon')}</button></div><button type="button" class="ronny-walk-auto-time" data-ronny-clear-walk-clock="ronny-walk-turn-time">חישוב אוטומטי</button></label><label>חזרה לנקודת ההתחלה<div class="ronny-time-control"><input id="ronny-walk-finish-time" class="ronny-time-input" data-ronny-allow-empty="true" type="text" inputmode="numeric" maxlength="5" placeholder="אוטומטי" value="${esc(s.walkFinishClock||'')}" aria-label="שעת סיום ההליכה; ריק לחישוב"><button type="button" class="ronny-time-trigger" aria-label="בחר שעת סיום הליכה" title="בחר שעה">${icon('clock','small-icon')}</button></div><button type="button" class="ronny-walk-auto-time" data-ronny-clear-walk-clock="ronny-walk-finish-time">חישוב אוטומטי</button></label></div><small class="ronny-walk-clock-hint">השאר שדה ריק לחישוב אוטומטי. משך ההליכה הכולל מתחלק שווה סביב נקודת הסיבוב, אלא אם נקבעה שעה ידנית. זמן הסיום הידני גובר על המשך.</small><div class="walk-loop-foot"><span class="walk-loop-note">נקודת סיבוב אינה מחייבת חזרה באותו תוואי.</span><div class="walk-loop-route-actions"><button type="button" class="walk-loop-route" id="walk-edit-first-leg">${icon("pencil-line","small-icon")} שרטוט רגיל</button><button type="button" class="walk-loop-route" id="walk-edit-pencil-leg">${icon("pencil","small-icon")} עיפרון חופשי</button></div></div></section>`:''}
  ${quickLegLinks(s,obj.day)}</div>
+ ${s.type==='start'&&s.startDetached&&getStop(s.id)?.day>0?`<div class="ronny-start-detached"><span>התחלת היום אינה מחוברת לסיום היום הקודם</span><button type="button" class="btn btn-soft" data-relink-start>${icon('link','small-icon')} חבר לסיום היום הקודם</button></div>`:''}
  <div class="point-quick-actions"><button type="button" data-quick-move>${icon('move','small-icon')} שנה מיקום במפה</button><button type="button" data-quick-street-view class="ronny-point-street-view" title="פתח את תצוגת הרחוב של גוגל ליד הנקודה">${icon('scan-eye','small-icon')} Street View</button><button type="button" data-quick-details>${icon('sliders-horizontal','small-icon')} הגדרות מתקדמות</button><button type="button" class="danger" data-quick-delete>${icon('trash-2','small-icon')} מחיקה</button></div>`;
  if(s.type==='walkStart'){
  const retrace=el.querySelector('#walk-retrace-check');
@@ -4235,6 +4426,7 @@ function openPointQuick(id){
  el.querySelector('[data-quick-color-auto]').onclick=()=>{commit();const target=getStop(id);if(!target)return;delete target.stop.color;delete target.stop.autoColor;ensureStableViaColors();save();renderMarkers();renderSchedule();const c=pointColor(target.stop,target.day);el.querySelectorAll('[data-quick-color]').forEach(b=>b.classList.toggle('selected',b.dataset.quickColor.toLowerCase()===c.toLowerCase()));el.querySelector('#quick-save-state').textContent='הצבע האוטומטי נשמר'};
  el.querySelectorAll('[data-point-leg]').forEach(btn=>btn.addEventListener('click',()=>{const index=+btn.dataset.pointLeg;hidePointQuick();openLegEditor(index)}));
  el.querySelector('[data-quick-close]').onclick=()=>hidePointQuick();
+ el.querySelector('[data-relink-start]')?.addEventListener('click',()=>ronnyRelinkDayStart(s.id));
  el.querySelector('[data-quick-delete]').onclick=async()=>{if(!await confirmOnMap('למחוק את הנקודה ״'+s.name+'״?',{title:'מחיקת נקודה',accept:'מחק נקודה'}))return;clearTimeout(pending);const target=getStop(id);if(!target)return;await animatePlannerRemoval([id],'day');ronnyRememberUndo('מחיקת נקודה');state.days[target.day].stops=state.days[target.day].stops.filter(x=>x.id!==id);positionRouteEndpoints(state.days[target.day]);selectedStop=null;hidePointQuick();if(!isMapOnlyPoint(target.stop)){invalidate();retimeAfterOrderChange(target.day)}save();renderAll();toast('הנקודה נמחקה')};
  el.querySelector('[data-quick-move]').onclick=()=>armPointMove(id);
  el.querySelector('[data-quick-street-view]').onclick=()=>{const target=getStop(id);if(target&&validPoint(target.stop))openGoogleStreetView(+target.stop.lat,+target.stop.lng);};
@@ -4625,7 +4817,10 @@ function syncMapBaseSwitch(){
 function initMapBaseSwitch(){
  const wrapper=$('map-base-switch');if(!wrapper)return;
  const toggle=()=>setMapStyle(state.settings.mapStyle===mapPrefs.quickMaps[0]?mapPrefs.quickMaps[1]:mapPrefs.quickMaps[0]);
- wrapper.onclick=()=>{const menu=$('map-picker-menu'),trigger=$('map-picker-toggle');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false');toggle()};
+ wrapper.onclick=e=>{const menu=$('map-picker-menu'),trigger=$('map-picker-toggle');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false');
+  // While a third map is shown, the clicked icon names the wanted map.
+  const chosen=e.target.closest?.('[data-map-base]')?.dataset.mapBase;
+  if(chosen&&!mapPrefs.quickMaps.includes(state.settings.mapStyle))setMapStyle(chosen);else toggle()};
  wrapper.querySelectorAll('[data-map-base]').forEach(btn=>{
   btn.onkeydown=e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();toggle();wrapper.querySelector('[aria-checked="true"]')?.focus()};
  });
@@ -4958,7 +5153,9 @@ async function exportTrip(){
  }
 }
 
-function validateTrip(d){if(!d||typeof d.title!=='string'||!Array.isArray(d.days)||d.days.length<1||d.days.length>100)throw Error('מבנה קובץ לא תקין');for(const day of d.days){day.segments=Array.isArray(day.segments)?day.segments.filter(x=>x&&typeof x.id==='string'&&typeof x.label==='string'&&/^\d{2}:\d{2}$/.test(x.start||'')&&/^\d{2}:\d{2}$/.test(x.end||'')).slice(0,32):[];if(!Array.isArray(day.stops)||day.stops.length>300)throw Error('רשימת עצירות לא תקינה');for(const s of day.stops){if(typeof s.name!=='string'||!Number.isFinite(+s.lat)||!Number.isFinite(+s.lng)||Math.abs(+s.lat)>90||Math.abs(+s.lng)>180)throw Error('קואורדינטות או שמות לא תקינים');s.id=typeof s.id==='string'?s.id:uid();s.type=types[s.type]?s.type:'other';s.time=/^\d{2}:\d{2}$/.test(s.time||'')?s.time:'09:00';s.duration=Math.max(0,Number(s.duration)||0);s.cost=Math.max(0,Number(s.cost)||0);s.notes=String(s.notes||'');s.description=String(s.description||'');if(s.leg){const l=s.leg;if(!l||typeof l!=='object'||!['auto','draw','pencil','straight'].includes(l.mode)||typeof l.fromId!=='string'){delete s.leg}else{s.leg={fromId:l.fromId,mode:l.mode,label:String(l.label||'').slice(0,90),minutes:routeLegMinutes(l),minutesMode:l.minutesMode==='extra'&&l.mode==='auto'?'extra':'total',profile:Object.hasOwn(TRAVEL_MODES,l.profile)?l.profile:null,viaPoints:Array.isArray(l.viaPoints)?l.viaPoints.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,16).map(p=>[+p[0],+p[1]]):[],path:Array.isArray(l.path)?l.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,120).map(p=>[+p[0],+p[1]]):[]}}}}}if(d.settings){delete d.settings.mapyKey;delete d.settings.routingProvider;}return {...d,photos:Array.isArray(d.photos)?d.photos.filter(p=>p&&typeof p.id==='string'&&validPoint(p)&&typeof p.data==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(p.data)&&p.data.length<600000).slice(0,120):[],settings:{...state.settings,...d.settings,googleKey:'',mapStyle:normalizeMapStyle(d.settings?.mapStyle),layerVisibility:normalizeLayerVisibility(d.settings?.layerVisibility)}}}
+// Only this device's panel sizes carry over; a trip's structure never leaks into another trip.
+function ronnyDeviceLayoutSettings(){const out={};for(const key of ['plannerWidth','railWidth','drawerWidth','plannerUpperHeight'])if(key in (state.settings||{}))out[key]=state.settings[key];return out}
+function validateTrip(d){if(!d||typeof d.title!=='string'||!Array.isArray(d.days)||d.days.length<1||d.days.length>100)throw Error('מבנה קובץ לא תקין');for(const day of d.days){day.segments=Array.isArray(day.segments)?day.segments.filter(x=>x&&typeof x.id==='string'&&typeof x.label==='string'&&/^\d{2}:\d{2}$/.test(x.start||'')&&/^\d{2}:\d{2}$/.test(x.end||'')).slice(0,32):[];if(!Array.isArray(day.stops)||day.stops.length>300)throw Error('רשימת עצירות לא תקינה');for(const s of day.stops){if(typeof s.name!=='string'||!Number.isFinite(+s.lat)||!Number.isFinite(+s.lng)||Math.abs(+s.lat)>90||Math.abs(+s.lng)>180)throw Error('קואורדינטות או שמות לא תקינים');s.id=typeof s.id==='string'?s.id:uid();s.type=types[s.type]?s.type:'other';s.time=/^\d{2}:\d{2}$/.test(s.time||'')?s.time:'09:00';s.duration=Math.max(0,Number(s.duration)||0);s.cost=Math.max(0,Number(s.cost)||0);s.notes=String(s.notes||'');s.description=String(s.description||'');if(s.leg){const l=s.leg;if(!l||typeof l!=='object'||!['auto','draw','pencil','straight'].includes(l.mode)||typeof l.fromId!=='string'){delete s.leg}else{s.leg={fromId:l.fromId,mode:l.mode,label:String(l.label||'').slice(0,90),minutes:routeLegMinutes(l),minutesMode:l.minutesMode==='extra'&&l.mode==='auto'?'extra':'total',profile:Object.hasOwn(TRAVEL_MODES,l.profile)?l.profile:null,viaPoints:Array.isArray(l.viaPoints)?l.viaPoints.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,16).map(p=>[+p[0],+p[1]]):[],path:Array.isArray(l.path)?l.path.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>Number.isFinite(+x))&&Math.abs(+p[0])<=90&&Math.abs(+p[1])<=180).slice(0,120).map(p=>[+p[0],+p[1]]):[]}}}}}if(d.settings){delete d.settings.mapyKey;delete d.settings.routingProvider;}return {...d,photos:Array.isArray(d.photos)?d.photos.filter(p=>p&&typeof p.id==='string'&&validPoint(p)&&typeof p.data==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(p.data)&&p.data.length<600000).slice(0,120):[],settings:{...ronnyDeviceLayoutSettings(),...d.settings,googleKey:'',mapStyle:normalizeMapStyle(d.settings?.mapStyle),layerVisibility:normalizeLayerVisibility(d.settings?.layerVisibility)}}}
 function setRail(name){document.querySelectorAll('.rail-btn').forEach(e=>e.classList.remove('active'));$('rail-'+name)?.classList.add('active')}
 function setPlannerCollapsed(flag){
  if(innerWidth<=760){if(!flag)showPlan();else showMap();return}
@@ -5188,7 +5385,7 @@ async function ronnyComputeRoadTotal(key){
  for(let di=0;di<state.days.length;di++){
   const arr=dayExcludedFromTotals(state.days[di])?[]:routeStopsForDay(di).filter(validPoint);
   for(let i=1;i<arr.length;){
-   if(arr[i].type==='walkStart'){results[i-1]={duration:0,baseDuration:0,distance:0,mode:'association',estimated:false,manualMissing:false};i++;continue;}
+   if(arr[i].type==='walkStart'){i++;continue;} // Dashed access link: no route, time or distance.
    const conf=legAt(i,arr);
    if(conf.mode==='straight'){missing=true;i++;continue;}
    if(conf.mode==='draw'||conf.mode==='pencil'){
@@ -5205,6 +5402,7 @@ async function ronnyComputeRoadTotal(key){
    i++;
    // Group uncached neighbouring segments of the same travel mode into one request.
    while(i<arr.length&&i-from<24){
+    if(arr[i].type==='walkStart')break;
     const next=legAt(i,arr);
     if(next.mode!=='auto'||next.viaPoints?.length||effectiveLegProfile(i,arr,di)!==profile)break;
     const saved=routedLegVisualCache.get(routedShapeKey(arr,i,profile));
@@ -5329,7 +5527,7 @@ initResolutionUI();initDayNavigation();
  });
  
  const descToggle=$('map-description-toggle');if(descToggle){const sync=()=>{const on=state.settings.showMapDescriptions!==false;descToggle.setAttribute('aria-pressed',String(on));descToggle.title=on?'הסתר תיאורים קבועים':'הצג תיאורים שסומנו';};sync();descToggle.addEventListener('click',()=>{state.settings.showMapDescriptions=state.settings.showMapDescriptions===false;sync();save();if(planningResolution==='outline')renderOutlineMap();else renderMarkers()})}
-$('trip-name').value=state.title;$('trip-name').onchange=()=>{state.title=$('trip-name').value.trim()||'הטיול שלי';save();renderTripDashboard()};$('trip-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.title=$('trip-name').value.trim()||'הטיול שלי';$('trip-name').value=state.title;save();$('trip-name').blur();toast('שם הטיול נשמר')}});$('start-date').value=state.startDate;$('start-date-trigger').onclick=()=>{const field=$('start-date');try{field.showPicker()}catch(e){field.focus();field.click()}};$('start-date').onchange=()=>{state.startDate=$('start-date').value||state.startDate;save();renderDays()};$('travel-mode').value=state.settings.travelMode;$('travel-mode').onchange=()=>{closeLegEditor();stopLegDrawing();state.settings.travelMode=$('travel-mode').value;invalidate();retimeAfterOrderChange(selectedDay);save();drawRoute();renderSchedule();renderMarkers()};rebuildMapOptions();
+$('trip-name').value=state.title;$('trip-name').onchange=()=>{clearTimeout(ronnyTitleSaveTimer);ronnyTitleSaveTimer=null;state.title=$('trip-name').value.trim()||'הטיול שלי';save();renderTripDashboard()};$('trip-name').addEventListener('input',()=>{clearTimeout(ronnyTitleSaveTimer);ronnyTitleSaveTimer=setTimeout(ronnyCommitTripTitle,450)});window.addEventListener('pagehide',()=>{ronnyCommitTripTitle();hidePointQuick();ronnyWriteUnloadDraft()});document.addEventListener('visibilitychange',()=>{if(document.hidden){ronnyCommitTripTitle();ronnyWriteUnloadDraft()}});$('trip-name').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();state.title=$('trip-name').value.trim()||'הטיול שלי';$('trip-name').value=state.title;save();$('trip-name').blur();toast('שם הטיול נשמר')}});$('start-date').value=state.startDate;$('start-date-trigger').onclick=()=>{const field=$('start-date');try{field.showPicker()}catch(e){field.focus();field.click()}};$('start-date').onchange=()=>{state.startDate=$('start-date').value||state.startDate;save();renderDays()};$('travel-mode').value=state.settings.travelMode;$('travel-mode').onchange=()=>{closeLegEditor();stopLegDrawing();state.settings.travelMode=$('travel-mode').value;invalidate();retimeAfterOrderChange(selectedDay);save();drawRoute();renderSchedule();renderMarkers()};rebuildMapOptions();
 initMapSelectClickTargets();$('map-scope').onchange=()=>{if(drawLegSession)stopLegDrawing();closeLegEditor();const requested=$('map-scope').value;wholeTripFocusSeq++;ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope=requested;selectedStop=null;renderAll();fitMap()};$('map-style').onchange=()=>setMapStyle($('map-style').value);$('panel-add').onclick=()=>openStopForm();$('fit-route').onclick=()=>{ronnyActiveDayGroupId=null;if(planningResolution!=='day')setPlanningResolution('day',{fit:false});viewScope='all';$('map-scope').value='all';selectedStop=null;closeLegEditor();hidePointQuick();renderAll();fitMap();};$('auto-time').onclick=autoSchedule;$('close-drawer').onclick=$('drawer-backdrop').onclick=closeDrawer;$('close-planner').onclick=showMap;
 $('search-btn').onclick=()=>{if(!reopenPlaceSearchResults())searchPlaces(null,[])};$('place-search').addEventListener('input',schedulePlaceSearch);$('place-search').addEventListener('focus',reopenPlaceSearchResults);$('place-search').addEventListener('click',reopenPlaceSearchResults);$('layer-filter-toggle').onclick=()=>toggleLayerFilterPanel('layers');$('map-outline-guide-toggle').onclick=()=>toggleLayerFilterPanel('contours');ronnyMeasureBindControls();$('photo-add').onclick=()=>{photoPlacement=null;$('photo-file').click()};$('photo-file').onchange=async e=>{const files=Array.from(e.target.files||[]);if(!files.length)return;await handlePhotos(files,photoPlacement);e.target.value='';photoPlacement=null;updateMapHint()};$('route-edit-toggle').onclick=()=>{cancelPointMove();routeEdit=!routeEdit;document.querySelector('.map-pane')?.classList.remove('map-tools-expanded');$('map-tools-toggle')?.setAttribute('aria-expanded','false');if(routeEdit){quickStreetMode=false;$('street-link-mode').setAttribute('aria-pressed','false')}viewScope='day';$('map-scope').value='day';$('route-edit-toggle').setAttribute('aria-pressed',String(routeEdit));updateMapHint();renderMap()};$('street-link-mode').onclick=()=>{quickStreetMode=!quickStreetMode;hideContext();if(quickStreetMode&&googleMode)toggleGoogleCoverage();if(quickStreetMode&&routeEdit){routeEdit=false;$('route-edit-toggle').setAttribute('aria-pressed','false');renderMap()}$('street-link-mode').setAttribute('aria-pressed',String(quickStreetMode));updateMapHint();toast(quickStreetMode?'כעת לחיצה על כל נקודה במפה פותחת את Google Street View בטאב חדש — ללא מפתח API':'מצב Street View הסתיים')};$('google-coverage-toggle').onclick=toggleGoogleCoverage;$('place-search').addEventListener('keydown',searchKeydown);document.addEventListener('pointerdown',e=>{if(document.getElementById('ronny-time-dialog')?.open)return;// Allow the Leaflet map-click handler to consume the first outside click as dismissal.
 // Hiding the editor here on pointerdown would make the subsequent click create an unwanted new point.
@@ -5457,7 +5655,7 @@ function buildPrintable(layout,scope){const w=window.open('','_blank');if(!w){to
   else if(style==='satellite'||style==='satellite-labels'){tileUrl='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';attrib='Tiles © Esri and contributors';if(style==='satellite-labels')printLabelsUrl='https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'}
 const payload={printRoadsUrl:style==='satellite-labels'?'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}':'',days:days.map(({d,i})=>({i,points:d.stops.filter(validPoint).map(s=>({lat:+s.lat,lng:+s.lng,name:s.name,type:s.type,seg:pointColor(s,i),id:s.id})),legs:routeStopsForDay(i).slice(1).map((s,j)=>({mode:legAt(j+1,routeStopsForDay(i)).mode,label:legAt(j+1,routeStopsForDay(i)).label||'',color:pointColor(s,i),points:(i===selectedDay&&paintedLegCoordinates.get(j+1))||([[+routeStopsForDay(i)[j].lat,+routeStopsForDay(i)[j].lng],...(legAt(j+1,routeStopsForDay(i)).mode==='auto'?legAt(j+1,routeStopsForDay(i)).viaPoints||[]:legAt(j+1,routeStopsForDay(i)).path||[]),[+s.lat,+s.lng]])})),poiLinks:poiLinksForDay(i).map(({point,nearest})=>({a:[+point.lat,+point.lng],b:[+nearest.lat,+nearest.lng],color:pointColor(point,i)})),photos:state.photos.filter(p=>p.day===i).map(p=>({lat:+p.lat,lng:+p.lng,data:p.data}))})),tileUrl,tileMax,attrib,printLabelsUrl};
  const safeJSON=JSON.stringify(payload).replace(/</g,'\\u003c');const printCss=`*{box-sizing:border-box}body{direction:rtl;font-family:Calibri,Carlito,Arial,sans-serif;margin:0;background:#eef2f5;color:#182e40}#toolbar{position:sticky;top:0;z-index:2000;display:flex;gap:15px;align-items:center;padding:12px 22px;background:#152c3e;color:white}#toolbar button{border:0;border-radius:9px;background:#0daf9c;color:white;font:700 14px Calibri,Arial;padding:10px 17px;cursor:pointer}#toolbar small{color:#cae3e5}.page{background:white;width:min(1180px,96%);min-height:720px;margin:22px auto;padding:22px 26px;box-shadow:0 8px 34px #0001;break-after:page;page-break-after:always}.page-header{display:flex;align-items:center;gap:23px;border-bottom:2px solid #dce9ed;padding-bottom:12px}.brand{font-size:25px;color:#0aab9d;letter-spacing:2px}.page h1{font-size:20px;margin:0}.page p{font-size:12px;color:#667c8e;margin:5px 0}.report-grid{display:grid;gap:20px;margin-top:18px}.report-grid.vertical{grid-template-columns:1fr}.report-grid.horizontal{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);direction:ltr}.report-grid.horizontal>*{direction:rtl}.subhead{font-size:15px;font-weight:800;margin-bottom:9px}.export-map{width:100%;height:400px;border-radius:12px;overflow:hidden;background:#dae5e9;direction:ltr}.horizontal .export-map{height:570px}.map-caption{color:#7d8c98;font-size:10px;margin-top:8px}.schedule-card{min-width:0}table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:right;background:#e9f5f2;padding:10px 7px}td{border-bottom:1px solid #e7eef1;padding:10px 7px;vertical-align:top}td:first-child{direction:ltr;text-align:right;font-weight:800;color:#087d78}.seg{font-size:10px;color:#68809a;margin-top:4px}.photo-strip{display:flex;gap:9px;margin-top:12px}.photo-strip figure{margin:0;flex:1;min-width:0}.photo-strip img{height:82px;width:100%;object-fit:cover;border-radius:6px}.photo-strip figcaption{font-size:10px;color:#536b7e}footer{margin-top:18px;font-size:10px;color:#93a3b0;text-align:center}@media print{@page{size:A4 ${layout==='both-horizontal'||layout==='map'?'landscape':'portrait'};margin:10mm}body{background:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}#toolbar{display:none}.page{width:100%;padding:0;margin:0;min-height:0;box-shadow:none}.export-map{height:${layout==='both-horizontal'?'145mm':layout==='map'?'160mm':'97mm'}!important}.report-grid.horizontal{grid-template-columns:1.05fr 1fr}.map-card,.schedule-card{break-inside:avoid}th{background:#e9f5f2!important}.leaflet-control-container{font-size:9px}}`;
- const doc='<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><title>RONNY — '+printHtmlEscape(state.title)+'</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>'+printCss+'</style></head><body><div id="toolbar"><button onclick="window.print()">הדפס / שמור כ־PDF</button><small>בתיבת ההדפסה בחר ״שמירה כ־PDF״. יש לוודא שהמפה נטענה לפני ההדפסה.</small></div>'+sections+'<scr'+'ipt src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><'+'/script><scr'+'ipt>const EXPORT='+safeJSON+';function setup(){if(!window.L){document.querySelectorAll(".export-map").forEach(el=>el.textContent="לא ניתן לטעון את מפת הרקע. נדרש חיבור אינטרנט.");return}for(const day of EXPORT.days){const el=document.getElementById("print-map-"+day.i);if(!el)continue;const m=L.map(el,{zoomControl:false,scrollWheelZoom:false,dragging:false,attributionControl:true});L.tileLayer(EXPORT.tileUrl,{maxZoom:EXPORT.tileMax,attribution:EXPORT.attrib,subdomains:"abc"}).addTo(m);if(EXPORT.printRoadsUrl)L.tileLayer(EXPORT.printRoadsUrl,{maxZoom:19,attribution:"Roads © Esri and contributors",zIndex:8,opacity:.43}).addTo(m);if(EXPORT.printLabelsUrl)L.tileLayer(EXPORT.printLabelsUrl,{maxZoom:19,attribution:"Labels © Esri and contributors",zIndex:9,opacity:.84}).addTo(m);const pts=day.points;for(const p of pts)L.circleMarker([p.lat,p.lng],{radius:6,color:"#fff",weight:2,fillColor:p.seg,fillOpacity:1}).addTo(m).bindTooltip(p.name,{permanent:false});for(const connection of day.poiLinks||[])L.polyline([connection.a,connection.b],{color:connection.color,opacity:.52,weight:1.4,dashArray:"3 8",interactive:false}).addTo(m);for(const leg of day.legs||[]){const style=leg.mode==="draw"?{color:leg.color,weight:4}:leg.mode==="straight"?{color:leg.color,weight:3,dashArray:"8 8"}:{color:leg.color,weight:4,dashArray:"8 5"};L.polyline(leg.points,style).addTo(m);if(leg.label&&leg.points?.length>=2){const pts=leg.points,mid=pts[Math.floor(pts.length/2)];L.marker(mid,{interactive:false,icon:L.divIcon({className:"",html:"<span style=\"white-space:nowrap;background:#fff9ec;border:1px solid #a9ad98;padding:3px 6px;border-radius:6px;font:700 11px Calibri,Arial\">"+leg.label.replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]))+"</span>",iconSize:[0,0]})}).addTo(m)}}for(const p of day.photos)L.marker([p.lat,p.lng],{icon:L.divIcon({html:"<div style=\\"width:35px;height:40px;background:#fff;padding:3px;box-shadow:0 1px 10px #2228\\"><img style=\\"width:100%;height:100%;object-fit:cover\\" src=\\""+p.data+"\\"></div>",className:"",iconSize:[35,40]})}).addTo(m);if(pts.length===1)m.setView([pts[0].lat,pts[0].lng],12);else if(pts.length)m.fitBounds(pts.map(p=>[p.lat,p.lng]),{padding:[25,25]});else m.setView([46.75,8.12],7);setTimeout(()=>m.invalidateSize(),200)}}document.addEventListener("DOMContentLoaded",setup);<'+'/script></body></html>';
+ const doc='<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><title>RONNY — '+printHtmlEscape(state.title)+'</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>'+printCss+'</style></head><body><div id="toolbar"><button onclick="window.print()">הדפס / שמור כ־PDF</button><small>בתיבת ההדפסה בחר ״שמירה כ־PDF״. יש לוודא שהמפה נטענה לפני ההדפסה.</small></div>'+sections+'<scr'+'ipt src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><'+'/script><scr'+'ipt>const EXPORT='+safeJSON+';function setup(){if(!window.L){document.querySelectorAll(".export-map").forEach(el=>el.textContent="לא ניתן לטעון את מפת הרקע. נדרש חיבור אינטרנט.");return}for(const day of EXPORT.days){const el=document.getElementById("print-map-"+day.i);if(!el)continue;const m=L.map(el,{zoomControl:false,scrollWheelZoom:false,dragging:false,attributionControl:true});L.tileLayer(EXPORT.tileUrl,{maxZoom:EXPORT.tileMax,attribution:EXPORT.attrib,subdomains:"abc"}).addTo(m);if(EXPORT.printRoadsUrl)L.tileLayer(EXPORT.printRoadsUrl,{maxZoom:19,attribution:"Roads © Esri and contributors",zIndex:8,opacity:.43}).addTo(m);if(EXPORT.printLabelsUrl)L.tileLayer(EXPORT.printLabelsUrl,{maxZoom:19,attribution:"Labels © Esri and contributors",zIndex:9,opacity:.84}).addTo(m);const pts=day.points;for(const p of pts)L.circleMarker([p.lat,p.lng],{radius:6,color:"#fff",weight:2,fillColor:p.seg,fillOpacity:1}).addTo(m).bindTooltip(p.name,{permanent:false});for(const connection of day.poiLinks||[])L.polyline([connection.a,connection.b],{color:connection.color,opacity:.52,weight:1.4,dashArray:"3 8",interactive:false}).addTo(m);for(const leg of day.legs||[]){const style=leg.mode==="draw"?{color:leg.color,weight:4}:leg.mode==="straight"?{color:leg.color,weight:3,dashArray:"8 8"}:{color:leg.color,weight:4,dashArray:"8 5"};L.polyline(leg.points,style).addTo(m);if(leg.label&&leg.points?.length>=2){const pts=leg.points,mid=pts[Math.floor(pts.length/2)];L.marker(mid,{interactive:false,icon:L.divIcon({className:"",html:"<span style=\\"white-space:nowrap;background:#fff9ec;border:1px solid #a9ad98;padding:3px 6px;border-radius:6px;font:700 11px Calibri,Arial\\">"+leg.label.replace(/[&<>\\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;"}[c]))+"</span>",iconSize:[0,0]})}).addTo(m)}}for(const p of day.photos)L.marker([p.lat,p.lng],{icon:L.divIcon({html:"<div style=\\\"width:35px;height:40px;background:#fff;padding:3px;box-shadow:0 1px 10px #2228\\\"><img style=\\\"width:100%;height:100%;object-fit:cover\\\" src=\\\""+p.data+"\\\"></div>",className:"",iconSize:[35,40]})}).addTo(m);if(pts.length===1)m.setView([pts[0].lat,pts[0].lng],12);else if(pts.length)m.fitBounds(pts.map(p=>[p.lat,p.lng]),{padding:[25,25]});else m.setView([46.75,8.12],7);setTimeout(()=>m.invalidateSize(),200)}}document.addEventListener("DOMContentLoaded",setup);<'+'/script></body></html>';
  w.document.open();w.document.write(doc);w.document.close();closeDrawer();}
 
 

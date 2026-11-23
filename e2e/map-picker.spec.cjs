@@ -50,6 +50,8 @@ test('settings bank drag/drop customizes the two quick-switch slots and persists
  await expect(bank.locator('[data-map-drag]')).toHaveCount(6);
  await expect(bank.locator('.map-bank-group-title')).toHaveText(['טופוגרפיה ושבילים','תצלומי אוויר','דרכים ורחובות']);
  await expect(quick.locator('[data-quick-slot]')).toHaveCount(2);
+ // Keep both the slots and the bank in view, as a person would before dragging.
+ await quick.evaluate(el=>el.scrollIntoView({block:'start'}));
  await bank.locator('[data-map-drag="osm"]').dragTo(quick.locator('[data-quick-slot="1"]'));
  await expect(quick.locator('[data-quick-slot="1"]')).toContainText('OpenStreetMap');
  await bank.locator('[data-map-drag="hiking"]').dragTo(quick.locator('[data-quick-slot="0"]'));

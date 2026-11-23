@@ -56,7 +56,7 @@ async function ronnyComputeRoadTotal(key){
  for(let di=0;di<state.days.length;di++){
   const arr=dayExcludedFromTotals(state.days[di])?[]:routeStopsForDay(di).filter(validPoint);
   for(let i=1;i<arr.length;){
-   if(arr[i].type==='walkStart'){results[i-1]={duration:0,baseDuration:0,distance:0,mode:'association',estimated:false,manualMissing:false};i++;continue;}
+   if(arr[i].type==='walkStart'){i++;continue;} // Dashed access link: no route, time or distance.
    const conf=legAt(i,arr);
    if(conf.mode==='straight'){missing=true;i++;continue;}
    if(conf.mode==='draw'||conf.mode==='pencil'){
@@ -73,6 +73,7 @@ async function ronnyComputeRoadTotal(key){
    i++;
    // Group uncached neighbouring segments of the same travel mode into one request.
    while(i<arr.length&&i-from<24){
+    if(arr[i].type==='walkStart')break;
     const next=legAt(i,arr);
     if(next.mode!=='auto'||next.viaPoints?.length||effectiveLegProfile(i,arr,di)!==profile)break;
     const saved=routedLegVisualCache.get(routedShapeKey(arr,i,profile));
