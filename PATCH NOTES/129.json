@@ -1,0 +1,9 @@
+{
+  "version": "129",
+  "date": "2026-11-24",
+  "notes": [
+    "פרסום: כל השינויים מ־dev עלו לאתר, כולל הליכה כבלוק בלוח הזמנים, תפריט ״קובץ״ ו־PDF שעובד.",
+    "נפתר הקונפליקט שחסם את הפרסום האוטומטי מ־dev לאתר."
+  ],
+  "technical": "Merged origin/main (dcf2367) into dev to clear the AGENTS.md and index.html conflict that blocked publish.yml. Both files keep the dev versions: dev already contained the 38.1 changes from main (commit 492aa27) and its AGENTS.md is a superset of main's. The merge adds .github/workflows/publish.yml and two October backups from main. main was then fast-forwarded to dev with the owner's explicit approval. Backups: backups/2026-11-24_091858UTC_main_before_publish_dcf23671ac69 (main AGENTS.md and index.html before publish), backups/2026-11-24_091911UTC_pre129_1f66b8715df1 (PROJECT_CONTEXT.md and PATCH NOTES/index.json)."
+}
