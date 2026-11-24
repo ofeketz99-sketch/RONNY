@@ -115,15 +115,19 @@ async function importSavedPlacesFiles(files){
   }
   const imported=batches.flatMap(b=>b.features||parseGoogleCSV(b.text,b.name));
   if(!imported.length)throw Error('לא זוהו רשימות שמורות. יש לבחור ייצוא Saved מתוך Google Takeout');
-  const existing=new Map(savedPlaces.places.map(p=>[p.listId+'|'+(p.url||p.name.toLowerCase()),p]));
+  // Two places can share a name, so a located place is identified by name and position.
+  const savedPlaceKey=(listId,p)=>listId+'|'+(p.url||p.name.toLowerCase()+(validSavedLatLng(p)?'|'+(+p.lat).toFixed(4)+','+(+p.lng).toFixed(4):''));
+  const existing=new Map(savedPlaces.places.map(p=>[savedPlaceKey(p.listId,p),p]));
   let added=0,resolved=0,duplicates=0,upgraded=0;
   for(const item of imported){
    if(savedPlaces.places.length>=12000)break;
    const name=item.listName||'רשימה מיובאת';
    let bucket=savedPlaces.lists.find(l=>l.name===name);
    if(!bucket){bucket={id:uid(),name,visible:true};savedPlaces.lists.push(bucket)}
-   const key=bucket.id+'|'+(item.url||item.name.toLowerCase());if(existing.has(key)){
-    const old=existing.get(key);
+   const key=savedPlaceKey(bucket.id,item),unlocated=existing.get(bucket.id+'|'+item.name.toLowerCase());
+   const match=existing.get(key)||(!item.url&&validSavedLatLng(item)&&unlocated&&!validSavedLatLng(unlocated)?unlocated:null);
+   if(match){
+    const old=match;
     if(!validSavedLatLng(old)&&validSavedLatLng(item)){old.lat=item.lat;old.lng=item.lng;old.positionSource=item.positionSource||'reimport';upgraded++;}
     else duplicates++;
     continue;

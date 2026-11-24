@@ -303,31 +303,39 @@ function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggl
  }
  renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
-function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();if(modelChanged)save();ronnyRememberWorkspace()}
+function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();ronnySyncSeparatorValues();if(modelChanged)save();ronnyRememberWorkspace()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
 function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
-function selectDay(i){if(i<0||i>=state.days.length)return;
+function selectDay(i,afterSelect){if(i<0||i>=state.days.length)return;
  wholeTripFocusSeq++;
  if(i!==selectedDay&&dayMissingEndpoint(state.days[selectedDay])){
-  if(!window.confirm('לא נקבעה נקודת סיום\n\nנתוני היום לא ייספרו עד לקביעת סיום. להמשיך?'))return;
-  state.days[selectedDay].excludedUntilEnd=true;save();
+  const from=selectedDay;
+  confirmOnMap('נתוני היום לא ייספרו עד לקביעת סיום. להמשיך?',{title:'לא נקבעה נקודת סיום',accept:'המשך בלי סיום'}).then(approved=>{
+   if(!approved||selectedDay!==from||!state.days[from])return;
+   state.days[from].excludedUntilEnd=true;save();ronnyApplyDaySelection(i);afterSelect?.();
+  });
+  return;
  }
- ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
-// The first day and the first stage can contain distant, unscheduled ideas.
+ ronnyApplyDaySelection(i);afterSelect?.();
+}
+function ronnyApplyDaySelection(i){ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
+// A day or stage can contain distant, unscheduled ideas.
 // Keep ALL planned route stops and manually drawn geometry in the fit, but don't
 // let a remote map-only pin shrink the initial entity into a tiny map footprint.
-function firstEntityFocusPositions(days){
+function entityFocusPositions(days){
  const planned=[],mapOnly=[];
  const add=(target,p)=>{
   const q=Array.isArray(p)?{lat:p[0],lng:p[1]}:p;
   if(validPoint(q))target.push([+q.lat,+q.lng]);
  };
- for(const di of days)for(const stop of state.days[di]?.stops||[]){
-  if(!validPoint(stop))continue;
-  if(isMapOnlyPoint(stop))mapOnly.push([+stop.lat,+stop.lng]);
-  else{
+ for(const di of days){
+  let previous=null;
+  for(const stop of state.days[di]?.stops||[]){
+   if(!validPoint(stop))continue;
+   if(isMapOnlyPoint(stop)){mapOnly.push([+stop.lat,+stop.lng]);continue}
    add(planned,stop);
-   for(const field of ['path','viaPoints'])if(Array.isArray(stop.leg?.[field]))stop.leg[field].forEach(p=>add(planned,p));
+   if(!stop.leg?.fromId||stop.leg.fromId===previous)for(const field of ['path','viaPoints'])if(Array.isArray(stop.leg?.[field]))stop.leg[field].forEach(p=>add(planned,p));
+   previous=stop.id;
   }
  }
  if(!planned.length)return TripQueries.focusMapPositions(state,days);
@@ -344,11 +352,10 @@ function fitMap(){
  const fitRequest=++ronnyFitRequest;
  if(map._animatingZoom){map.once('zoomend',()=>{if(fitRequest===ronnyFitRequest)fitMap()});return}
  if(planningResolution!=='day'){fitOutlineMap();return}
- // All other days, stages and the full-trip view retain their existing fit.
- const days=ronnyVisibleDayIndices(),firstGroup=ronnyDayGroups()[0];
- const isFirstEntity=(viewScope==='day'&&selectedDay===0)||
-  (viewScope==='all'&&!!firstGroup&&ronnyActiveDayGroupId===firstGroup.id);
- const coords=isFirstEntity?firstEntityFocusPositions(days):TripQueries.focusMapPositions(state,days);
+ // Any single day or stage ignores remote map-only pins. The whole-trip view shows everything.
+ const days=ronnyVisibleDayIndices();
+ const focusedEntity=viewScope==='day'||(viewScope==='all'&&ronnyDayGroups().some(g=>g.id===ronnyActiveDayGroupId));
+ const coords=focusedEntity?entityFocusPositions(days):TripQueries.focusMapPositions(state,days);
  if(!coords.length){const home=state.settings.startCenter||mapPrefs.home;map.flyTo([home.lat,home.lng],home.zoom,{duration:.65});return}
  if(coords.length===1){map.flyTo(coords[0],15,{duration:.65});return}
  // Keep the fitted entity clear of the floating search bar and map tools.

@@ -1,0 +1,16 @@
+{
+  "version": "127",
+  "date": "2026-11-24",
+  "notes": [
+    "מסלול הליכה מוצג בלוח הזמנים כבלוק אחד: כותרת עם טווח השעות, המשך והמרחק, ונקודות ההתחלה, הסיבוב והסיום כתתי־נקודות.",
+    "קו הזמן לצד השעות רציף לאורך היום, ובהליכה הוא קו אחד עבה מתחילתה ועד סופה.",
+    "הלוך־חזור מקבל זמן חזרה אמיתי, וההליכה מופיעה בנפרד בסיכום היום.",
+    "עיגול הזמנים כבר לא מצטבר ומנפח את היום. שעת סיום הליכה שמוקדמת מהסיבוב נדחית עם הודעה.",
+    "כשחישוב דרך נכשל, הזמן והמרחק מסומנים כאומדן בכל מקום שבו הם מוצגים.",
+    "ב־Excel פעילויות חופפות מופיעות יחד ולא נדרסות, ונקודות צד לא נכנסות ללוח השעות.",
+    "רעיון רחוק או שרטוט מסדר קודם כבר לא מרחיקים את הזום של יום או מקטע.",
+    "ייבוא Takeout שומר מקומות עם אותו שם במקומות שונים, ו־[0,0] כבר לא נחשב מיקום.",
+    "ייבוא מתקן מזהים כפולים ושעות לא חוקיות. אזהרת סיום יום מוצגת בחלונית של האתר."
+  ],
+  "technical": "Adds walk blocks, leg resolution, clock validation, timetable grouping and id repair to TripModel; adds tools/serve-static.cjs and removes the python3 dependency from Playwright. Schedule keeps exact minutes and rounds each shown clock to 5 minutes. Accessibility: stop cards are no longer nested buttons and separators expose values; color contrast and target size were not rechecked with axe. Not done: mobile layout, recovery drafts for open forms. Firefox not tested."
+}

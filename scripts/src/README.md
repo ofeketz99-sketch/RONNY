@@ -29,3 +29,6 @@ Two new source partitions are loaded inside the existing classic IIFE: `00h-rout
 
 ## Pure route request planning (patch 53)
 `00j-route-plan.js` groups routed legs through injected callbacks. Walking access, zero-length legs, manual drawing, forced waypoints, travel profiles and existing batching limit remain unchanged. `drawRoute` still controls cancellation, UI, caching, timing and persistence. Check via npm test and live map regression before release.
+
+## Trip model (patches 126-127)
+`00k-trip-model.js` defines a frozen, pure `TripModel`: point roles, overnight links and costs, day transfers, walk blocks, derived walking legs, walk clock validation, Excel timetable blocks and duplicate-id repair. It receives trips and helpers explicitly and never reads application state, the DOM or Leaflet. `type` remains the saved category; `role` is stored only when it differs from the category default.

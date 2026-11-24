@@ -15,12 +15,17 @@ function focusMapPositions(trip,dayIndices){
   if(validPoint(p))positions.push([+p.lat,+p.lng]);
  };
  for(const di of dayIndices){
+  let previous=null;
   for(const stop of (trip.days[di]?.stops||[])){
    if(!validPoint(stop))continue;
    add(stop);
-   for(const field of ['path','viaPoints']){
-    if(Array.isArray(stop.leg?.[field]))stop.leg[field].forEach(add);
+   // A path saved for an earlier order stays in the trip but is not on the map now.
+   if(!stop.leg?.fromId||stop.leg.fromId===previous){
+    for(const field of ['path','viaPoints']){
+     if(Array.isArray(stop.leg?.[field]))stop.leg[field].forEach(add);
+    }
    }
+   previous=stop.id;
   }
  }
  return positions;

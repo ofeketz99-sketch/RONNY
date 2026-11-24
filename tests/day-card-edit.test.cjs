@@ -14,5 +14,5 @@ test('day edit control does not remove drag reorder or normal day selection',()=
  assert.ok(html.includes("addEventListener('dragstart'"));
  assert.ok(html.includes("addEventListener('drop'"));
  assert.ok(html.includes('event.stopPropagation()'));
- assert.ok(html.includes("if(dayIndex!==selectedDay||planningResolution!=='day')selectDay(dayIndex)"));
+ assert.ok(html.includes("if(dayIndex!==selectedDay||planningResolution!=='day')selectDay(dayIndex,()=>{if(selectedDay===dayIndex)editDay()})"));
 });

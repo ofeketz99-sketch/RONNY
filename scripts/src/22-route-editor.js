@@ -81,7 +81,7 @@ function openLegEditor(index,clickLocation=null){
 function approximateLegs(list,dayIndex=selectedDay){
  const rad=Math.PI/180;
  const speedFor=p=>p==='driving'?45:p==='cycling'?14:p==='hiking'?3.7:4.5;
- return list.slice(1).map((p,i)=>{
+ return TripModel.resolveWalkLegs(list,list.slice(1).map((p,i)=>{
   if(p.type==='walkStart')return {duration:0,baseDuration:0,distance:0,mode:'association',estimated:false,manualMissing:false};
   const index=i+1,conf=legAt(index,list);
   if(conf.mode!=='auto')return manualLeg(index,list);
@@ -99,7 +99,7 @@ function approximateLegs(list,dayIndex=selectedDay){
   const routedSeconds=cachedLegBaseSeconds(index,list,dayIndex);
   const measured=routedSeconds!==null;
   return {...legTimingSnapshot(conf,measured?routedSeconds:approxSeconds),distance:km*1000*(forced.length?1:1.3),mode:'auto',estimated:!measured};
- });
+ }),TripStateCommands.routeUnits);
 }
 // RONNY 30.1 — Arrival anchors define the timeline. Departure at an intermediate
 // stop is calculated from its arrival and dwell, and editing departure edits dwell.

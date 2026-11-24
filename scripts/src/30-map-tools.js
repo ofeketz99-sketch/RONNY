@@ -712,12 +712,14 @@ function drawRoute(){
   for(let j=0;j<results.length;j++)if(!results[j]){results[j]=approximateLegs(arr,day)[j];results[j].estimated=true;unavailable=true}
   paint(true);
   for(let j=1;j<arr.length;j++)if(arr[j].leg?.walkAutoRetrace)results[j-1]=manualLeg(j,arr);
+  results.splice(0,results.length,...TripModel.resolveWalkLegs(arr,results,TripStateCommands.routeUnits));
+  if(results.some(l=>l?.derivedRetrace)&&!pendingRetimes.has(day))pendingRetimes.set(day,0);
   const totalDistance=results.reduce((n,l)=>n+(+l.distance||0),0),totalSeconds=results.reduce((n,l)=>n+(+l.duration||0),0),manualMissing=results.some(l=>l.manualMissing);
   routeData={day,ids,legs:results,distance:totalDistance,duration:totalSeconds,source:'נתיב משולב'};
   if(ronnyDistanceSnapshot.key){ronnyDistanceSnapshot.key='';ronnyDistanceController?.abort();ronnyDistanceState();ronnyPaintDashboardDistance();}
   if(pendingRetimes.has(day)){applyItineraryTimes(day,results,pendingRetimes.get(day),manualMissing?'incomplete':unavailable?'estimated':'routed');pendingRetimes.delete(day);save();renderMarkers()}
-  $('route-distance').textContent=(totalDistance/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ';
-  $('route-duration').textContent=manualMissing?'חלקי':minsFmt(totalSeconds/60);
+  $('route-distance').textContent=(unavailable?'~':'')+(totalDistance/1000).toLocaleString('he-IL',{maximumFractionDigits:1})+' ק״מ';
+  $('route-duration').textContent=manualMissing?'חלקי':(unavailable?'~':'')+minsFmt(totalSeconds/60);
   $('route-msg').textContent=manualMissing?'יש מקטע ידני ללא משך מעבר. הזן דקות כדי לחשב שעות מדויקות.':unavailable?'חלק מנתיבי ההליכה או הנסיעה לא חושבו: הקו המקווקו אינו תוואי מאומת. אפשר לשרטט דרך ידנית.':'מקטעים מחושבים בנפרד. משכי מעבר ידניים מוצגים לפי ההזנה שלך.';
   renderSchedule();renderViaHandles();renderForcedHandles();
   if($('leg-editor')?.classList.contains('open'))updateLegDurationPreview();

@@ -179,5 +179,75 @@ function setTransfer(trip,i,{kind=null,note=''}={}){
  else delete start.dayTransfer;
  return true;
 }
-return Object.freeze({ROLE_LABELS,ROLE_SHORT,ROLE_ICONS,SWITCHABLE_ROLES:Object.freeze([...SWITCHABLE_ROLES]),TRANSFER_KINDS,defaultRole,roleOf,canSwitchRole,setRole,keepRoleAfterCategoryChange,normalizeStop,insertionIndex,endpointOfDay,startOfDay,dayLink,nightIndex,nightCost,costsFromIndex,countedCosts,setNightCost,setNightName,syncNightNames,setTransfer});
+// A walk is one activity in the day: its first and last points bound one time span.
+function walkBlocks(route,routeUnits){return routeUnits(route).filter(u=>u.walk).map(u=>({from:u.from,to:u.to,start:route[u.from],end:route[u.to]}))}
+function stopMinutes(stop){const m=/^(\d{2}):(\d{2})/.exec(stop?.time||'');return m?Number(m[1])*60+Number(m[2])+(Number(stop.dayOffset)||0)*1440:null}
+function walkMinutes(block){const a=stopMinutes(block.start),b=stopMinutes(block.end);return a===null||b===null?null:Math.max(0,b-a)}
+// A same-trail return takes as long as the way out. Legs inside a walk with a set
+// total are covered by that total, so they are not "missing a duration".
+function resolveWalkLegs(route,legs,routeUnits){
+ const out=[...legs];
+ for(const block of walkBlocks(route,routeUnits)){
+  const finish=route[block.to];
+  if(finish.leg?.walkAutoRetrace&&out[block.to-1]?.manualMissing&&block.to-block.from>1){
+   let duration=0,missing=false,estimated=false;
+   for(let i=block.from+1;i<block.to;i++){const leg=out[i-1];if(!leg||leg.manualMissing)missing=true;duration+=Number(leg?.duration)||0;estimated=estimated||!!leg?.estimated}
+   if(!missing)out[block.to-1]={...out[block.to-1],duration,manualMissing:false,estimated,derivedRetrace:true};
+  }
+  if(Number(block.start.duration)>0||block.start.walkFinishClock){
+   for(let i=block.from+1;i<=block.to;i++)if(out[i-1]?.manualMissing)out[i-1]={...out[i-1],manualMissing:false,walkCovered:true};
+  }
+ }
+ return out;
+}
+// A clock earlier than the previous one means "next day" only for a plausible overnight walk.
+function walkClockIssue(startTime,turnClock,finishClock){
+ const at=t=>/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t||'')?Number(t.slice(0,2))*60+Number(t.slice(3)):null;
+ const start=at(startTime),turn=at(turnClock),finish=at(finishClock);
+ if(start===null)return null;
+ const wrapsTooFar=(from,to)=>to<from&&to+1440-from>=720;
+ if(turn!==null&&wrapsTooFar(start,turn))return 'turn';
+ if(finish!==null&&wrapsTooFar(turn??start,finish))return 'finish';
+ return null;
+}
+// Overlapping activities share one timetable block, so none of them is overwritten.
+function timetableBlocks(rows,toMinutes){
+ const items=rows.map((row,index)=>{
+  const a=toMinutes(row.start);if(a===null)return null;
+  const b=toMinutes(row.end),first=Math.floor(a/30);let last=first;
+  if(b!==null){if(b>a)last=Math.max(first,Math.ceil(b/30)-1);else if(row.crossesMidnight)last=47}
+  return {row,index,minute:a,first,last:Math.min(47,last)};
+ }).filter(Boolean).sort((x,y)=>x.minute-y.minute||x.index-y.index);
+ const blocks=[];
+ for(const item of items){
+  const current=blocks.at(-1);
+  if(current&&item.first<=current.to){current.to=Math.max(current.to,item.last);current.rows.push(item.row)}
+  else blocks.push({from:item.first,to:item.last,rows:[item.row]});
+ }
+ return blocks;
+}
+// Imported files can repeat ids. Later copies get new ids and their same-day references follow.
+function dedupeIds(trip,makeId){
+ let changed=false;const dayIds=new Set(),stopIds=new Set();
+ for(const day of trip?.days||[]){
+  if(typeof day.dayId==='string'&&day.dayId){if(dayIds.has(day.dayId)){day.dayId=makeId();changed=true}dayIds.add(day.dayId)}
+  const renamed=new Map(),kept=new Set();
+  for(const stop of day.stops||[]){
+   if(typeof stop.id!=='string'||!stop.id)continue;
+   if(stopIds.has(stop.id)){const old=stop.id;stop.id=makeId();if(!renamed.has(old))renamed.set(old,stop.id);changed=true}else kept.add(stop.id);
+   stopIds.add(stop.id);
+  }
+  if(!renamed.size)continue;
+  const follow=id=>!kept.has(id)&&renamed.has(id)?renamed.get(id):id;
+  for(const stop of day.stops||[]){
+   if(stop.leg?.fromId)stop.leg.fromId=follow(stop.leg.fromId);
+   if(stop.walkLoopSource)stop.walkLoopSource=follow(stop.walkLoopSource);
+   if(stop.fromLoopStart)stop.fromLoopStart=follow(stop.fromLoopStart);
+  }
+  if(day.timeAnchor?.stopId)day.timeAnchor.stopId=follow(day.timeAnchor.stopId);
+  if(day.preLoopEndId)day.preLoopEndId=follow(day.preLoopEndId);
+ }
+ return changed;
+}
+return Object.freeze({walkBlocks,walkMinutes,resolveWalkLegs,walkClockIssue,timetableBlocks,dedupeIds,ROLE_LABELS,ROLE_SHORT,ROLE_ICONS,SWITCHABLE_ROLES:Object.freeze([...SWITCHABLE_ROLES]),TRANSFER_KINDS,defaultRole,roleOf,canSwitchRole,setRole,keepRoleAfterCategoryChange,normalizeStop,insertionIndex,endpointOfDay,startOfDay,dayLink,nightIndex,nightCost,costsFromIndex,countedCosts,setNightCost,setNightName,syncNightNames,setTransfer});
 })();

@@ -330,9 +330,9 @@ function renderDays(){
   event.stopPropagation();
   const dayIndex=Number(button.dataset.dayEdit);
   if(!Number.isInteger(dayIndex)||dayIndex<0||dayIndex>=state.days.length)return;
-  if(dayIndex!==selectedDay||planningResolution!=='day')selectDay(dayIndex);
   // A missing endpoint may cancel switching days. Do not edit the wrong day.
-  if(selectedDay===dayIndex)editDay();
+  if(dayIndex!==selectedDay||planningResolution!=='day')selectDay(dayIndex,()=>{if(selectedDay===dayIndex)editDay()});
+  else editDay();
  }));
  $('days').querySelectorAll('[data-day]').forEach(el=>{
   el.onclick=()=>selectDay(+el.dataset.day);
@@ -523,7 +523,7 @@ function renderDaysManagerRows(){
  wireDayColorChooser(list,'day-manager-color','data-manager-palette');
  list.querySelectorAll('[data-day-check]').forEach(c=>c.onchange=()=>{c.checked?managerBulkSelected.add(c.dataset.dayCheck):managerBulkSelected.delete(c.dataset.dayCheck);renderDaysManagerRows()});
  const findDay=id=>state.days.findIndex(d=>d.dayId===id);
- const selectManagerDay=id=>{const i=findDay(id);if(i<0)return;selectDay(i);renderDaysManagerRows()};
+ const selectManagerDay=id=>{const i=findDay(id);if(i<0)return;if(i!==selectedDay&&dayMissingEndpoint(state.days[selectedDay]))closeDaysManager();selectDay(i,()=>{if(daysManagerIsOpen())renderDaysManagerRows()})};
  list.querySelectorAll('[data-day-row]').forEach(row=>{
   row.setAttribute('role','group');
   row.addEventListener('click',e=>{
@@ -764,7 +764,7 @@ function initDaysManager(){
  $('days-manager-shade').onclick=closeDaysManager;
 }
 
-document.getElementById('ronny-local-save-status')?.addEventListener('click',()=>toast('הטיולים נשמרים אוטומטית בדפדפן הזה. לגיבוי או להעברה למחשב אחר השתמש בייצוא וייבוא JSON. אין עדיין סנכרון ענן.'));
+document.getElementById('ronny-local-save-status')?.addEventListener('click',()=>toast('הטיולים נשמרים אוטומטית בדפדפן הזה. לגיבוי או להעברה למחשב אחר: קובץ ← שמירת גיבוי, ובמחשב השני קובץ ← טעינת גיבוי. אין עדיין סנכרון ענן.'));
 
 // Route order is the source of truth; time labels are derived from that order.
 // No route geometry is guessed: when routing is unavailable, clock times use a clearly labelled rough estimate.

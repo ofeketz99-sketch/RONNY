@@ -31,7 +31,7 @@ document.addEventListener('keydown',e=>{if(document.getElementById('ronny-time-d
 const PLACE_DB_NAME='ronny-personal-places-v1',PLACE_DB_STORE='snapshots',PLACE_BACKUP_KEY='ronny-places-local-backup-v1';
 const PLACE_COLORS=['#678c75','#6f88b0','#b38357','#9378a4','#b46f79','#658e96','#a68f4f','#7c8e5e','#826b58','#5e8894'];
 let savedPinPlacementId=null,savedPlaceDb=null,savedPlaces={lists:[],places:[]},savedPlaceLayer=null,savedPlacePreviewLayer=null,savedPreviewMode=false,selectedSavedList='all',savedPlaceFilter='',savedPlaceBusy=false,savedPlaceSaveQueue=Promise.resolve();
-const validSavedLatLng=p=>p&&p.lat!==null&&p.lat!==undefined&&p.lat!==''&&p.lng!==null&&p.lng!==undefined&&p.lng!==''&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)&&Math.abs(+p.lat)<=90&&Math.abs(+p.lng)<=180;
+const validSavedLatLng=p=>p&&p.lat!==null&&p.lat!==undefined&&p.lat!==''&&p.lng!==null&&p.lng!==undefined&&p.lng!==''&&Number.isFinite(+p.lat)&&Number.isFinite(+p.lng)&&Math.abs(+p.lat)<=90&&Math.abs(+p.lng)<=180&&!(+p.lat===0&&+p.lng===0);
 function normalizeSavedPlaceData(obj){
  const lists=Array.isArray(obj?.lists)?obj.lists.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string').slice(0,250).map(x=>({id:x.id,name:x.name.slice(0,130),visible:x.visible!==false})):[];
  const ids=new Set(lists.map(l=>l.id));

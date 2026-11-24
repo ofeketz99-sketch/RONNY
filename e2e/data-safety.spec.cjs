@@ -62,13 +62,23 @@ test('a trip with a walk reaches a final total distance without a page error',as
  expect(errors).toEqual([]);
 });
 
-test('the printable page script compiles and draws its maps',async({page,context})=>{
- // Request interception prevents scripts written into a popup from loading.
+test('PDF is prepared at paper size and opens the print dialog once the map is drawn',async({page})=>{
+ // Real network: request interception keeps scripts inside the print document from loading.
+ await page.addInitScript(()=>{window.print=function(){(window.top.__printed=window.top.__printed||[]).push(location.href)}});
  await boot(page,trip(),{stubNetwork:false});
- await page.locator('#rail-pdf').click();
- const [popup]=await Promise.all([context.waitForEvent('page'),page.locator('#print-generate').click()]);
- await expect.poll(()=>popup.evaluate(()=>{const s=[...document.scripts].find(x=>!x.src);if(!s)return 'pending';try{new Function(s.textContent);return true}catch(e){return e.message}})).toBe(true);
- await expect(popup.locator('.leaflet-container').first()).toBeVisible();
+ await page.locator('#data-transfer-btn').click();
+ await expect(page.locator('#data-transfer-btn')).toContainText('קובץ');
+ await expect(page.locator('#drawer')).toContainText('PDF להדפסה');
+ await page.locator('#file-pdf-btn').click();
+ await page.locator('#print-layout').selectOption('both-horizontal');
+ await page.locator('#print-generate').click();
+ await expect.poll(()=>page.evaluate(()=>window.__printed||[]),{timeout:25000}).toEqual(['about:srcdoc']);
+ const frame=page.frames().find(f=>f.url()==='about:srcdoc');
+ const shape=await frame.evaluate(()=>({map:!!document.querySelector('.export-map.leaflet-container'),lines:document.querySelectorAll('.export-map path').length,width:Math.round(document.body.getBoundingClientRect().width)}));
+ expect(shape.map).toBe(true);expect(shape.lines).toBeGreaterThan(0);
+ expect(shape.width).toBe(Math.round(277*96/25.4));
+ await expect(page.locator('#print-status')).toContainText('שמירה כ־PDF');
+ expect(page.context().pages()).toHaveLength(1);
 });
 
 test('an imported trip does not inherit the open trip structure',async({page})=>{

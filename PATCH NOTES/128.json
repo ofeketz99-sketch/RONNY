@@ -1,0 +1,12 @@
+{
+  "version": "128",
+  "date": "2026-11-24",
+  "notes": [
+    "הכפתור העליון ״ייבוא וייצוא״ נקרא עכשיו ״קובץ״, וכל מה שיוצא מהטיול נמצא בו בשלוש קבוצות: הדפסה ושיתוף (PDF, Excel), גיבוי הטיול (שמירת גיבוי, טעינת גיבוי) ומקומות מגוגל.",
+    "PDF עובד: לחיצה על ״הכנת PDF״ מכינה את המסמך בגודל דף A4, מחכה שהמפה תיטען ופותחת ישר את חלון ההדפסה. שם בוחרים ״שמירה כ־PDF״. אין יותר לשונית נוספת ולחיצה נוספת.",
+    "המפה במסמך ממוסגרת לגודל הדף, לכן היא לא זזה ולא נחתכת בזמן ההדפסה.",
+    "בלוח הזמנים המודפס מופיע טווח שעות לכל עצירה, ונקודות הליכה מסומנות ״הליכה ·״ כדי שלא יתבלבלו עם תחילת היום.",
+    "אם המפה לא נטענת (למשל בלי אינטרנט), המסמך נפתח בכל זאת עם לוח זמנים מלא והודעה ברורה."
+  ],
+  "technical": "Replaces the window.open + document.write popup with a hidden same-origin srcdoc iframe laid out at the printable paper width (190mm portrait, 277mm landscape). The print document posts a message once every base tile layer fires load (or after 15s), then the app calls print() on the frame; a 20s guard prints anyway. Renames the transfer drawer to a grouped File drawer; element ids are unchanged so saved tests and bindings keep working. Backup: backups/2026-11-24_072345UTC_pre128_604d0997b253_with127 (working tree including uncommitted patch 127). Test reliability: e2e/time-controls.spec.cjs clicked a marker element that the post-load redraw had already replaced (about 1 run in 4 under load); quick() now clicks only a connected marker and retries. The app was not at fault. Backup of that test: backups/2026-11-24_075023UTC_pre128b_604d0997b253_with128. The walk-line test in e2e/walk-block.spec.cjs now waits for layout before measuring."
+}

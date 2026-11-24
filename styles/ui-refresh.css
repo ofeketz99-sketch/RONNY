@@ -451,3 +451,51 @@ body.ronny-no-times #planner #schedule .drive-note:before{display:none!important
 #map-context .tree-role-choice button svg{flex:none;width:11px;height:11px}
 #map-context .tree-role-choice button.selected{border-color:var(--rx-accent);background:var(--rx-accent-soft);color:var(--rx-accent-strong)}
 #map-context .tree-role-choice small{font-size:10px;color:var(--rx-ink-3)}
+
+/* Continuous time rail and walking block (patch 127) */
+#planner .ronny-day-summary-main.has-walk{grid-template-columns:1.2fr .9fr .95fr .8fr .95fr .75fr}
+#planner #schedule .drive-note:before{right:22px!important;width:2px!important;background:color-mix(in srgb,var(--leg-color,#9aa79c) 58%,var(--rx-line))!important}
+#planner #schedule .stop-time{position:relative!important;align-self:stretch!important}
+#planner #schedule .stop-time:before,#planner #schedule .stop-time:after{content:""!important;position:absolute!important;right:22px!important;width:2px!important;pointer-events:none!important}
+#planner #schedule .stop-time:before{top:0!important;bottom:50%!important;background:color-mix(in srgb,var(--stop-color,#9aa79c) 58%,var(--rx-line))!important}
+#planner #schedule .stop-time:after{top:50%!important;bottom:0!important;background:color-mix(in srgb,var(--rail-next,var(--stop-color,#9aa79c)) 58%,var(--rx-line))!important}
+#planner #schedule .stop.ronny-rail-first .stop-time:before,#planner #schedule .stop.ronny-rail-last .stop-time:after{display:none!important}
+#planner #schedule .ronny-time-chip{position:relative!important;z-index:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:1px!important;min-width:40px!important;padding:2px 3px!important;background:var(--rx-surface)!important;border:1px solid color-mix(in srgb,var(--stop-color,#9aa79c) 42%,var(--rx-line))!important;border-radius:7px!important;color:var(--rx-ink)!important}
+body.ronny-no-times #planner #schedule .ronny-walk-block:before,body.ronny-no-times #planner #schedule .ronny-walk-node{display:none!important}
+
+#planner #schedule .ronny-walk-block{--walk-soft:color-mix(in srgb,var(--walk-color,#568973) 8%,#fff);position:relative!important;margin:0!important;padding:0!important}
+#planner #schedule .ronny-walk-block:after{content:""!important;position:absolute!important;top:0!important;bottom:0!important;left:0!important;right:50px!important;background:var(--walk-soft)!important;border:1px solid color-mix(in srgb,var(--walk-color,#568973) 34%,var(--rx-line))!important;border-inline-start:3px solid var(--walk-color,#568973)!important;border-radius:var(--rx-r-m)!important;pointer-events:none!important}
+/* One line for the whole walk, from its head to the last sub-point. */
+#planner #schedule .ronny-walk-block:before{content:""!important;position:absolute!important;z-index:1!important;top:21px!important;bottom:22px!important;right:21px!important;width:4px!important;border-radius:4px!important;background:var(--walk-color,#568973)!important;pointer-events:none!important}
+#planner #schedule .ronny-walk-block>*{position:relative!important;z-index:2!important}
+#planner #schedule .ronny-walk-block.is-dragging{opacity:.55!important}
+#planner #schedule .ronny-walk-head{position:relative!important;display:flex!important;align-items:center!important;gap:7px!important;min-height:42px!important;padding:4px 58px 4px 8px!important;cursor:grab!important;border-radius:var(--rx-r-m) var(--rx-r-m) 0 0!important}
+#planner #schedule .ronny-walk-head:focus-visible{outline:2px solid var(--rx-accent)!important;outline-offset:-2px!important}
+#planner #schedule .ronny-walk-head.is-drop-target{box-shadow:inset 0 0 0 2px var(--rx-accent)!important}
+#planner #schedule .ronny-walk-node{position:absolute!important;top:7px!important;right:9px!important;display:grid!important;place-items:center!important;width:28px!important;height:28px!important;background:var(--walk-color,#568973)!important;border:2px solid var(--rx-surface)!important;border-radius:50%!important;color:#fff!important;box-shadow:0 0 0 1px color-mix(in srgb,var(--walk-color,#568973) 45%,transparent)!important}
+#planner #schedule .ronny-walk-node svg{width:15px!important;height:15px!important}
+#planner #schedule .ronny-walk-copy{flex:1 1 auto!important;min-width:0!important}
+#planner #schedule .ronny-walk-copy strong{display:flex!important;align-items:center!important;gap:6px!important;color:var(--rx-ink)!important;font-size:13px!important;font-weight:750!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#planner #schedule .ronny-walk-copy strong span{flex:none!important;padding:1px 6px!important;border-radius:999px!important;background:color-mix(in srgb,var(--walk-color,#568973) 16%,#fff)!important;color:color-mix(in srgb,var(--walk-color,#568973) 72%,#1f2a24)!important;font-size:10px!important;font-weight:700!important}
+#planner #schedule .ronny-walk-copy small{display:block!important;margin-top:1px!important;color:var(--rx-ink-2)!important;font-size:11px!important;font-weight:600!important;font-variant-numeric:tabular-nums!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#planner #schedule .ronny-walk-head .stop-tools{background:linear-gradient(to right,var(--walk-soft) 72%,transparent)!important}
+#planner #schedule .ronny-walk-head:hover .stop-tools,#planner #schedule .ronny-walk-head:focus-within .stop-tools{opacity:1!important}
+#planner #schedule .ronny-walk-subs{display:block!important;padding:0 0 3px!important}
+#planner #schedule .ronny-walk-sub .stop-time:before{display:none!important}
+#planner #schedule .ronny-walk-sub:not(.ronny-walk-sub-last) .stop-time:after{display:none!important}
+#planner #schedule .ronny-walk-sub-last .stop-time:after{top:calc(50% + 12px)!important}
+#planner #schedule .ronny-walk-sub .ronny-time-chip{min-width:38px!important;padding:1px 3px!important;border-color:var(--walk-color,#568973)!important;font-size:11px!important;font-weight:650!important}
+#planner #schedule .ronny-walk-sub .drive-note{padding-inline-start:66px!important}
+#planner #schedule .ronny-walk-sub .drive-note:before{display:none!important}
+#planner #schedule .ronny-walk-sub .leg-open{height:20px!important;font-size:10.5px!important}
+#planner #schedule .ronny-walk-sub .stop-body{min-height:34px!important;margin-inline-start:8px!important;margin-inline-end:5px!important;padding:2px 6px!important;background:transparent!important;border:0!important;border-radius:var(--rx-r-s)!important}
+#planner #schedule .ronny-walk-sub:hover .stop-body,#planner #schedule .ronny-walk-sub.ronny-hover-linked .stop-body{background:rgba(255,255,255,.72)!important;border:0!important;box-shadow:none!important}
+#planner #schedule .ronny-walk-sub.focused .stop-body{background:#fff!important;border:0!important;box-shadow:0 0 0 1.5px var(--walk-color,#568973)!important}
+#planner #schedule .ronny-walk-sub .stop-order-badge{flex-basis:23px!important;width:23px!important;height:23px!important}
+#planner #schedule .ronny-walk-sub .stop-order-badge svg{width:13px!important;height:13px!important}
+#planner #schedule .ronny-walk-sub .stop-title{font-size:12px!important;font-weight:650!important}
+#planner #schedule .ronny-walk-sub .stop-secondary{font-size:10.5px!important}
+#planner #schedule .ronny-walk-sub .stop-secondary>.ronny-role-chip,#planner #schedule .ronny-walk-sub .stop-secondary>.ronny-role-chip+.ronny-category-label,#planner #schedule .ronny-walk-sub .stop-secondary>.ronny-category-label+.dot{display:none!important}
+#planner #schedule .ronny-walk-sub .stop-tools{background:linear-gradient(to right,var(--walk-soft) 72%,transparent)!important}
+#planner #schedule .ronny-walk-sub-plain .stop-secondary{display:none!important}
+#planner #schedule .ronny-walk-sub-plain .stop-body{min-height:30px!important}

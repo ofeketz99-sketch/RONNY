@@ -16,6 +16,11 @@ function splitRoutedLegs(coords,waypoints,kmBetween){
    for(let k=start+1;k<coords.length-(waypoints.length-j-1);k++){
     const d=kmBetween(coords[k],pt);if(d<best){best=d;end=k}
    }
+   const gap=k=>kmBetween(coords[k],pt);
+   for(let k=start+1;k<end;k++){
+    const d=gap(k);
+    if(d<=best*3&&d<=gap(k-1)&&d<=gap(k+1)){end=k;break}
+   }
   }
   parts.push(coords.slice(start,end+1).length>1?coords.slice(start,end+1):[coords[start],coords[Math.min(start+1,coords.length-1)]]);
   start=end;

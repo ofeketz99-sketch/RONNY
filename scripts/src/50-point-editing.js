@@ -187,6 +187,11 @@ function openPointQuick(id){
   else f.name.value=stop.name;
   stop.description=f.description.value;
   const validClock=value=>/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+  const walkClockMessage='השעה מוקדמת מהנקודה שלפניה בהליכה. בהליכת לילה הטווח חייב להיות קצר מ־12 שעות.';
+  if(stop.type==='walkTurn'&&validClock(f.time.value)&&f.time.value!==stop.time&&timeEditIntent!=='departure'){
+   const walkRoute=routeStopsForDay(target.day),at=walkRoute.findIndex(p=>p.id===id),owner=at>0?walkRoute.slice(0,at).reverse().find(p=>p.type==='walkStart'):null;
+   if(owner&&TripModel.walkClockIssue(owner.time,f.time.value,owner.walkFinishClock)){f.time.value=stop.time;toast(walkClockMessage)}
+  }
   const arrivalChanged=validClock(f.time.value)&&f.time.value!==oldTime;
   const duration=f.duration?Number(f.duration.value):oldDuration;
   if(Number.isFinite(duration))stop.duration=Math.max(0,Math.min(3000,duration));
@@ -204,8 +209,11 @@ function openPointQuick(id){
   const oldTurn=stop.walkTurnClock||'',oldFinish=stop.walkFinishClock||'';
   if(stop.type==='walkStart'){
    const t=f.walkTurn?.value||'',z=f.walkFinish?.value||'';
-   if(t===''||validClock(t))stop.walkTurnClock=t;
-   if(z===''||validClock(z))stop.walkFinishClock=z;
+   const startClock=validClock(f.time.value)?f.time.value:stop.time;
+   const nextTurn=t===''||validClock(t)?t:oldTurn,nextFinish=z===''||validClock(z)?z:oldFinish;
+   if(TripModel.walkClockIssue(startClock,nextTurn,nextFinish)){
+    if(f.walkTurn)f.walkTurn.value=oldTurn;if(f.walkFinish)f.walkFinish.value=oldFinish;toast(walkClockMessage);
+   }else{stop.walkTurnClock=nextTurn;stop.walkFinishClock=nextFinish}
   }
   const walkClockChanged=oldTurn!==(stop.walkTurnClock||'')||oldFinish!==(stop.walkFinishClock||'');
   const durationChanged=oldDuration!==stop.duration;

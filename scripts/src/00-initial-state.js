@@ -380,6 +380,7 @@ function synchronizeChronologicalEndpointNames(){return TripStateCommands.synchr
 function prepareTrip(t){
  if(!t||!Array.isArray(t.days)||!t.days.length||!t.settings)throw Error('קובץ טיול לא תקין');
  const cleaned=cloneValue(t);
+ TripModel.dedupeIds(cleaned,uid);
  cleaned.outline=normalizeOutline(cleaned.outline);
  cleaned.settings={googleKey:'',mapStyle:'osm',travelMode:'driving',plannerWidth:430,railWidth:54,drawerWidth:440,layerVisibility:{...DEFAULT_LAYER_VISIBILITY},...cleaned.settings};cleaned.settings.layerVisibility=normalizeLayerVisibility(cleaned.settings.layerVisibility);cleaned.settings.defaultDepartureTime=/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(cleaned.settings.defaultDepartureTime||'')?cleaned.settings.defaultDepartureTime:'09:00';
  delete cleaned.settings.mapyKey;delete cleaned.settings.routingProvider;
