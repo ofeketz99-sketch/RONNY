@@ -123,6 +123,9 @@ function retimeAfterOrderChange(dayIndex,anchor=0){
 let ronnyClampPlannerUpper=()=>{};
 function initializePlannerVerticalResize(){
  const upper=$('planner-upper'),handle=$('planner-upper-resizer'),planner=$('planner');if(!upper||!handle||!planner)return;
+ // Patch 135: the top area holds only the day picker now, so it always fits its content. A saved or measured
+ // height made it collapse to a sliver and spring back while the panel was hidden or redrawing.
+ upper.style.height='';upper.style.flex='';handle.hidden=true;return;
  // Patch 130: never taller than its own content, so a saved height cannot leave an empty band.
  function natural(){const h=upper.style.height,f=upper.style.flex;upper.style.height='';upper.style.flex='';const n=upper.scrollHeight;upper.style.height=h;upper.style.flex=f;return n}
  function bounds(){const max=Math.max(72,planner.clientHeight-190);return {min:72,max:Math.max(72,Math.min(Math.round(planner.clientHeight*.72),max,natural()))}}
@@ -151,6 +154,7 @@ function repairExistingSchedules(){
 }
 function restorePlannerUpperHeight(){
  const upper=$('planner-upper'),planner=$('planner');if(!upper||!planner)return;
+ upper.style.height='';upper.style.flex='';return; // patch 135: always fits its content
  const val=Number(state.settings.plannerUpperHeightV2);
  if(Number.isFinite(val)&&val>0){const max=Math.min(planner.clientHeight*.72,planner.clientHeight-190);const h=Math.max(72,Math.min(Math.max(72,max),val));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px'}
  else{upper.style.height='';upper.style.flex=''}

@@ -1,0 +1,13 @@
+{
+  "version": "135",
+  "date": "2026-11-24",
+  "notes": [
+    "החלק העליון של חלונית התכנון כבר לא מתכווץ וקופץ: הוא תמיד בגובה בורר הימים, והידית לשינוי גובה הוסרה.",
+    "המפה נשארת במקום כשפותחים, סוגרים או גוררים את חלונית התכנון, במקום לקפוץ הצידה.",
+    "מעבר בין ימים ולחיצה על דרך עם שינוי זום גדול נעשים בתנועה רציפה, בלי מפה ריקה באמצע.",
+    "כלי המפה לא נערמים: פתיחת שכבות, בורר המפות או מדידה סוגרת את האחרים.",
+    "אזהרות היום עברו מעל לוח הזמנים, כך שהכותרת לא משנה גובה בין ימים.",
+    "״הפוך לזמן פנוי״ הוא תג קטן בשורת הדרך, ו״חלקי/אומדן״ בסרגל העליון מופיעים רק בריחוף."
+  ],
+  "technical": "From a review of the owner's screen recording. initializePlannerVerticalResize/restorePlannerUpperHeight no longer set a height (the natural() clamp read 0 while the planner was hidden, squeezing it to 72px); #planner-upper-resizer hidden. invalidateSize({pan:false}) for planner drag, collapse and showMap. fitMap and ronnySelectLeg use flyToBounds when the zoom jump is >= 3 levels or the target is off-screen (Leaflet resets the view without animation on large zooms, which blanked the tiles). Capture-phase click handler makes measure, layers/contours and the map picker mutually exclusive. #ronny-day-warnings moved under the section ribbon. Backup: backups/2026-11-24_164355UTC_pre135_0c14cc0f44f6."
+}

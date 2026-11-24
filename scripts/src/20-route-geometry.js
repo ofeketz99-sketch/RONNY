@@ -294,7 +294,9 @@ function ronnySelectLeg(index,{fit=false,reveal=false}={}){
    const r=ed.getBoundingClientRect(),left=r.left-box.left,right=box.right-r.right;
    if(Math.max(left,right)>=220){if(right>=left)tl=[r.right-box.left+24,90];else br=[box.right-r.left+24,70]}
   }
-  map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,animate:!ronnyReducedMotion()});
+  const lb=L.latLngBounds(coords),jump=Math.abs(map.getBoundsZoom(lb,false,L.point(tl).add(br))-map.getZoom());
+  if(!ronnyReducedMotion()&&(jump>=3||!map.getBounds().intersects(lb)))map.flyToBounds(lb,{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,duration:.8});
+  else map.fitBounds(lb,{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,animate:!ronnyReducedMotion()});
  }
  if(reveal){
   if(innerWidth<=760){$('planner')?.classList.add('show-mobile');setRail('plan')}

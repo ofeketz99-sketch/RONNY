@@ -2579,7 +2579,9 @@ function ronnySelectLeg(index,{fit=false,reveal=false}={}){
    const r=ed.getBoundingClientRect(),left=r.left-box.left,right=box.right-r.right;
    if(Math.max(left,right)>=220){if(right>=left)tl=[r.right-box.left+24,90];else br=[box.right-r.left+24,70]}
   }
-  map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,animate:!ronnyReducedMotion()});
+  const lb=L.latLngBounds(coords),jump=Math.abs(map.getBoundsZoom(lb,false,L.point(tl).add(br))-map.getZoom());
+  if(!ronnyReducedMotion()&&(jump>=3||!map.getBounds().intersects(lb)))map.flyToBounds(lb,{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,duration:.8});
+  else map.fitBounds(lb,{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,animate:!ronnyReducedMotion()});
  }
  if(reveal){
   if(innerWidth<=760){$('planner')?.classList.add('show-mobile');setRail('plan')}
@@ -3264,6 +3266,9 @@ function retimeAfterOrderChange(dayIndex,anchor=0){
 let ronnyClampPlannerUpper=()=>{};
 function initializePlannerVerticalResize(){
  const upper=$('planner-upper'),handle=$('planner-upper-resizer'),planner=$('planner');if(!upper||!handle||!planner)return;
+ // Patch 135: the top area holds only the day picker now, so it always fits its content. A saved or measured
+ // height made it collapse to a sliver and spring back while the panel was hidden or redrawing.
+ upper.style.height='';upper.style.flex='';handle.hidden=true;return;
  // Patch 130: never taller than its own content, so a saved height cannot leave an empty band.
  function natural(){const h=upper.style.height,f=upper.style.flex;upper.style.height='';upper.style.flex='';const n=upper.scrollHeight;upper.style.height=h;upper.style.flex=f;return n}
  function bounds(){const max=Math.max(72,planner.clientHeight-190);return {min:72,max:Math.max(72,Math.min(Math.round(planner.clientHeight*.72),max,natural()))}}
@@ -3292,6 +3297,7 @@ function repairExistingSchedules(){
 }
 function restorePlannerUpperHeight(){
  const upper=$('planner-upper'),planner=$('planner');if(!upper||!planner)return;
+ upper.style.height='';upper.style.flex='';return; // patch 135: always fits its content
  const val=Number(state.settings.plannerUpperHeightV2);
  if(Number.isFinite(val)&&val>0){const max=Math.min(planner.clientHeight*.72,planner.clientHeight-190);const h=Math.max(72,Math.min(Math.max(72,max),val));upper.style.height=h+'px';upper.style.flex='0 0 '+h+'px'}
  else{upper.style.height='';upper.style.flex=''}
@@ -4892,7 +4898,8 @@ function fitMap(){
  const compact=map.getSize().x<520,bounds=L.latLngBounds(coords);
  const fitOptions={paddingTopLeft:compact?[64,92]:[92,96],paddingBottomRight:compact?[56,56]:[86,64],maxZoom:16};
  // A day that is off-screen is reached by flying, which keeps tiles on screen the whole way instead of resetting to an empty map.
- if(!ronnyReducedMotion()&&!map.getBounds().pad(.2).intersects(bounds))map.flyToBounds(bounds,{...fitOptions,duration:.9});
+ const zoomJump=Math.abs(map.getBoundsZoom(bounds,false,L.point(fitOptions.paddingTopLeft).add(fitOptions.paddingBottomRight))-map.getZoom());
+ if(!ronnyReducedMotion()&&(zoomJump>=3||!map.getBounds().pad(.2).intersects(bounds)))map.flyToBounds(bounds,{...fitOptions,duration:.9});
  else map.fitBounds(bounds,{...fitOptions,animate:!ronnyReducedMotion(),duration:.65});
 }
 let activeQuickCommit=null;
@@ -6001,10 +6008,10 @@ function setPlannerCollapsed(flag){
  $('planner-resizer').setAttribute('aria-label',flag?'פתח את פאנל התכנון; גרור כדי לשנות רוחב':'סגור את פאנל התכנון; גרור כדי לשנות רוחב');
  try{localStorage.setItem('ronny-planner-collapsed-v1',flag?'true':'false')}catch(e){}
  if(!flag)setRail('plan');else setRail(null);
- setTimeout(()=>{map?.invalidateSize();if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')},360);
+ setTimeout(()=>{map?.invalidateSize({pan:false});if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')},360);
 }
 function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.add('show-mobile');setRail('plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
-function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize(),260)}
+function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize({pan:false}),260)}
 
 function ronnyBudgetExpenses(){
  if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];
@@ -6353,6 +6360,13 @@ function openOutlineDayAssignment(){const points=currentOutline().points;if(!poi
 }
 
 function bind(){
+ // Patch 135: map tools do not stack. Opening layers, the map picker or measuring closes the others.
+ document.addEventListener('click',e=>{
+  const b=e.target.closest?.('#map-distance-measure,#layer-filter-toggle,#map-outline-guide-toggle,#map-picker-toggle,#map-day-trigger');if(!b)return;
+  if(b.id!=='layer-filter-toggle'&&b.id!=='map-outline-guide-toggle')closeLayerFilterPanel();
+  if(b.id!=='map-picker-toggle'){const m=$('map-picker-menu');if(m&&!m.hidden){m.hidden=true;$('map-picker-toggle')?.setAttribute('aria-expanded','false')}}
+  if(b.id!=='map-distance-measure'&&ronnyMeasure.active)ronnyMeasureDeactivate();
+ },true);
 initResolutionUI();initDayNavigation();
  const undoButton=$('ronny-undo');
  if(undoButton){undoButton.onclick=ronnyUndoLast;ronnyUpdateUndoButton();}
@@ -6453,8 +6467,8 @@ function setupResizers(){const root=document.documentElement;const setWidth=(whi
  if(+state.settings.railWidth===72)state.settings.railWidth=54;setWidth('rail',+state.settings.railWidth||54);setWidth('planner',+state.settings.plannerWidth||430);
  for(const which of ['rail','planner']){const el=$(which+'-resizer');let pointer=null,startX=0,startW=0,wasCollapsed=false,didDrag=false;
  el.addEventListener('pointerdown',e=>{if(innerWidth<=760)return;pointer=e.pointerId;startX=e.clientX;startW=+state.settings[which+'Width'];wasCollapsed=which==='planner'&&document.querySelector('.app').classList.contains('planner-collapsed');didDrag=false;document.body.classList.add('resizing');el.classList.add('dragging');el.setPointerCapture(pointer);e.preventDefault()});
- el.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const delta=e.clientX-startX;if(Math.abs(delta)>5)didDrag=true;if(wasCollapsed&&which==='planner')return;if(!didDrag)return;setWidth(which,startW+(which==='rail'?delta:-delta));map?.invalidateSize();if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')});
- const end=e=>{if(pointer===null)return;const click=!didDrag&&which==='planner'&&e.type==='pointerup';pointer=null;document.body.classList.remove('resizing');el.classList.remove('dragging');if(click)setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));else if(didDrag){save();map?.invalidateSize()}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
+ el.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const delta=e.clientX-startX;if(Math.abs(delta)>5)didDrag=true;if(wasCollapsed&&which==='planner')return;if(!didDrag)return;setWidth(which,startW+(which==='rail'?delta:-delta));map?.invalidateSize({pan:false});if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')});
+ const end=e=>{if(pointer===null)return;const click=!didDrag&&which==='planner'&&e.type==='pointerup';pointer=null;document.body.classList.remove('resizing');el.classList.remove('dragging');if(click)setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));else if(didDrag){save();map?.invalidateSize({pan:false})}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
  if(which==='rail')el.addEventListener('dblclick',()=>{setWidth(which,54);save();map?.invalidateSize()});
  el.addEventListener('keydown',e=>{if(which==='planner'&&['Enter',' '].includes(e.key)){e.preventDefault();setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));return}if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();if(which==='planner'&&document.querySelector('.app').classList.contains('planner-collapsed'))setPlannerCollapsed(false);setWidth(which,+state.settings[which+'Width']+(which==='rail'?(e.key==='ArrowRight'?12:-12):(e.key==='ArrowLeft'?12:-12)));save();map?.invalidateSize()});
  }

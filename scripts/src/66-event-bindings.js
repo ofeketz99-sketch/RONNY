@@ -1,4 +1,11 @@
 function bind(){
+ // Patch 135: map tools do not stack. Opening layers, the map picker or measuring closes the others.
+ document.addEventListener('click',e=>{
+  const b=e.target.closest?.('#map-distance-measure,#layer-filter-toggle,#map-outline-guide-toggle,#map-picker-toggle,#map-day-trigger');if(!b)return;
+  if(b.id!=='layer-filter-toggle'&&b.id!=='map-outline-guide-toggle')closeLayerFilterPanel();
+  if(b.id!=='map-picker-toggle'){const m=$('map-picker-menu');if(m&&!m.hidden){m.hidden=true;$('map-picker-toggle')?.setAttribute('aria-expanded','false')}}
+  if(b.id!=='map-distance-measure'&&ronnyMeasure.active)ronnyMeasureDeactivate();
+ },true);
 initResolutionUI();initDayNavigation();
  const undoButton=$('ronny-undo');
  if(undoButton){undoButton.onclick=ronnyUndoLast;ronnyUpdateUndoButton();}
@@ -99,8 +106,8 @@ function setupResizers(){const root=document.documentElement;const setWidth=(whi
  if(+state.settings.railWidth===72)state.settings.railWidth=54;setWidth('rail',+state.settings.railWidth||54);setWidth('planner',+state.settings.plannerWidth||430);
  for(const which of ['rail','planner']){const el=$(which+'-resizer');let pointer=null,startX=0,startW=0,wasCollapsed=false,didDrag=false;
  el.addEventListener('pointerdown',e=>{if(innerWidth<=760)return;pointer=e.pointerId;startX=e.clientX;startW=+state.settings[which+'Width'];wasCollapsed=which==='planner'&&document.querySelector('.app').classList.contains('planner-collapsed');didDrag=false;document.body.classList.add('resizing');el.classList.add('dragging');el.setPointerCapture(pointer);e.preventDefault()});
- el.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const delta=e.clientX-startX;if(Math.abs(delta)>5)didDrag=true;if(wasCollapsed&&which==='planner')return;if(!didDrag)return;setWidth(which,startW+(which==='rail'?delta:-delta));map?.invalidateSize();if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')});
- const end=e=>{if(pointer===null)return;const click=!didDrag&&which==='planner'&&e.type==='pointerup';pointer=null;document.body.classList.remove('resizing');el.classList.remove('dragging');if(click)setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));else if(didDrag){save();map?.invalidateSize()}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
+ el.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;const delta=e.clientX-startX;if(Math.abs(delta)>5)didDrag=true;if(wasCollapsed&&which==='planner')return;if(!didDrag)return;setWidth(which,startW+(which==='rail'?delta:-delta));map?.invalidateSize({pan:false});if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')});
+ const end=e=>{if(pointer===null)return;const click=!didDrag&&which==='planner'&&e.type==='pointerup';pointer=null;document.body.classList.remove('resizing');el.classList.remove('dragging');if(click)setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));else if(didDrag){save();map?.invalidateSize({pan:false})}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('lostpointercapture',end);
  if(which==='rail')el.addEventListener('dblclick',()=>{setWidth(which,54);save();map?.invalidateSize()});
  el.addEventListener('keydown',e=>{if(which==='planner'&&['Enter',' '].includes(e.key)){e.preventDefault();setPlannerCollapsed(!document.querySelector('.app').classList.contains('planner-collapsed'));return}if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();if(which==='planner'&&document.querySelector('.app').classList.contains('planner-collapsed'))setPlannerCollapsed(false);setWidth(which,+state.settings[which+'Width']+(which==='rail'?(e.key==='ArrowRight'?12:-12):(e.key==='ArrowLeft'?12:-12)));save();map?.invalidateSize()});
  }

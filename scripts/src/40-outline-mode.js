@@ -362,7 +362,8 @@ function fitMap(){
  const compact=map.getSize().x<520,bounds=L.latLngBounds(coords);
  const fitOptions={paddingTopLeft:compact?[64,92]:[92,96],paddingBottomRight:compact?[56,56]:[86,64],maxZoom:16};
  // A day that is off-screen is reached by flying, which keeps tiles on screen the whole way instead of resetting to an empty map.
- if(!ronnyReducedMotion()&&!map.getBounds().pad(.2).intersects(bounds))map.flyToBounds(bounds,{...fitOptions,duration:.9});
+ const zoomJump=Math.abs(map.getBoundsZoom(bounds,false,L.point(fitOptions.paddingTopLeft).add(fitOptions.paddingBottomRight))-map.getZoom());
+ if(!ronnyReducedMotion()&&(zoomJump>=3||!map.getBounds().pad(.2).intersects(bounds)))map.flyToBounds(bounds,{...fitOptions,duration:.9});
  else map.fitBounds(bounds,{...fitOptions,animate:!ronnyReducedMotion(),duration:.65});
 }
 let activeQuickCommit=null;

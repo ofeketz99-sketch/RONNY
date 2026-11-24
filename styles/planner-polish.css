@@ -120,3 +120,18 @@ body.ronny-no-times #planner #schedule .ronny-walk-time{display:none!important}
 #planner #schedule .ronny-pin-to-lock{display:inline-flex;align-items:center;gap:4px;margin-inline-start:6px;padding:2px 8px;border:1px solid #d9cfa9;border-radius:999px;background:#fbf6e4;color:#6d5a1c;font-size:10.5px;font-weight:700;cursor:pointer}
 #planner #schedule .ronny-pin-to-lock svg{width:11px;height:11px}
 #planner #schedule .ronny-pin-to-lock:hover{background:#f5ecc8}
+
+/* ---- Patch 135: smoothness ---- */
+/* The top area fits its content; no drag handle between it and the schedule. */
+#planner #planner-upper-resizer{display:none!important}
+#planner #planner-upper{height:auto!important;flex:0 0 auto!important;max-height:none!important;overflow:visible!important}
+/* "Turn into free time" sits on the drive row as a small chip instead of wrapping onto its own line. */
+#planner #schedule .drive-note{flex-wrap:nowrap!important}
+#planner #schedule .drive-note .leg-open{min-width:0}
+#planner #schedule .ronny-pin-to-lock{flex:none;margin-inline-start:4px;padding:1px 7px;font-size:10px;white-space:nowrap;opacity:.85}
+#planner #schedule .ronny-pin-to-lock:hover{opacity:1}
+/* Top bar: "partial / estimate" stays in the tooltip instead of a tag floating over the number. */
+.topbar .ronny-day-stat em{display:none!important}
+/* Day warnings live just above the schedule, so the header never changes height between days. */
+#planner > #ronny-day-warnings{padding:0 14px}
+#planner > #ronny-day-warnings .ronny-day-warnings{margin:4px 0 2px}

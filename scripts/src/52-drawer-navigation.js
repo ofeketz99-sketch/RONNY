@@ -698,10 +698,10 @@ function setPlannerCollapsed(flag){
  $('planner-resizer').setAttribute('aria-label',flag?'פתח את פאנל התכנון; גרור כדי לשנות רוחב':'סגור את פאנל התכנון; גרור כדי לשנות רוחב');
  try{localStorage.setItem('ronny-planner-collapsed-v1',flag?'true':'false')}catch(e){}
  if(!flag)setRail('plan');else setRail(null);
- setTimeout(()=>{map?.invalidateSize();if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')},360);
+ setTimeout(()=>{map?.invalidateSize({pan:false});if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')},360);
 }
 function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.add('show-mobile');setRail('plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
-function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize(),260)}
+function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize({pan:false}),260)}
 
 function ronnyBudgetExpenses(){
  if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];
