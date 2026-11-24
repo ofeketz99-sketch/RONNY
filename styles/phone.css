@@ -76,4 +76,14 @@
  #search-btn svg{width:17px!important;height:17px!important}
  .leaflet-top.leaflet-right{top:58px!important;right:2px!important}
  .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;font-size:18px!important}
+ /* ---- Installed app (patch 137): room for the phone's status bar, and the install offer ---- */
+ html.ronny-standalone .topbar{padding-top:env(safe-area-inset-top)!important;height:calc(var(--phone-top-h) + env(safe-area-inset-top))!important}
+ html.ronny-standalone .planner,html.ronny-standalone .map-pane{top:calc(var(--phone-top-h) + env(safe-area-inset-top))!important}
+ .ronny-install{position:fixed;left:10px;right:10px;bottom:calc(var(--phone-rail-h) + 10px);z-index:1500;display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(83,119,96,.18);border-radius:14px;background:rgba(255,253,248,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(36,46,39,.16);direction:rtl}
+ .ronny-install img{flex:none;border-radius:9px}
+ .ronny-install-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+ .ronny-install-copy strong{font-size:13px;color:#2c372f}
+ .ronny-install-copy span{font-size:11px;color:#667062;line-height:1.3}
+ .ronny-install-go{flex:none;padding:7px 13px;border:0;border-radius:10px;background:#47705a;color:#fff;font-size:12.5px;font-weight:700}
+ .ronny-install-close{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:#8a948b;font-size:13px}
 }

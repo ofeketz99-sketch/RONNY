@@ -149,3 +149,6 @@ body.ronny-no-times #planner #schedule .ronny-walk-time{display:none!important}
 .topbar .ronny-top-day-arrow svg{width:14px;height:14px;flex:none}
 .topbar .ronny-top-day-arrow:hover:not(:disabled){background:rgba(82,124,96,.09);border-color:rgba(82,124,96,.24);color:#35584a}
 .topbar .ronny-top-day-arrow:disabled{opacity:.35}
+
+/* ---- Patch 137: the map's route-summary ("data") button is redundant; the same numbers are in the top bar ---- */
+#route-card-toggle,.map-pane .map-bottom{display:none!important}

@@ -4,7 +4,11 @@
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="shortcut icon" href="assets/favicon.png">
 
-<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes"/><meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="RONNY"/><meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="theme-color" content="#101e2e"/><title>RONNY — תכנון טיולים</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -67,5 +71,6 @@
 </aside><div id="drawer-backdrop" class="drawer-backdrop"></div><aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-labelledby="drawer-title"><div id="drawer-resizer" class="drawer-resizer" role="separator" aria-orientation="vertical" aria-label="שינוי רוחב חלונית הפרטים" tabindex="0" title="גרור כדי לשנות רוחב"></div><div class="drawer-header"><div><span class="overline" id="drawer-kicker">DETAILS</span><h2 id="drawer-title">הוספת עצירה</h2><p id="drawer-subtitle">כל הפרטים במקום אחד</p></div><button class="btn btn-icon" id="close-drawer" aria-label="סגור"><i data-lucide="x"></i></button></div><div class="drawer-body" id="drawer-body"></div><div class="drawer-footer" id="drawer-footer"></div></aside>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="scripts/app.js"></script>
+<script src="scripts/install-app.js"></script>
 </body>
 </html>

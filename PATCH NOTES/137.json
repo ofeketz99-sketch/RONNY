@@ -1,0 +1,10 @@
+{
+  "version": "137",
+  "date": "2026-11-24",
+  "notes": [
+    "RONNY מותקן עכשיו בטלפון כאפליקציה: אייקון במסך הבית, מסך מלא ופתיחה גם בלי קליטה.",
+    "בטלפון מופיעה הצעה עדינה להתקנה (באנדרואיד כפתור ״התקנה״, באייפון הסבר קצר), שאפשר לסגור.",
+    "כפתור ״סיכום מסלול״ במפה הוסר. אותם נתונים מוצגים בסרגל העליון."
+  ],
+  "technical": "PWA: manifest.webmanifest (he/rtl, standalone, any + maskable icons in assets/app/), sw.js (network-first for same-origin files so updates arrive on every online visit, cache fallback offline; cache-first for versioned unpkg libraries; tiles/routing/geocoding never cached), scripts/install-app.js (SW registration, html.ronny-standalone class, phone-only install bar using beforeinstallprompt or iOS instructions, dismissal stored per device). index.html: viewport-fit=cover, manifest and Apple meta tags. phone.css: safe-area top padding when installed, install bar. _headers: no-cache for sw.js. serve-static.cjs serves .webmanifest. #route-card-toggle hidden. Verified locally: worker active, 19 files cached, app loads with the server stopped, install bar triggers the prompt. Backup: backups/2026-11-24_170156UTC_pre137_0f9210d55328."
+}

@@ -1,0 +1,151 @@
+/* Patch 130: planner polish — day cards, stats in the top bar, walk block, top-bar day arrows, delete fade. */
+
+/* ---- Day picker: three clean lines per card (day + path icon · date · name) ---- */
+#planner .ronny-day-navigation{align-items:stretch!important;gap:4px!important;min-height:60px!important}
+#planner #days.day-strip{align-items:stretch!important;gap:6px!important;padding:2px 1px!important}
+#planner .ronny-day-card{flex:0 0 128px!important;width:128px!important;height:auto!important;min-height:56px!important}
+#planner .ronny-day-card .day-pill{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:2px!important;width:100%!important;height:100%!important;min-height:56px!important;padding:6px 9px!important;text-align:start!important;overflow:hidden!important}
+#planner .ronny-day-card .ronny-day-pill-top{display:flex!important;align-items:center!important;gap:5px!important;min-width:0!important;padding-inline-end:20px!important}
+#planner .ronny-day-card .day-pill strong{font-size:12.5px!important;font-weight:800!important;line-height:1.2!important;white-space:nowrap!important}
+#planner .ronny-day-card .ronny-day-path-kind{position:static!important;flex:none!important;width:13px!important;height:13px!important;opacity:.7!important;display:grid!important;place-items:center!important}
+#planner .ronny-day-card .ronny-day-path-kind svg{width:12px!important;height:12px!important}
+#planner .ronny-day-card .day-pill small{display:block!important;padding:0!important;font-size:10.5px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#planner .ronny-day-card .day-pill .day-label{display:block!important;font-size:11px!important;line-height:1.25!important;font-weight:650!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#planner .ronny-day-card .day-pill .day-label:empty{display:none!important}
+#planner .ronny-day-card .ronny-day-card-edit{top:5px!important;inset-inline-end:5px!important;width:20px!important;height:20px!important}
+#planner #days .ronny-day-link{align-self:center!important;margin:0 -1px!important}
+#planner .ronny-fixed-add-day{flex:0 0 34px!important;min-height:56px!important}
+#planner .ronny-day-arrow{align-self:center!important}
+
+/* ---- Upper planner area: no empty band under the day picker ---- */
+#planner #planner-upper{padding-bottom:6px!important}
+#ronny-day-warnings:empty{display:none}
+#ronny-day-warnings .ronny-day-warnings{display:flex;align-items:center;gap:5px;margin:6px 0 0;padding:4px 8px;background:#fdf3df;border-radius:var(--rx-r-s,7px);color:#73490c;font-size:11px;line-height:1.35}
+#ronny-day-warnings .ronny-day-warnings svg{flex:0 0 12px;width:12px;height:12px}
+
+/* ---- Top bar: whole trip and selected day, two quiet cards side by side, centered ---- */
+.topbar .ronny-top-stats{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:9px;overflow:hidden;direction:rtl}
+/* Subtle frosted glass (patch 134): translucent white, soft blur, near-invisible lines; no outer shadow */
+.ronny-stats-group{display:flex;align-items:stretch;gap:0;min-width:0;height:44px;background:rgba(255,255,255,.24);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(83,119,96,.10);border-radius:13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);overflow:hidden}
+/* "כל הטיול" and the day title look the same: a faint green tint, an almost invisible border, dark green text */
+.ronny-stats-caption,.ronny-stats-day .ronny-stats-caption{flex:none;display:flex;align-items:center;justify-content:center;margin:3px;padding:0 12px;border-radius:9px;background:rgba(82,124,96,.065);border:1px solid rgba(82,124,96,.08);color:#47634f;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:none;transition:background-color 160ms ease,border-color 160ms ease}
+.ronny-stats-caption:hover{background:rgba(82,124,96,.11);border-color:rgba(82,124,96,.13)}
+.topbar .ronny-top-stats .ronny-trip-dashboard{flex:0 1 auto!important;display:flex!important;align-items:stretch!important;gap:0!important;overflow:hidden}
+.topbar #ronny-day-summary{display:flex;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;min-width:0;overflow:hidden}
+.topbar .ronny-day-summary-main{display:flex!important;align-items:stretch;gap:0;padding:0!important;background:none!important;border:0!important}
+/* One metric = number above, label below. No icons: the label says what it is. */
+.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{flex:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-width:0;padding:6px 11px!important;border:0!important;border-inline-start:1px solid rgba(83,119,96,.07)!important;border-radius:0!important;background:transparent!important;white-space:nowrap;position:relative;transition:background-color 160ms ease}
+.topbar .ronny-top-stats .ronny-dash-stat:first-child,.topbar .ronny-day-stat:first-child{border-inline-start:0!important}
+.topbar .ronny-top-stats .ronny-dash-stat svg,.topbar .ronny-day-stat svg{display:none!important}
+.topbar .ronny-top-stats .ronny-dash-stat strong,.topbar .ronny-day-stat strong{order:1;max-width:none!important;overflow:visible!important;font-size:13px!important;line-height:1.2!important;font-weight:650!important;color:#35483e!important;font-variant-numeric:tabular-nums}
+.topbar .ronny-top-stats .ronny-dash-stat small,.topbar .ronny-day-stat small{order:2;display:block!important;font-size:10px!important;line-height:1.2!important;font-weight:500!important;color:#7c897f!important}
+.topbar .ronny-day-stat em{position:absolute;top:3px;inset-inline-end:3px;font-size:8.5px;font-style:normal;font-weight:700;color:#a16e37}
+.topbar .ronny-top-stats .ronny-dash-stat:is(button):hover{background:rgba(71,112,90,.07)!important}
+@media (max-width:1440px){.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{padding:6px 8px!important}.topbar .ronny-day-stat em{display:none}}
+@media (max-width:1320px){.topbar .ronny-day-summary-main>.ronny-day-stat:nth-child(n+5),.topbar .ronny-top-stats .ronny-trip-dashboard>*:nth-child(n+4){display:none!important}#ronny-local-save-status .ronny-local-save-label{display:none}}
+@media (max-width:1120px){.ronny-stats-group:not(.ronny-stats-day) .ronny-stats-caption{display:none}.topbar .ronny-day-summary-main>.ronny-day-stat:nth-child(n+4){display:none!important}}
+
+/* Day arrows in the top bar only while the planner is closed */
+.ronny-top-day-arrow{display:none;flex:none;align-items:center;justify-content:center;width:28px;height:44px;padding:0;border:0;border-radius:10px;background:none;color:var(--rx-ink-3,#667062);cursor:pointer}
+.ronny-top-day-arrow svg{width:18px;height:18px}
+.ronny-top-day-arrow:hover:not(:disabled){background:rgba(71,112,90,.09);color:var(--rx-accent-strong,#35584a)}
+.ronny-top-day-arrow:disabled{opacity:.25;cursor:default}
+.app.planner-collapsed .ronny-top-day-arrow{display:inline-flex}
+
+/* ---- Walk block: the time column shows start/finish; the footprints badge sits in the card ---- */
+#planner #schedule .ronny-walk-time{position:absolute!important;top:7px!important;right:3px!important;z-index:3!important;display:flex!important;flex-direction:column!important;align-items:center!important;min-width:40px!important;padding:2px 3px!important;background:var(--rx-surface,#fffdf8)!important;border:1.5px solid var(--walk-color,#568973)!important;border-radius:7px!important;color:var(--rx-ink,#2c372f)!important;font-size:12px!important;font-weight:750!important;line-height:1.15!important;font-variant-numeric:tabular-nums!important}
+#planner #schedule .ronny-walk-time small{font-size:10px!important;font-weight:650!important;color:var(--rx-ink-3,#667062)!important;border-top:1px solid color-mix(in srgb,var(--walk-color,#568973) 30%,transparent)!important;margin-top:1px!important;padding-top:1px!important}
+#planner #schedule .ronny-walk-node{position:static!important;flex:none!important;width:30px!important;height:30px!important;border:0!important;box-shadow:none!important}
+#planner #schedule .ronny-walk-block:before{top:44px!important;width:3px!important;right:22px!important;opacity:.55}
+/* The walk's start is the head itself; do not list it again as a sub-point. */
+#planner #schedule .ronny-walk-subs>.stop:first-child{display:none!important}
+#planner #schedule .ronny-walk-sub .ronny-time-chip{min-width:36px!important;padding:0 2px!important;background:var(--walk-soft,#f3f7f4)!important;border:0!important;color:color-mix(in srgb,var(--walk-color,#568973) 70%,#1f2a24)!important;font-size:10.5px!important;font-weight:700!important}
+body.ronny-no-times #planner #schedule .ronny-walk-time{display:none!important}
+
+/* ---- Deleting a point: fade out in place ---- */
+#planner #schedule .stop.ronny-removing,#planner #schedule .ronny-walk-block.ronny-removing,#zoom-content .zoom-card.ronny-removing{animation:ronnyFadeOut .24s ease forwards!important;pointer-events:none!important}
+@keyframes ronnyFadeOut{from{opacity:1}to{opacity:0}}
+@media (prefers-reduced-motion:reduce){#planner #schedule .ronny-removing{animation:none!important;opacity:0}}
+
+/* ---- Time conflict dialog ---- */
+.ronny-conflict-overlay{position:fixed!important;inset:0!important;z-index:6000!important}
+.ronny-conflict-card{width:min(440px,100%)!important;max-height:calc(100dvh - 40px);overflow-y:auto;text-align:start}
+.ronny-conflict-card h3{margin:0 0 6px;font-size:17px}
+.ronny-conflict-lead{margin:0 0 12px;font-size:13px;color:var(--rx-ink-2,#515c52);line-height:1.45}
+.ronny-conflict-part{margin:0 0 12px;padding:10px 11px;border:1px solid #ecd9b8;border-radius:12px;background:#fffaf0}
+.ronny-conflict-part h4{display:flex;align-items:center;gap:6px;margin:0 0 4px;font-size:13px;color:#8a4f12}
+.ronny-conflict-part h4 svg{width:14px;height:14px}
+.ronny-conflict-part p{margin:0 0 8px;font-size:12px;color:var(--rx-ink-2,#515c52);line-height:1.4}
+.ronny-conflict-choice{display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:9px;cursor:pointer}
+.ronny-conflict-choice:hover{background:rgba(71,112,90,.08)}
+.ronny-conflict-choice input{margin-top:3px;accent-color:var(--rx-accent,#47705a)}
+.ronny-conflict-choice strong{display:block;font-size:13px;color:var(--rx-ink,#2c372f)}
+.ronny-conflict-choice small{display:block;font-size:11.5px;color:var(--rx-ink-3,#667062)}
+.ronny-conflict-card .map-confirm-actions .ronny-conflict-apply{background:var(--rx-accent,#47705a)!important;border-color:var(--rx-accent,#47705a)!important}
+
+/* ---- Selected road: highlighted in the plan while its editor is open ---- */
+#planner #schedule .drive-note .leg-open.ronny-leg-selected{background:#fff3c4!important;border-color:#e0b84a!important;box-shadow:0 0 0 2px rgba(224,184,74,.45)!important;transform:none!important}
+
+/* ---- Map background while tiles load: dark under satellite, paper under drawn maps (no white flash) ---- */
+#map.leaflet-container{background:#e8e4d8;transition:background-color .3s ease}
+#map.leaflet-container[data-basemap^="satellite"]{background:#25302a}
+#map.leaflet-container[data-basemap="topo-r"],#map.leaflet-container[data-basemap="hiking"]{background:#ece8dc}
+
+/* ---- Locked arrival times and the gaps they create ---- */
+#planner #schedule .ronny-lock-mark{display:inline-flex;align-items:center;justify-content:center;margin-bottom:1px;color:var(--rx-accent-strong,#35584a)}
+#planner #schedule .ronny-lock-mark svg{width:11px!important;height:11px!important}
+#planner #schedule .ronny-time-gap{display:flex;align-items:center;gap:6px;margin:2px 52px 4px 8px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;line-height:1.3;width:fit-content;max-width:calc(100% - 60px)}
+#planner #schedule .ronny-time-gap svg{width:13px;height:13px;flex:none}
+#planner #schedule .ronny-time-gap.is-free{background:repeating-linear-gradient(135deg,#f1f5ee 0 6px,#e8efe4 6px 12px);color:#4b6b55;border:1px dashed #b9ceb9}
+#planner #schedule .ronny-time-gap.is-late{background:#fbe9e6;color:#9a3a2c;border:1px solid #efc2b9}
+.ronny-time-lock-toggle{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 9px;border:1px solid var(--rx-line,#e6dfd0);border-radius:999px;background:var(--rx-card,#fff);color:var(--rx-ink-2,#515c52);font-size:11.5px;font-weight:700;cursor:pointer}
+.ronny-time-lock-toggle svg{width:13px;height:13px}
+.ronny-time-lock-toggle[aria-pressed="true"]{background:var(--rx-accent,#47705a);border-color:var(--rx-accent,#47705a);color:#fff}
+.ronny-time-lock-toggle:hover{border-color:var(--rx-accent,#47705a)}
+
+/* ---- Planner handle: a soft pastel of the selected day's color, quiet until hovered (patch 133) ---- */
+.splitter-planner .planner-handle-pill,.splitter-planner:hover .planner-handle-pill{width:18px!important;height:52px!important;background:color-mix(in srgb,var(--day-accent) 26%,#fbf8f2)!important;border:1px solid color-mix(in srgb,var(--day-accent) 38%,#e9e3d6)!important;border-radius:10px!important;color:color-mix(in srgb,var(--day-accent) 70%,#2c372f)!important;box-shadow:0 1px 4px rgba(44,55,47,.1)!important;opacity:.85;transition:background-color .3s ease,opacity .2s ease,box-shadow .2s ease!important}
+.splitter-planner:hover .planner-handle-pill,.splitter-planner:focus-visible .planner-handle-pill{opacity:1;background:color-mix(in srgb,var(--day-accent) 38%,#fbf8f2)!important;box-shadow:0 2px 8px rgba(44,55,47,.16)!important}
+.splitter-planner .planner-handle-pill svg{width:13px!important;height:13px!important}
+
+/* ---- Day picker on one line: fixed heights, everything centered, nothing touching the box (patch 133) ---- */
+#planner .ronny-day-navigation{display:flex!important;align-items:center!important;gap:6px!important;height:64px!important;min-height:0!important;padding:0 2px!important;overflow:hidden!important}
+#planner .ronny-day-navigation>.ronny-day-arrow{flex:0 0 26px!important;width:26px!important;height:32px!important;min-height:0!important;margin:0!important;padding:0!important;align-self:center!important;display:grid!important;place-items:center!important;border-radius:8px!important}
+#planner .ronny-day-navigation>.ronny-day-arrow svg{width:16px!important;height:16px!important}
+#planner .ronny-day-navigation>#days.day-strip{flex:1 1 0!important;min-width:0!important;height:62px!important;display:flex!important;align-items:center!important;gap:6px!important;padding:5px 3px!important;margin:0!important}
+#planner .ronny-day-navigation .ronny-day-card{flex:0 0 124px!important;width:124px!important;height:52px!important;min-height:0!important;align-self:center!important;margin:0!important}
+#planner .ronny-day-navigation .ronny-day-card .day-pill{height:52px!important;min-height:0!important;padding:5px 9px!important}
+#planner .ronny-day-navigation #days .ronny-day-link{flex:0 0 22px!important;width:22px!important;height:22px!important;margin:0!important;align-self:center!important}
+#planner .ronny-day-navigation>#add-day.ronny-fixed-add-day{flex:0 0 32px!important;width:32px!important;height:52px!important;min-height:0!important;margin:0!important;align-self:center!important}
+#planner #schedule .ronny-pin-to-lock{display:inline-flex;align-items:center;gap:4px;margin-inline-start:6px;padding:2px 8px;border:1px solid #d9cfa9;border-radius:999px;background:#fbf6e4;color:#6d5a1c;font-size:10.5px;font-weight:700;cursor:pointer}
+#planner #schedule .ronny-pin-to-lock svg{width:11px;height:11px}
+#planner #schedule .ronny-pin-to-lock:hover{background:#f5ecc8}
+
+/* ---- Patch 135: smoothness ---- */
+/* The top area fits its content; no drag handle between it and the schedule. */
+#planner #planner-upper-resizer{display:none!important}
+#planner #planner-upper{height:auto!important;flex:0 0 auto!important;max-height:none!important;overflow:visible!important}
+/* "Turn into free time" sits on the drive row as a small chip instead of wrapping onto its own line. */
+#planner #schedule .drive-note{flex-wrap:nowrap!important}
+#planner #schedule .drive-note .leg-open{min-width:0}
+#planner #schedule .ronny-pin-to-lock{flex:none;margin-inline-start:4px;padding:1px 7px;font-size:10px;white-space:nowrap;opacity:.85}
+#planner #schedule .ronny-pin-to-lock:hover{opacity:1}
+/* Top bar: "partial / estimate" stays in the tooltip instead of a tag floating over the number. */
+.topbar .ronny-day-stat em{display:none!important}
+/* Day warnings live just above the schedule, so the header never changes height between days. */
+#planner > #ronny-day-warnings{padding:0 14px}
+#planner > #ronny-day-warnings .ronny-day-warnings{margin:4px 0 2px}
+
+/* ---- Patch 136: top-bar day arrows stay in fixed places, with a small frame and label ----
+   The stats sit in the middle column and can change width from day to day; the arrows hug the
+   outer edges of the stats area, whose width depends only on the trip title and the action buttons. */
+.topbar .ronny-top-stats{flex:1 1 0!important;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto minmax(0,1fr) auto;align-items:center;column-gap:0}
+.topbar .ronny-top-stats>#top-day-prev{grid-column:1}
+.topbar .ronny-top-stats>.ronny-stats-group:not(.ronny-stats-day){grid-column:3;margin-inline-end:9px}
+.topbar .ronny-top-stats>.ronny-stats-day{grid-column:4}
+.topbar .ronny-top-stats>#top-day-next{grid-column:6}
+.app.planner-collapsed .topbar .ronny-top-day-arrow{display:inline-flex}
+.topbar .ronny-top-day-arrow{align-items:center;gap:3px;width:auto;height:30px;padding:0 9px;border:1px solid rgba(83,119,96,.16);border-radius:9px;background:rgba(255,255,255,.35);color:#47634f;font-size:11px;font-weight:600;white-space:nowrap}
+.topbar .ronny-top-day-arrow svg{width:14px;height:14px;flex:none}
+.topbar .ronny-top-day-arrow:hover:not(:disabled){background:rgba(82,124,96,.09);border-color:rgba(82,124,96,.24);color:#35584a}
+.topbar .ronny-top-day-arrow:disabled{opacity:.35}
