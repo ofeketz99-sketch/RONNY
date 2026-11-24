@@ -24,23 +24,24 @@
 #ronny-day-warnings .ronny-day-warnings svg{flex:0 0 12px;width:12px;height:12px}
 
 /* ---- Top bar: whole trip and selected day, two quiet cards side by side, centered ---- */
-.topbar .ronny-top-stats{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;overflow:hidden;direction:rtl}
-.ronny-stats-group{display:flex;align-items:stretch;min-width:0;height:44px;border:1px solid rgba(60,90,72,.13);border-radius:12px;background:rgba(255,255,255,.55);overflow:hidden}
-.ronny-stats-caption{flex:none;display:flex;align-items:center;padding:0 11px;font-size:11.5px;font-weight:800;letter-spacing:.01em;color:var(--rx-ink-3,#667062);background:rgba(60,90,72,.05);border-inline-end:1px solid rgba(60,90,72,.1);white-space:nowrap}
-.ronny-stats-day{border-color:rgba(71,112,90,.28)}
-.ronny-stats-day .ronny-stats-caption{color:#fff;background:var(--rx-accent,#47705a);border-color:transparent}
+.topbar .ronny-top-stats{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:9px;overflow:hidden;direction:rtl}
+/* Subtle frosted glass (patch 134): translucent white, soft blur, near-invisible lines; no outer shadow */
+.ronny-stats-group{display:flex;align-items:stretch;gap:0;min-width:0;height:44px;background:rgba(255,255,255,.24);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(83,119,96,.10);border-radius:13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);overflow:hidden}
+/* "כל הטיול" and the day title look the same: a faint green tint, an almost invisible border, dark green text */
+.ronny-stats-caption,.ronny-stats-day .ronny-stats-caption{flex:none;display:flex;align-items:center;justify-content:center;margin:3px;padding:0 12px;border-radius:9px;background:rgba(82,124,96,.065);border:1px solid rgba(82,124,96,.08);color:#47634f;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:none;transition:background-color 160ms ease,border-color 160ms ease}
+.ronny-stats-caption:hover{background:rgba(82,124,96,.11);border-color:rgba(82,124,96,.13)}
 .topbar .ronny-top-stats .ronny-trip-dashboard{flex:0 1 auto!important;display:flex!important;align-items:stretch!important;gap:0!important;overflow:hidden}
 .topbar #ronny-day-summary{display:flex;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;min-width:0;overflow:hidden}
 .topbar .ronny-day-summary-main{display:flex!important;align-items:stretch;gap:0;padding:0!important;background:none!important;border:0!important}
 /* One metric = number above, label below. No icons: the label says what it is. */
-.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{flex:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;min-width:0;padding:0 12px!important;border:0!important;border-inline-start:1px solid rgba(60,90,72,.09)!important;border-radius:0!important;background:none!important;white-space:nowrap;position:relative}
+.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{flex:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-width:0;padding:6px 11px!important;border:0!important;border-inline-start:1px solid rgba(83,119,96,.07)!important;border-radius:0!important;background:transparent!important;white-space:nowrap;position:relative;transition:background-color 160ms ease}
 .topbar .ronny-top-stats .ronny-dash-stat:first-child,.topbar .ronny-day-stat:first-child{border-inline-start:0!important}
 .topbar .ronny-top-stats .ronny-dash-stat svg,.topbar .ronny-day-stat svg{display:none!important}
-.topbar .ronny-top-stats .ronny-dash-stat strong,.topbar .ronny-day-stat strong{order:1;max-width:none!important;overflow:visible!important;font-size:14.5px!important;line-height:1.1!important;font-weight:800!important;color:var(--rx-ink,#2c372f)!important;font-variant-numeric:tabular-nums}
-.topbar .ronny-top-stats .ronny-dash-stat small,.topbar .ronny-day-stat small{order:2;display:block!important;font-size:10px!important;line-height:1.1!important;font-weight:600!important;color:var(--rx-ink-3,#667062)!important}
+.topbar .ronny-top-stats .ronny-dash-stat strong,.topbar .ronny-day-stat strong{order:1;max-width:none!important;overflow:visible!important;font-size:13px!important;line-height:1.2!important;font-weight:650!important;color:#35483e!important;font-variant-numeric:tabular-nums}
+.topbar .ronny-top-stats .ronny-dash-stat small,.topbar .ronny-day-stat small{order:2;display:block!important;font-size:10px!important;line-height:1.2!important;font-weight:500!important;color:#7c897f!important}
 .topbar .ronny-day-stat em{position:absolute;top:3px;inset-inline-end:3px;font-size:8.5px;font-style:normal;font-weight:700;color:#a16e37}
 .topbar .ronny-top-stats .ronny-dash-stat:is(button):hover{background:rgba(71,112,90,.07)!important}
-@media (max-width:1440px){.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{padding:0 8px!important}.topbar .ronny-day-stat em{display:none}}
+@media (max-width:1440px){.topbar .ronny-top-stats .ronny-dash-stat,.topbar .ronny-day-stat{padding:6px 8px!important}.topbar .ronny-day-stat em{display:none}}
 @media (max-width:1320px){.topbar .ronny-day-summary-main>.ronny-day-stat:nth-child(n+5),.topbar .ronny-top-stats .ronny-trip-dashboard>*:nth-child(n+4){display:none!important}#ronny-local-save-status .ronny-local-save-label{display:none}}
 @media (max-width:1120px){.ronny-stats-group:not(.ronny-stats-day) .ronny-stats-caption{display:none}.topbar .ronny-day-summary-main>.ronny-day-stat:nth-child(n+4){display:none!important}}
 

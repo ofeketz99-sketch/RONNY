@@ -1,0 +1,9 @@
+{
+  "version": "134",
+  "date": "2026-11-24",
+  "notes": [
+    "סרגל הסטטיסטיקות העליון בעיצוב זכוכית עדינה: רקע לבן שקוף למחצה עם טשטוש קל, ומסגרות ומחיצות כמעט שקופות.",
+    "הכותרות ״כל הטיול״ ו״יום N״ זהות: רקע ירקרק חלש וטקסט ירוק כהה, בלי המילוי הירוק הכהה."
+  ],
+  "technical": "styles/planner-polish.css only, mapped from the supplied CSS: .stats-group -> .ronny-stats-group (rgba(255,255,255,.24), backdrop-filter blur(8px), border rgba(83,119,96,.10), radius 13px, inset highlight), .stats-group-title -> .ronny-stats-caption (same for both groups), .stat-item -> .ronny-dash-stat/.ronny-day-stat, .stat-value -> strong, .stat-label -> small, container gap 9px. Height 44px, order and layout unchanged. Backup: backups/2026-11-24_163402UTC_pre134_22ecf6cba1d7."
+}
