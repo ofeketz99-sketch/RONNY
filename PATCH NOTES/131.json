@@ -1,0 +1,12 @@
+{
+  "version": "131",
+  "date": "2026-11-24",
+  "notes": [
+    "נעילת שעה: אפשר לנעול את שעת ההגעה לנקודה (למשל בר ב־14:30). שאר היום מתוכנן כרגיל, והנקודה נשארת בשעה שננעלה.",
+    "רציפות בזמן: לפני נקודה נעולה מופיע ״זמן פנוי״ כשיש זמן בלי כלום, או ״איחור״ באדום כשלא מגיעים בזמן.",
+    "הסרגל העליון עוצב מחדש: מספר מעל תווית, בלי אייקונים, ותג ירוק ליום הנבחר.",
+    "אין יותר הבהוב לבן במעבר בין ימים: רקע המפה תואם למפת הרקע (כהה בתצ״א), ויום רחוק מגיעים אליו בתנועה רציפה.",
+    "לחיצה על דרך בתכנון היומי מציגה אותה במפה ליד חלונית העריכה, ולא מתחתיה."
+  ],
+  "technical": "Per-point stop.timeLock (HH:MM) applied as a forward pass in applyItineraryTimes after the walking timeline; differences >= 5 min are kept in ronnyTimeGaps and rendered by ronnyGapHTML. Typed times on locked points update the lock and only reposition (no conflict dialog, no leg pin). Placement pins on the incoming leg are marked leg.ronnyTimePin and cleared when locking. Lock toggle in the point editor keeps input focus (mousedown preventDefault) so a typed time is read before commit. #map gets data-basemap from syncMapBaseSwitch for a matching background; fitMap uses flyToBounds when the target is off-screen. ronnySelectLeg fits the road beside the open leg editor. Top-bar stats restyled in planner-polish.css. Backups: backups/2026-11-24_160236UTC_pre131_5eed5216bcbc."
+}

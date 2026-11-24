@@ -1,0 +1,55 @@
+/* Patch 130: stripped-down phone interface (width <= 760px, same breakpoint as the mobile layout).
+   Only three tabs: plan, map and trips. The day's schedule, the map and a short point editor.
+   Planning tools, statistics and settings stay on the computer. Nothing is deleted from the trip. */
+.ronny-phone-only,.ronny-phone-label,#planner #schedule .ronny-nav-link{display:none!important}
+
+@media (max-width:760px){
+ /* ---- Bottom tab bar: plan · map · trips ---- */
+ .rail{display:flex!important;justify-content:space-around!important;align-items:stretch!important;gap:0!important;padding:4px 6px calc(4px + env(safe-area-inset-bottom))!important;overflow:hidden!important;background:var(--rx-surface,#fffdf8)!important;border-top:1px solid var(--rx-line,#e6dfd0)!important;box-shadow:0 -4px 16px rgba(44,55,47,.06)!important}
+ .rail .rail-btn{display:none!important}
+ .rail #rail-plan,.rail #rail-map,.rail #rail-library{display:flex!important;flex:1 1 0!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;width:auto!important;height:auto!important;max-width:120px!important;margin:0!important;padding:5px 0!important;border-radius:12px!important;background:none!important;color:var(--rx-ink-3,#667062)!important;box-shadow:none!important}
+ .rail #rail-plan.active,.rail #rail-map.active,.rail #rail-library.active{color:var(--rx-accent-strong,#35584a)!important;background:var(--rx-accent-soft,#e7f0e9)!important}
+ .rail .rail-btn.active:before{display:none!important}
+ .rail .rail-btn svg{width:21px!important;height:21px!important}
+ .rail .ronny-phone-label{display:block!important;font-size:11px!important;font-weight:800!important;line-height:1.1!important}
+ .rail .rail-bottom{display:contents!important}
+
+ /* ---- Top bar: trip name and undo only ---- */
+ .topbar{gap:8px!important}
+ #ronny-trip-dashboard,#ronny-local-save-status,#data-transfer-btn,#new-trip{display:none!important}
+ .trip-name{width:auto!important;max-width:none!important;flex:1 1 auto!important;font-size:16px!important}
+ .trip-title{flex:1 1 auto!important;min-width:0!important}
+
+ /* ---- Map: search, zoom and the two base maps ---- */
+ .map-mini-tools,#map-day-trigger,#map-day-menu,#map-picker-menu,#route-card-toggle,.map-bottom,.map-tools-side,#map-controls,.map-hint{display:none!important}
+
+ /* ---- Plan: day picker and the schedule ---- */
+ #planner .planner-topline,#planner .panel-head,#planner .day-sequence-heading,#ronny-day-groups-bar,#ronny-stage-summary,#day-context,#ronny-day-summary,#planner-upper-resizer,#add-day,#auto-time,#day-time-mode,#planner .panel-footer .budget-line,#planner-ribbon-open{display:none!important}
+ #planner .planner-upper{flex:0 0 auto!important;height:auto!important;max-height:none!important;overflow:visible!important;padding-top:8px!important}
+ #planner #days .ronny-day-card-edit,#planner .ronny-day-navigation #add-day{display:none!important}
+ #planner .section-ribbon{padding:8px 15px 4px!important}
+ #planner #schedule .ronny-bulk-toolbar,#planner #schedule .ronny-stage-bridge,#planner #schedule .ronny-side-points{display:none!important}
+
+ /* Schedule cards: full names, only edit / navigate / drag */
+ #planner #schedule .stop-title{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:14px!important;line-height:1.25!important}
+ #planner #schedule .stop-tools [data-move],#planner #schedule .stop-tools .ronny-role-toggle,#planner #schedule .ronny-walk-head [data-move]{display:none!important}
+ #planner #schedule .ronny-nav-link{display:inline-flex!important;align-items:center;justify-content:center;color:var(--rx-accent-strong,#35584a)!important}
+ #planner #schedule .stop-tools .micro{width:36px!important;height:34px!important}
+ #planner #schedule .ronny-drag-grip{width:26px!important;height:40px!important;color:#8e9a8c!important}
+ #planner #schedule .stop[data-drag-ok="1"] .stop-body{padding-inline-end:30px!important}
+ #planner #schedule .ronny-walk-head{padding-inline-end:30px!important}
+ #planner #schedule .ronny-role-chip,#planner #schedule .ronny-category-label+.dot{display:none!important}
+ #planner .panel-footer{padding:10px 15px!important}
+ #planner .panel-footer #panel-add{width:100%!important;justify-content:center!important}
+
+ /* ---- Point editor: a bottom sheet with name, category, description and time ---- */
+ #point-quick.open{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:61px!important;width:100%!important;max-width:none!important;max-height:min(60dvh,540px)!important;border-radius:18px 18px 0 0!important;transform:none!important;overflow-y:auto!important;z-index:1300!important;box-shadow:0 -10px 34px rgba(36,46,39,.22)!important}
+ #point-quick .popup-drag-handle,#point-quick .ronny-role-field,#point-quick .ronny-transfer-card,#point-quick .ronny-night-card,#point-quick .ronny-description-choice,
+ #point-quick [data-ronny-point-section="icons"],#point-quick [data-ronny-point-section="context"],#point-quick [data-ronny-point-section="colors"],#point-quick [data-ronny-point-section="routes"],
+ #point-quick [data-quick-street-view],#point-quick [data-quick-details],#point-quick .walk-loop-route-actions,#point-quick .ronny-walk-clock-hint{display:none!important}
+ /* ---- Add-point picker: a bottom sheet with just the categories ---- */
+ #map-context.open{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:61px!important;width:100%!important;max-width:none!important;max-height:min(60dvh,520px)!important;border-radius:18px 18px 0 0!important;transform:none!important;overflow-y:auto!important;z-index:1300!important;box-shadow:0 -10px 34px rgba(36,46,39,.22)!important}
+ #map-context .popup-drag-handle,#map-context .tree-role-choice,#map-context .map-tree-hint,#map-context .tree-quick-points,#map-context .tree-more-actions{display:none!important}
+ /* ---- Trips: just the list, open and new trip ---- */
+ #drawer .ronny-library-toolbar,#drawer .ronny-trip-check,#drawer-body > .footnote{display:none!important}
+}

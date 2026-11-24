@@ -1,0 +1,9 @@
+{
+  "version": "132",
+  "date": "2026-11-24",
+  "notes": [
+    "טלפון: הסרגל העליון והסרגל התחתון רזים יותר.",
+    "טלפון: בורר המפות המהיר מוצמד לפינה השמאלית ולא עולה יותר על שורת החיפוש. שורת החיפוש וכפתורי הזום קטנים יותר."
+  ],
+  "technical": "styles/phone.css only: --phone-top-h (50px) and --phone-rail-h (54px) drive the bar heights, planner/map-pane insets and bottom sheets; #map-base-switch reset from its desktop absolute left:49px to left:0 inside #map-quick-views; search box 38px with left:94px; #ronny-top-stats hidden on phones; zoom buttons 36px. Backup: backups/2026-11-24_160640UTC_pre132_5eed5216bcbc."
+}

@@ -324,6 +324,8 @@ function showPointTypeTreeExpanded(group){const p=currentContext;if(!p)return;co
 
 const MAP_PICKER_STYLES=MAP_STYLE_GROUPS.flatMap(group=>group.styles);
 function syncMapBaseSwitch(){
+ // Patch 130: the map's own background matches the base map, so loading tiles never flash light gray over satellite.
+ if($('map'))$('map').dataset.basemap=state.settings.mapStyle||'';
  const wrapper=$('map-base-switch');if(!wrapper)return;
  const quick=mapPrefs.quickMaps,selected=state.settings.mapStyle;
  const slot=quick.indexOf(selected);

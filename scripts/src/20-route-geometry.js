@@ -287,7 +287,15 @@ function ronnyMarkSelectedLeg(){document.querySelectorAll('.leg-open.ronny-leg-s
 function ronnySelectLeg(index,{fit=false,reveal=false}={}){
  ronnySelectedLeg=index;clearLegSpotlight();spotlightLeg(index);ronnyMarkSelectedLeg();
  const coords=paintedLegCoordinates.get(index)||legCoords(index);
- if(fit&&map&&coords?.length>1)map.fitBounds(L.latLngBounds(coords),{padding:[70,70],maxZoom:16,animate:false});
+ if(fit&&map&&coords?.length>1){
+  // Fit the road into the part of the map that the open road editor does not cover.
+  const box=map.getContainer().getBoundingClientRect(),ed=$('leg-editor');let tl=[70,90],br=[70,70];
+  if(ed?.classList.contains('open')){
+   const r=ed.getBoundingClientRect(),left=r.left-box.left,right=box.right-r.right;
+   if(Math.max(left,right)>=220){if(right>=left)tl=[r.right-box.left+24,90];else br=[box.right-r.left+24,70]}
+  }
+  map.fitBounds(L.latLngBounds(coords),{paddingTopLeft:tl,paddingBottomRight:br,maxZoom:16,animate:!ronnyReducedMotion()});
+ }
  if(reveal){
   if(innerWidth<=760){$('planner')?.classList.add('show-mobile');setRail('plan')}
   else if(document.querySelector('.app')?.classList.contains('planner-collapsed'))setPlannerCollapsed(false);
