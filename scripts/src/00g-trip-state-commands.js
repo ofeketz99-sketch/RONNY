@@ -82,9 +82,11 @@ function planRouteMove(arr,fromId,beforeId){
  return {ordered,moved:arr.slice(ua.from,ua.to+1).map(p=>p.id)};
 }
 // Patch 130: a manually typed arrival time decides where the point goes in the day.
-// minuteOf(p) → absolute arrival minutes (or null); dwellOf(p) → stay in minutes.
+// minuteOf(p) → absolute arrival minutes (or null); dwellOf(p) → stay in minutes;
+// isFixed(p) → true when p cannot move later (a locked time). Only a fixed next point can be overlapped:
+// anything else simply moves later.
 // Returns where to insert it and whether it overlaps the activity before or after.
-function planTimedPlacement(arr,id,requested,{minuteOf,dwellOf}){
+function planTimedPlacement(arr,id,requested,{minuteOf,dwellOf,isFixed=()=>false}){
  const a=arr.findIndex(p=>p.id===id);if(a<0||!Number.isFinite(requested))return null;
  const all=routeUnits(arr),own=all.find(u=>a>=u.from&&a<=u.to);
  if(!own||own.walk)return null;
@@ -96,14 +98,14 @@ function planTimedPlacement(arr,id,requested,{minuteOf,dwellOf}){
  const prev=prevUnit?arr[prevUnit.to]:null,next=nextUnit?arr[nextUnit.from]:null;
  const prevArrival=prev?minuteOf(prev):null;
  const prevDeparture=prevArrival==null?null:prevArrival+(['start','walkStart'].includes(prev.type)?0:Math.max(0,dwellOf(prev)||0));
- const nextArrival=next?minuteOf(next):null;
+ const nextArrival=next?minuteOf(next):null,nextFixed=!!next&&!!isFixed(next);
  const ownEnd=requested+Math.max(0,dwellOf(arr[a])||0);
  return {
   beforeId:next?next.id:null,index:k,
   moves:(next?next.id:null)!==(arr[own.to+1]?.id??null),
   prev,next,prevArrival,prevDeparture,nextArrival,
   overlapPrev:prevDeparture!=null&&prevDeparture>requested,
-  overlapNext:nextArrival!=null&&nextArrival<ownEnd
+  nextFixed,overlapNext:nextFixed&&nextArrival!=null&&nextArrival<ownEnd
  };
 }
 function planRouteStep(arr,id,delta){

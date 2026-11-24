@@ -49,9 +49,13 @@ function ronnyApplyWalkingTimeline(arr,absolute,anchorIndex,timeAnchor=null){
 // Everything before it is planned as usual; the difference between when you would arrive
 // and the locked time is shown as free time (positive) or as being late (negative).
 const ronnyTimeGaps=new Map();
-function ronnyLockMinute(stop,natural){
+// The lock's day: the occurrence nearest to when you would arrive, but never earlier than 3 hours before the day starts
+// (so 23:00 on a morning plan is tonight, not last night, and 00:15 after a late evening is after midnight).
+function ronnyLockMinute(stop,natural,dayStart=natural){
  if(!stop?.timeLock||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(stop.timeLock)||['start','end'].includes(stop.type)||WALK_TYPES.has(stop.type)||stop.autoLoopEnd)return null;
- const clock=clockMinutes(stop.timeLock);return clock+Math.round((natural-clock)/1440)*1440;
+ const clock=clockMinutes(stop.timeLock);let lock=clock+Math.round((natural-clock)/1440)*1440;
+ while(lock<dayStart-180)lock+=1440;
+ return lock;
 }
 function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
  const day=state.days[dayIndex],arr=routeStopsForDay(dayIndex);
@@ -90,9 +94,10 @@ function applyItineraryTimes(dayIndex,legs,anchor=0,quality='estimated'){
  const gaps=new Map();let shift=0;
  for(let i=anchorIndex+1;i<arr.length;i++){
   absolute[i]+=shift;
-  const locked=ronnyLockMinute(arr[i],absolute[i]);if(locked==null)continue;
+  const locked=ronnyLockMinute(arr[i],absolute[i],absolute[0]);if(locked==null)continue;
   const diff=locked-absolute[i];if(Math.abs(diff)>=5)gaps.set(arr[i].id,diff);
-  absolute[i]=locked;shift+=diff;
+  // Early: wait for the locked time. Late: you really arrive later, so the rest of the day follows the real arrival.
+  if(diff>0){absolute[i]=locked;shift+=diff}
  }
  ronnyTimeGaps.set(dayIndex,gaps);
  for(let i=0;i<arr.length;i++){
@@ -272,7 +277,10 @@ function ronnySyncSeparatorValues(){
   handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(Math.max(value,size==='width'?innerWidth:innerHeight)));handle.setAttribute('aria-valuenow',String(value));
  }
 }
-function renderSchedule(){renderCompactDaySummary();ronnyClampPlannerUpper();const b=$('ronny-default-departure');if(b){b.querySelector('span').textContent=tripDefaultDepartureTime();b.onclick=()=>openSettings('trip')}const legacyNotePanel=$('planner-notes');if(legacyNotePanel)legacyNotePanel.hidden=true;let list=stops();const nightIndex=ronnyNightIndex(),countedCosts=TripModel.costsFromIndex(nightIndex);$('stop-count').textContent=list.length+' עצירות';$('auto-time').title='תזמון לפי סדר העצירות וזמני הדרך. כשהניתוב אינו זמין, השעות מסומנות כאומדן בלבד';$('day-budget').textContent=money((state.days[selectedDay]?.stops||[]).reduce((a,s)=>a+ronnyCountedCost(s,countedCosts),0)+(state.extraExpenses||[]).filter(x=>x.dayId===state.days[selectedDay]?.dayId).reduce((a,x)=>a+(Number(x.amount)||0),0));if(!list.length){$('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+ronnyDayLinkBand(selectedDay-1)+mapSidePointsHTML()+`<div class="no-stops"><span style="font-size:32px">🧭</span><strong>${(state.days[selectedDay]?.stops||[]).some(isMapOnlyPoint)?'עדיין אין נקודות דרך':'היום הזה עדיין ריק'}</strong><p>הוסף נקודת התחלה, מעבר, עצירה או סיום כדי ליצור נתיב נסיעה.</p><button class="btn btn-primary" id="empty-add">${icon('plus')} הוספת עצירה</button></div>`;$('empty-add').onclick=()=>openStopForm();bindRonnyBulkToolbar($('schedule'),'day');bindMapSidePoints();bindDayOutlineBridge();$('schedule').querySelectorAll('.ronny-link-band').forEach(b=>b.onclick=()=>ronnyOpenDayLink(+b.dataset.dayLink));refreshIcons();return}
+function renderSchedule(){
+ // Patch 133: a day with locked times is recalculated the first time it is shown, so locks and gaps are right after loading.
+ if(!ronnyTimeGaps.has(selectedDay)&&(state.days[selectedDay]?.stops||[]).some(p=>p.timeLock)){ronnyTimeGaps.set(selectedDay,new Map());retimeAfterOrderChange(selectedDay)}
+ renderCompactDaySummary();ronnyClampPlannerUpper();const b=$('ronny-default-departure');if(b){b.querySelector('span').textContent=tripDefaultDepartureTime();b.onclick=()=>openSettings('trip')}const legacyNotePanel=$('planner-notes');if(legacyNotePanel)legacyNotePanel.hidden=true;let list=stops();const nightIndex=ronnyNightIndex(),countedCosts=TripModel.costsFromIndex(nightIndex);$('stop-count').textContent=list.length+' עצירות';$('auto-time').title='תזמון לפי סדר העצירות וזמני הדרך. כשהניתוב אינו זמין, השעות מסומנות כאומדן בלבד';$('day-budget').textContent=money((state.days[selectedDay]?.stops||[]).reduce((a,s)=>a+ronnyCountedCost(s,countedCosts),0)+(state.extraExpenses||[]).filter(x=>x.dayId===state.days[selectedDay]?.dayId).reduce((a,x)=>a+(Number(x.amount)||0),0));if(!list.length){$('schedule').innerHTML=ronnyBulkToolbar('day')+dayOutlineBridgeHTML()+ronnyDayLinkBand(selectedDay-1)+mapSidePointsHTML()+`<div class="no-stops"><span style="font-size:32px">🧭</span><strong>${(state.days[selectedDay]?.stops||[]).some(isMapOnlyPoint)?'עדיין אין נקודות דרך':'היום הזה עדיין ריק'}</strong><p>הוסף נקודת התחלה, מעבר, עצירה או סיום כדי ליצור נתיב נסיעה.</p><button class="btn btn-primary" id="empty-add">${icon('plus')} הוספת עצירה</button></div>`;$('empty-add').onclick=()=>openStopForm();bindRonnyBulkToolbar($('schedule'),'day');bindMapSidePoints();bindDayOutlineBridge();$('schedule').querySelectorAll('.ronny-link-band').forEach(b=>b.onclick=()=>ronnyOpenDayLink(+b.dataset.dayLink));refreshIcons();return}
 const walkUnits=TripStateCommands.routeUnits(list).filter(u=>u.walk);const scheduleCards=list.map((s,i)=>{
  const walkUnit=walkUnits.find(u=>i>=u.from&&i<=u.to),walkFirst=!!walkUnit&&i===walkUnit.from,walkEdge=walkFirst||(!!walkUnit&&i===walkUnit.to);
  const staleDrawing=i>0&&!!s.leg&&s.leg.fromId!==list[i-1].id&&['draw','pencil','straight'].includes(s.leg.mode)&&!s.leg.walkAutoRetrace;
@@ -280,7 +288,7 @@ const walkUnits=TripStateCommands.routeUnits(list).filter(u=>u.walk);const sched
  const rawLeg=routeData?.day===selectedDay&&routeData.ids?.[i]===s.id?routeData.legs?.[i-1]:null;const leg=rawLeg&&Number.isFinite(rawLeg.duration)&&Number.isFinite(rawLeg.distance)?rawLeg:null;
  const conf=i?legAt(i,list):null;
  const legAdjustment=leg?.manualOverride&&Number.isFinite(leg.baseDuration)?` · בסיס ${minsFmt(leg.baseDuration/60)}, ${leg.adjustmentMinutes>=0?'+':'−'}${minsFmt(Math.abs(leg.adjustmentMinutes))}`:'';
- const travel=i?`<div class="drive-note" style="--leg-color:${pointColor(s,selectedDay)}"><button class="leg-open" data-leg-index="${i}" type="button" title="שנה אופן מעבר או הוסף כיתוב">${icon(['draw','pencil'].includes(conf.mode)?'pencil-line':conf.mode==='straight'?'move-up-right':effectiveLegProfile(i,list)==='cycling'?'bike':effectiveLegProfile(i,list)==='driving'?'car-front':'footprints')} <span><strong>${esc(conf.label||routeModeName(conf.mode))}</strong> · ${leg?(leg.walkCovered?'חלק מזמן ההליכה':leg.manualMissing?'משך לא הוגדר':(leg.estimated?'~':'')+minsFmt(leg.duration/60))+' · '+(leg.estimated?'~':'')+(leg.distance/1000).toFixed(1)+' ק״מ'+(leg.estimated?' · אומדן':'')+legAdjustment:conf.mode!=='auto'?(routeLegMinutes(conf)===null?'משך לא הוגדר':minsFmt(routeLegMinutes(conf)))+' · מעבר ידני':(conf.mode==='auto'&&routeLegMinutes(conf)!==null?minsFmt(approximateLegs(list)[i-1]?.duration/60)+' · זמני כביש באומדן': 'זמן הנסיעה טרם חושב')}${staleDrawing?' · יש שרטוט שמור לסדר הקודם':''}</span>${icon('settings-2','small-icon')}</button></div>`:'';
+ const travel=i?`<div class="drive-note" style="--leg-color:${pointColor(s,selectedDay)}"><button class="leg-open" data-leg-index="${i}" type="button" title="שנה אופן מעבר או הוסף כיתוב">${icon(['draw','pencil'].includes(conf.mode)?'pencil-line':conf.mode==='straight'?'move-up-right':effectiveLegProfile(i,list)==='cycling'?'bike':effectiveLegProfile(i,list)==='driving'?'car-front':'footprints')} <span><strong>${esc(conf.label||routeModeName(conf.mode))}</strong> · ${leg?(leg.walkCovered?'חלק מזמן ההליכה':leg.manualMissing?'משך לא הוגדר':(leg.estimated?'~':'')+minsFmt(leg.duration/60))+' · '+(leg.estimated?'~':'')+(leg.distance/1000).toFixed(1)+' ק״מ'+(leg.estimated?' · אומדן':'')+legAdjustment:conf.mode!=='auto'?(routeLegMinutes(conf)===null?'משך לא הוגדר':minsFmt(routeLegMinutes(conf)))+' · מעבר ידני':(conf.mode==='auto'&&routeLegMinutes(conf)!==null?minsFmt(approximateLegs(list)[i-1]?.duration/60)+' · זמני כביש באומדן': 'זמן הנסיעה טרם חושב')}${staleDrawing?' · יש שרטוט שמור לסדר הקודם':''}</span>${icon('settings-2','small-icon')}</button>${conf?.minutesMode==='total'&&leg?.manualOverride&&leg.adjustmentMinutes>=30&&ronnyCanPlaceByTime(s)?`<button type="button" class="ronny-pin-to-lock" data-pin-to-lock="${esc(s.id)}" title="הדרך נמתחה ב־${minsFmt(leg.adjustmentMinutes)} כדי להגיע בשעה שנקבעה. להפוך את זה לשעה נעולה עם זמן פנוי">${icon('lock','small-icon')} הפוך לזמן פנוי</button>`:''}</div>`:'';
  const card=`<div class="stop ${ronnyBulkStops.has(s.id)?'ronny-bulk-selected':''} ${selectedStop===s.id?'focused':''} ${s.autoLoopEnd?'ronny-shared-loop-end':''} ${walkUnit?'ronny-walk-sub':''} ${walkUnit&&i===walkUnit.to?'ronny-walk-sub-last':''} ${walkUnit&&WALK_TYPES.has(s.type)&&!s.cost?'ronny-walk-sub-plain':''} ${i===0?'ronny-rail-first':''} ${i===list.length-1?'ronny-rail-last':''}" data-stop="${esc(s.id)}" data-ronny-route-order="${i+1}" data-drag-ok="${!s.autoLoopEnd&&!walkEdge?'1':''}"${s.autoLoopEnd?' data-loop-end="1"':''} role="group" tabindex="0" aria-label="${esc(s.name)} — התמקדות במפה" style="--stop-color:${pointColor(s,selectedDay)};--rail-next:${pointColor(list[i+1]||s,selectedDay)}">${walkFirst?'':travel}${ronnyGapHTML(s)}${ronnyBulkMode&&!s.autoLoopEnd?`<label class="ronny-bulk-check" title="בחר נקודה למחיקה"><input type="checkbox" data-ronny-select-id="${esc(s.id)}" ${ronnyBulkStops.has(s.id)?'checked':''} aria-label="בחר נקודה ${esc(s.name)}"></label>`:''}<div class="stop-grid"><div class="stop-time"><span class="ronny-time-chip">${s.type==='start'?(state.days[selectedDay]?.loop?'<small class="departure-flag">יציאה וסיום</small>':'<small class="departure-flag">יציאה</small>'):s.autoLoopEnd?`<small class="departure-flag">${s.autoTripLoopEnd?'חזרה לתחילת הטיול':'חזרה להתחלה'}</small>`:''}${s.timeLock?`<span class="ronny-lock-mark" title="שעה נעולה: ${esc(s.timeLock)}" aria-label="שעה נעולה">${icon('lock','small-icon')}</span>`:''}${esc(s.time||'--:--')}${s.dayOffset?`<small style="display:block">${s.dayOffset>0?'+':'−'}${Math.abs(s.dayOffset)} יום</small>`:''}</span></div><div class="stop-body" style="--stop-color:${pointColor(s,selectedDay)}">${!s.autoLoopEnd&&!walkEdge?`<span class="ronny-drag-grip" data-drag-grip title="גרור כדי להזיז" aria-hidden="true">${icon('grip-vertical')}</span>`:''}<span class="stop-order-badge ${s.type==='via'?'is-number':'is-type-icon'}" aria-label="${esc(s.type==='via'?'נקודת מעבר '+(i+1):types[s.type]?.name||'נקודת דרך')}">${s.type==='via'?i+1:pointSymbol(s.autoLoopEnd||(s.type==='start'&&state.days[selectedDay]?.loop)?'loop':s.type)}</span><div class="stop-main"><div class="stop-emoji point-stop-symbol" style="--symbol-color:${pointColor(s,selectedDay)}" aria-hidden="true">${s.type==='via'?icon('route','small-icon'):''}</div><div class="stop-info"><div class="stop-title" title="${esc(s.name)}">${esc(s.name)}</div><div class="stop-secondary">${ronnyRoleChip(s,!!nightGroup)}<span class="ronny-category-label">${esc(types[s.type]?.name||'עצירה')}</span><span class="dot"></span><span>${s.autoLoopEnd?(s.autoTripLoopEnd?'נקודת ההתחלה של הטיול':'אותו מיקום של נקודת היציאה'):s.type==='walkStart'?(s.duration?minsFmt(+s.duration)+' זמן ההליכה':'זמן הליכה טרם הוגדר'):s.type==='start'?(state.days[selectedDay]?.loop?'נקודת יציאה וסיום':'שעת יציאה'):s.duration?minsFmt(+s.duration)+(s.type==='rest'?' עצירה':''):'ללא משך'}${!['start','end','walkStart'].includes(s.type)&&s.duration?` · יציאה ${quickEndTime(s.time,s.duration).slice(0,5)}`:''}</span>${nightGroup?(nightTotal?`<span class="dot"></span><span title="${nightCopy?'העלות נספרת פעם אחת, ביום ההגעה':'עלות הלינה'}">${money(nightTotal)}${nightCopy?' · נספר ביום '+(nightGroup.members[0].day+1):''}</span>`:''):s.cost?`<span class="dot"></span><span>${money(s.cost)}</span>`:''}</div></div><div class="stop-tools">${TripModel.canSwitchRole(s)?`<button class="micro ronny-role-toggle" title="הפוך לנקודת צד (שומר שם, מיקום ועלות)" aria-label="הפוך את ${esc(s.name)} לנקודת צד" data-role-toggle="${esc(s.id)}" data-role-next="side">${icon('map-pinned')}</button>`:''}${s.autoLoopEnd?`<button class="micro" title="הגדרות יום מעגלי" data-loop-day="${esc(s.id)}">${icon('settings-2')}</button>`:`${walkEdge?'':`<button class="micro" title="הזז למעלה" data-move="-1" data-id="${esc(s.id)}">${icon('chevron-up')}</button><button class="micro" title="הזז למטה" data-move="1" data-id="${esc(s.id)}">${icon('chevron-down')}</button>`}${ronnyNavigateLink(s)}<button class="micro" title="ערוך" data-edit="${esc(s.id)}">${icon('pencil')}</button>`}</div></div>${s.type==='hotel'?`<div class="mini-hotels">${icon('moon-star')} מקום לינה לאורך המסלול</div>`:''}${(s.description||s.notes)?`<div class="stop-note">${icon('notebook-pen')} ${esc(s.description||s.notes)}</div>`:''}</div></div></div>`;
  return {travel,card};
  });
@@ -298,6 +306,7 @@ $('schedule').querySelectorAll('[data-leg-index]').forEach(el=>{
  el.addEventListener('blur',()=>spotlightLeg(+el.dataset.legIndex,false));
 });
 ronnyMarkSelectedLeg();
+$('schedule').querySelectorAll('[data-pin-to-lock]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=e=>{e.stopPropagation();ronnyConvertPinToLock(b.dataset.pinToLock)}});
 $('schedule').querySelectorAll('[data-move]').forEach(el=>el.onclick=e=>{e.stopPropagation();moveStop(el.dataset.id,+el.dataset.move)});
 $('schedule').querySelectorAll('[data-edit]').forEach(el=>el.onclick=e=>{e.stopPropagation();openPointQuick(el.dataset.edit)});$('schedule').querySelectorAll('[data-loop-day]').forEach(el=>el.onclick=e=>{e.stopPropagation();editDay()});
 refreshIcons()}
@@ -393,53 +402,49 @@ function ronnyMoveStopTo(from,beforeId){
 // An overlap with the activity before or after is shown to the user, who decides how to resolve it.
 function ronnyAbsMinute(p){return p&&/^\d{2}:\d{2}/.test(p.time||'')?clockMinutes(String(p.time).slice(0,5))+(Number(p.dayOffset)||0)*1440:null}
 function ronnyStopDwell(p){return ['start','walkStart'].includes(p?.type)?0:Math.max(0,Number(p?.duration)||0)}
-function ronnyTravelEstimate(a,b){try{return Math.max(0,Math.round((Number(approximateLegs([a,b])?.[0]?.duration)||0)/60))}catch(e){return 0}}
+// The routed drive when this pair is already routed; otherwise the rough estimate with a 30% margin (it runs short on real roads).
+function ronnyTravelEstimate(a,b){
+ const ids=routeData?.ids,j=ids?ids.indexOf(b?.id):-1,routed=j>0&&ids[j-1]===a?.id?Number(routeData.legs?.[j-1]?.duration):NaN;
+ if(Number.isFinite(routed))return Math.max(0,Math.round(routed/60));
+ try{return Math.max(0,Math.round(1.3*(Number(approximateLegs([a,b])?.[0]?.duration)||0)/60))}catch(e){return 0}
+}
 function ronnyCanPlaceByTime(stop){return !!stop&&!isMapOnlyPoint(stop)&&!['start','end'].includes(stop.type)&&!WALK_TYPES.has(stop.type)&&!stop.autoLoopEnd}
 // Returns true when it handled the time (applied it or opened the conflict dialog).
+// Patch 133: a typed arrival time is a LOCKED time. The point keeps it; the day plans around it, and
+// empty time or lateness shows as a badge (no more stretching the incoming drive to hours).
 function ronnyPlaceByTime(dayIndex,id,clock){
  const route=routeStopsForDay(dayIndex),stop=route.find(p=>p.id===id);if(!ronnyCanPlaceByTime(stop))return false;
- const plan=TripStateCommands.planTimedPlacement(route,id,clockMinutes(clock),{minuteOf:ronnyAbsMinute,dwellOf:ronnyStopDwell});
- if(stop.timeLock){
-  activeQuickCommit=null;ronnyRememberUndo('שינוי שעה נעולה');const before=captureSchedulePositions();
-  stop.timeLock=clock;ronnyDropTimePin(dayIndex,id);
-  if(plan?.moves){const mv=TripStateCommands.planRouteMove(route,id,plan.beforeId);if(mv&&!mv.error)commitOrderedDaySlots(dayIndex,mv.ordered)}
-  invalidate();retimeAfterOrderChange(dayIndex);save();renderAll();animateScheduleReorder(before,[id]);
-  if($('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===id)openPointQuick(id);
-  return true;
- }
+ // A time before the day's start that plainly continues a late evening (e.g. 00:15 after 23:00) means after midnight.
+ let requested=clockMinutes(clock);
+ const first=ronnyAbsMinute(route[0]),last=Math.max(...route.filter(p=>p.id!==id).map(p=>ronnyAbsMinute(p)??-Infinity));
+ if(first!=null&&requested<first&&first-requested>180&&Number.isFinite(last)&&requested+1440-last<=360)requested+=1440;
+ const plan=TripStateCommands.planTimedPlacement(route,id,requested,{minuteOf:ronnyAbsMinute,dwellOf:ronnyStopDwell,isFixed:p=>!!p.timeLock&&p.id!==id});
  if(!plan||!plan.prev)return false;
+ plan.requested=requested;
  if(plan.overlapPrev||plan.overlapNext){ronnyOpenTimeConflict(dayIndex,id,clock,plan);return true}
- ronnyApplyTimedPlacement(dayIndex,id,clock,plan,{prev:'exact',next:'push'});return true;
+ ronnyApplyTimedPlacement(dayIndex,id,clock,plan,{prev:'lock',next:'keep'});return true;
 }
 function ronnyApplyTimedPlacement(dayIndex,id,clock,plan,choice){
  activeQuickCommit=null; // the editor already saved; re-opening it must not save again
  ronnyRememberUndo('שינוי שעת הגעה');const before=captureSchedulePositions();
- const day=state.days[dayIndex],requested=clockMinutes(clock);
+ const day=state.days[dayIndex],requested=plan.requested??clockMinutes(clock);
  if(plan.moves){const mv=TripStateCommands.planRouteMove(routeStopsForDay(dayIndex),id,plan.beforeId);if(mv?.error){toast(mv.error);return}if(mv)commitOrderedDaySlots(dayIndex,mv.ordered)}
- let route=routeStopsForDay(dayIndex),idx=route.findIndex(p=>p.id===id);const stop=route[idx],prev=route[idx-1];
+ const route=routeStopsForDay(dayIndex),idx=route.findIndex(p=>p.id===id),stop=route[idx],prev=route[idx-1];
  const travel=prev?ronnyTravelEstimate(prev,stop):0;
- if(choice.prev==='shorten'&&prev&&!['start','walkStart','walkEnd'].includes(prev.type)){prev.duration=Math.max(0,requested-travel-(ronnyAbsMinute(prev)??requested))}
- if(choice.prev==='earlier-start'&&prev?.type==='start'){day.timeAnchor={stopId:prev.id,kind:'departure',time:clockAt(requested-travel)};day.departureUsesDefault=false;prev.time=day.timeAnchor.time}
+ ronnyDropTimePin(dayIndex,id);
+ if(choice.prev==='after')delete stop.timeLock;else stop.timeLock=clockAt(requested);
+ if(choice.prev==='shorten'&&prev&&!['start','walkStart','walkEnd'].includes(prev.type))prev.duration=Math.max(0,requested-travel-(ronnyAbsMinute(prev)??requested));
+ if(choice.prev==='earlier-start'&&prev?.type==='start'){day.timeAnchor={stopId:prev.id,kind:'departure',time:clockAt(Math.floor((requested-travel)/5)*5)};day.departureUsesDefault=false;prev.time=day.timeAnchor.time}
  if(choice.next==='shorten-here'&&plan.next&&plan.nextArrival!=null)stop.duration=Math.max(0,plan.nextArrival-ronnyTravelEstimate(stop,plan.next)-requested);
- invalidate();retimeAfterOrderChange(dayIndex);
- if(choice.prev!=='after'){
-  // Pin the arrival through the incoming leg's total time, so the start of the day does not move.
-  route=routeStopsForDay(dayIndex);idx=route.findIndex(p=>p.id===id);
-  if(idx>0){
-   const p=route[idx-1],dep=(ronnyAbsMinute(p)??requested)+ronnyStopDwell(p);
-   let req=requested+Math.floor(dep/1440)*1440;if(req<dep)req=dep;
-   const leg=getLegMutableForDay(dayIndex,idx);
-   if(leg){leg.minutes=Math.min(2880,Math.max(0,Math.round(req-dep)));leg.minutesMode='total';leg.ronnyTimePin=true;invalidate();retimeAfterOrderChange(dayIndex)}
-  }
- }else{const leg=getLegMutableForDay(dayIndex,idx);if(leg?.minutesMode==='total'){leg.minutes=null;delete leg.minutesMode}invalidate();retimeAfterOrderChange(dayIndex)}
- save();renderAll();animateScheduleReorder(before,[id]);
+ if(choice.next==='unlock-next'&&plan.next)delete plan.next.timeLock;
+ invalidate();retimeAfterOrderChange(dayIndex);save();renderAll();animateScheduleReorder(before,[id]);
  if($('point-quick')?.classList.contains('open')&&$('point-quick').dataset.id===id)openPointQuick(id);
- toast(plan.moves?'הנקודה הוכנסה לפי השעה, בין '+(plan.prev?.name||'הנקודה הקודמת')+(plan.next?' ל־'+plan.next.name:''):'שעת ההגעה עודכנה');
+ toast((stop.timeLock?'השעה ננעלה על '+stop.timeLock:'השעה תחושב לפי הדרך')+(plan.moves?' · הנקודה עברה למקום בין '+(plan.prev?.name||'הקודמת')+(plan.next?' ל־'+plan.next.name:''):''));
 }
 function ronnyOpenTimeConflict(dayIndex,id,clock,plan){
  document.querySelector('.ronny-conflict-overlay')?.remove();
  const stop=getStop(id)?.stop;if(!stop)return;
- const requested=clockMinutes(clock),t=m=>clockAt(m),dwell=ronnyStopDwell(stop);
+ const requested=plan.requested??clockMinutes(clock),t=m=>clockAt(m),dwell=ronnyStopDwell(stop);
  const prevName=esc(plan.prev?.name||''),nextName=esc(plan.next?.name||'');
  const prevIsStart=plan.prev?.type==='start',prevCanShorten=!!plan.prev&&!['start','walkStart','walkEnd'].includes(plan.prev.type);
  const prevTravel=plan.prev?ronnyTravelEstimate(plan.prev,stop):0;
@@ -448,13 +453,13 @@ function ronnyOpenTimeConflict(dayIndex,id,clock,plan){
  if(plan.overlapPrev){
   const opts=[];
   if(prevCanShorten)opts.push(radio('prev','shorten','לקצר את '+prevName,'יסתיים ב־'+t(requested-prevTravel)+' במקום '+t(plan.prevDeparture),true));
-  if(prevIsStart)opts.push(radio('prev','earlier-start','להקדים את היציאה','יציאה ב־'+t(requested-prevTravel)+' במקום '+t(plan.prevDeparture),true));
+  if(prevIsStart)opts.push(radio('prev','earlier-start','להקדים את היציאה','יציאה ב־'+t(Math.floor((requested-prevTravel)/5)*5)+' במקום '+t(plan.prevDeparture),true));
   opts.push(radio('prev','after','להגיע מיד אחרי '+prevName,'השעה תחושב לפי הדרך, בערך '+t(plan.prevDeparture+prevTravel),!prevCanShorten&&!prevIsStart));
   body+=`<section class="ronny-conflict-part"><h4>${icon('alert-triangle','small-icon')} חפיפה עם ${prevName}</h4><p>${prevName}: ${prevIsStart?'יציאה ב־':'עד '}${t(plan.prevDeparture)} · ${esc(stop.name)}: הגעה ב־${t(requested)}</p>${opts.join('')}</section>`;
  }
  if(plan.overlapNext){
   const canShorten=plan.nextArrival-requested>0;
-  body+=`<section class="ronny-conflict-part"><h4>${icon('alert-triangle','small-icon')} חפיפה עם ${nextName}</h4><p>${esc(stop.name)}: עד ${t(requested+dwell)} · ${nextName}: הגעה ב־${t(plan.nextArrival)}</p>${radio('next','push','לדחות את '+nextName+' ואת ההמשך','כל מה שאחרי יזוז מאוחר יותר',true)}${canShorten?radio('next','shorten-here','לקצר את השהייה ב־'+esc(stop.name),'עד שיהיה זמן להגיע ל־'+nextName+' ב־'+t(plan.nextArrival),false):''}</section>`;
+  body+=`<section class="ronny-conflict-part"><h4>${icon('alert-triangle','small-icon')} חפיפה עם ${nextName} (שעה נעולה)</h4><p>${esc(stop.name)}: עד ${t(requested+dwell)} · ${nextName}: נעול ל־${t(plan.nextArrival)}</p>${canShorten?radio('next','shorten-here','לקצר את השהייה ב־'+esc(stop.name),'כדי להגיע ל־'+nextName+' ב־'+t(plan.nextArrival),true):''}${radio('next','unlock-next','לשחרר את הנעילה של '+nextName,'הוא וכל מה שאחריו יזוזו מאוחר יותר',!canShorten)}${radio('next','keep','להשאיר כך',''+nextName+' יסומן באיחור',false)}</section>`;
  }
  const overlay=document.createElement('div');overlay.className='map-confirm-overlay ronny-conflict-overlay';overlay.setAttribute('role','presentation');
  overlay.innerHTML=`<div class="map-confirm-card ronny-conflict-card" role="alertdialog" aria-modal="true" aria-labelledby="ronny-conflict-title"><h3 id="ronny-conflict-title">התנגשות בלוח הזמנים</h3><p class="ronny-conflict-lead">${esc(stop.name)} ב־${t(requested)}${plan.moves?' · המקום החדש: בין '+prevName+(plan.next?' ל־'+nextName:''):''}. איך לסדר את זה?</p>${body}<div class="map-confirm-actions"><button type="button" class="map-confirm-approve ronny-conflict-apply">החל</button><button type="button" class="map-confirm-cancel">ביטול</button></div></div>`;
@@ -465,17 +470,24 @@ function ronnyOpenTimeConflict(dayIndex,id,clock,plan){
  overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
  overlay.querySelector('.map-confirm-cancel').onclick=close;
  overlay.querySelector('.ronny-conflict-apply').onclick=()=>{
-  const choice={prev:overlay.querySelector('input[name=prev]:checked')?.value||'exact',next:overlay.querySelector('input[name=next]:checked')?.value||'push'};
+  const choice={prev:overlay.querySelector('input[name=prev]:checked')?.value||'lock',next:overlay.querySelector('input[name=next]:checked')?.value||'keep'};
   close();ronnyApplyTimedPlacement(dayIndex,id,clock,plan,choice);
  };
  overlay.querySelector('.ronny-conflict-apply').focus();
+}
+// A drive that was stretched to reach a typed time becomes a locked arrival with visible free time.
+function ronnyConvertPinToLock(id){
+ const route=routeStopsForDay(selectedDay),i=route.findIndex(p=>p.id===id),stop=route[i];if(i<1||!stop?.leg)return;
+ closeLegEditor();ronnyRememberUndo('הפיכת דרך מוארכת לזמן פנוי');
+ stop.timeLock=String(stop.time||'').slice(0,5);stop.leg.minutes=null;delete stop.leg.minutesMode;delete stop.leg.ronnyTimePin;
+ invalidate();retimeAfterOrderChange(selectedDay);save();renderAll();toast('השעה ננעלה על '+stop.timeLock+'. הזמן העודף מוצג כזמן פנוי');
 }
 // Free time before a locked point, or how late you arrive to it.
 // A lock replaces the automatic pin that placement put on the incoming road, so the real gap shows.
 function ronnyDropTimePin(dayIndex,id){const route=routeStopsForDay(dayIndex),i=route.findIndex(p=>p.id===id);const leg=i>0?route[i].leg:null;if(leg?.ronnyTimePin&&leg.fromId===route[i-1].id){leg.minutes=null;delete leg.minutesMode;delete leg.ronnyTimePin}}
 function ronnyGapHTML(s){
  const gap=ronnyTimeGaps.get(selectedDay)?.get(s.id);if(!gap)return '';
- const late=gap<0,text=late?'איחור של '+minsFmt(-gap)+' לשעה הנעולה '+esc(s.timeLock||''):'זמן פנוי · '+minsFmt(gap);
+ const late=gap<0,text=late?'איחור של '+minsFmt(-gap)+' · השעה הנעולה '+esc(s.timeLock||''):'זמן פנוי · '+minsFmt(gap);
  return '<div class="ronny-time-gap '+(late?'is-late':'is-free')+'" title="'+(late?'לפי הדרך והשהיות, מגיעים אחרי השעה שננעלה':'אין פעילות מתוכננת בזמן הזה')+'">'+icon(late?'alarm-clock':'coffee','small-icon')+'<span>'+text+'</span></div>';
 }
 // Phone: open the point in Google Maps navigation.

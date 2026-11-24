@@ -52,7 +52,7 @@ test('a circular day keeps its derived finish last',()=>{
 // Placement by a manually typed time.
 const m=t=>{const [h,mi]=t.split(':').map(Number);return h*60+mi};
 const timed=()=>[p('s','start',{time:'09:00'}),p('a','via',{time:'10:00',duration:60}),p('b','via',{time:'12:00',duration:30}),p('e','end',{time:'15:00'}),p('n','via',{time:'15:30',duration:30})];
-const deps={minuteOf:x=>x.time?m(x.time):null,dwellOf:x=>Number(x.duration)||0};
+const deps={minuteOf:x=>x.time?m(x.time):null,dwellOf:x=>Number(x.duration)||0,isFixed:x=>!!x.timeLock};
 test('a timed point goes between the activities around its time',()=>{
  const plan=commands.planTimedPlacement(timed(),'n',m('11:15'),deps);
  assert.equal(plan.beforeId,'b');assert.equal(plan.prev.id,'a');assert.equal(plan.moves,true);
@@ -62,9 +62,16 @@ test('arriving while the previous activity is still going is a conflict',()=>{
  const plan=commands.planTimedPlacement(timed(),'n',m('10:30'),deps);
  assert.equal(plan.prev.id,'a');assert.equal(plan.overlapPrev,true);assert.equal(plan.prevDeparture,m('11:00'));
 });
-test('a stay that runs into the next activity is a conflict',()=>{
- const plan=commands.planTimedPlacement(timed(),'n',m('11:45'),deps);
+test('a stay that runs into a LOCKED next activity is a conflict',()=>{
+ const day=timed();day[2].timeLock='12:00';
+ const plan=commands.planTimedPlacement(day,'n',m('11:45'),deps);
  assert.equal(plan.next.id,'b');assert.equal(plan.overlapNext,true);
+});
+test('a next activity that is not locked just moves later (no conflict)',()=>{
+ const plan=commands.planTimedPlacement(timed(),'n',m('11:45'),deps);
+ assert.equal(plan.next.id,'b');assert.equal(plan.overlapNext,false);
+ const late=commands.planTimedPlacement(timed(),'n',m('16:00'),deps);
+ assert.equal(late.beforeId,'e');assert.equal(late.overlapNext,false);
 });
 test('a late time stays before the day finish',()=>{
  const plan=commands.planTimedPlacement(timed(),'n',m('18:00'),deps);

@@ -1,0 +1,14 @@
+{
+  "version": "133",
+  "date": "2026-11-24",
+  "notes": [
+    "שעה שמקלידים לנקודה ננעלת: הנקודה נשארת בשעה הזו, והזמן הריק לפניה מופיע כ״זמן פנוי״ במקום נסיעה שנמתחת לשעות.",
+    "התנגשות מוצגת רק כשבאמת יש אחת: כשמגיעים לפני שהפעילות הקודמת נגמרה, או כשהשהייה נכנסת לנקודה נעולה. נקודה שאינה נעולה פשוט זזה מאוחר יותר.",
+    "איחור לנקודה נעולה מסומן, ושאר היום ממשיך מהשעה שבה באמת מגיעים.",
+    "נסיעה שנמתחה בעבר כדי להגיע בשעה מסוימת מקבלת כפתור ״הפוך לזמן פנוי״.",
+    "שעה אחרי חצות (למשל 00:15 אחרי ערב מאוחר) נקבעת ללילה הזה ולא לבוקר.",
+    "בורר הימים מסודר בשורה אחת: חיצים, ימים, לינות וכפתור הוספה ממורכזים ולא נוגעים בקצוות.",
+    "הידית לפתיחה וסגירה של חלונית התכנון רכה ופסטלית בצבע היום הנבחר."
+  ],
+  "technical": "Typed arrivals on regular points now set stop.timeLock instead of pinning the incoming leg (ronnyApplyTimedPlacement rewritten; choices lock/after/shorten/earlier-start and keep/shorten-here/unlock-next). planTimedPlacement takes isFixed(p): overlapNext only for a locked next point (tests/route-move.test.cjs: 17). Lock pass: late locks no longer pull the chain earlier; ronnyLockMinute resolves the lock's day as the occurrence nearest the natural arrival but not earlier than 3 h before the day start. ronnyPlaceByTime reads an early time that continues a late evening as after midnight. Days with locks are retimed the first time they render (gaps after reload). ronnyTravelEstimate prefers the routed leg, else the estimate +30%. ronnyConvertPinToLock for legacy total-mode legs stretched >= 30 min. Day picker fixed heights and centering, pastel planner handle (planner-polish.css). Backups: backups/2026-11-24_162813UTC_pre133_65aa68856bcc."
+}
