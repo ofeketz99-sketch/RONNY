@@ -1,0 +1,20 @@
+/* Patch 130: schedule drag-and-drop. A visible grip on every movable card, a floating label
+   that follows the pointer, and a line that marks exactly where the card will land. */
+#planner #schedule .ronny-drag-grip{position:absolute;inset-inline-end:2px;top:50%;transform:translateY(-50%);z-index:3;display:flex;align-items:center;justify-content:center;width:20px;height:32px;border-radius:6px;color:#a3ab9f;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+#planner #schedule .ronny-drag-grip:hover{color:var(--rx-accent);background:var(--rx-accent-soft)}
+#planner #schedule .ronny-drag-grip svg{width:16px;height:16px;pointer-events:none}
+#planner #schedule .stop[data-drag-ok="1"] .stop-body{padding-inline-end:26px!important}
+#planner #schedule .stop[data-drag-ok="1"] .stop-tools{inset-inline-end:22px!important}
+#planner #schedule .ronny-walk-head{padding-inline-end:26px!important;cursor:pointer!important}
+#planner #schedule .ronny-walk-head>.stop-tools{inset-inline-end:22px!important}
+#planner #schedule .ronny-walk-sub[data-drag-ok="1"] .ronny-drag-grip{height:26px}
+
+#planner #schedule .ronny-drag-source,#planner #schedule .ronny-drag-source .stop-body{opacity:.38;transition:opacity .12s ease}
+.ronny-drag-ghost{position:fixed;left:0;top:0;z-index:5000;pointer-events:none;display:flex;align-items:center;gap:6px;max-width:min(260px,80vw);padding:8px 13px;border-radius:999px;background:var(--rx-accent-strong,#35584a);color:#fff;font:800 13px/1.2 var(--ui-font,system-ui);box-shadow:var(--rx-shadow-3);direction:rtl;white-space:nowrap}
+.ronny-drag-ghost span{overflow:hidden;text-overflow:ellipsis}
+.ronny-drag-ghost svg{width:15px;height:15px;flex:none;opacity:.8}
+.ronny-drop-line{position:fixed;z-index:4999;height:3px;border-radius:3px;background:var(--rx-accent,#47705a);pointer-events:none;box-shadow:0 0 0 3px rgba(71,112,90,.16)}
+.ronny-drop-line:before,.ronny-drop-line:after{content:"";position:absolute;top:50%;width:9px;height:9px;margin-top:-4.5px;border-radius:50%;background:inherit}
+.ronny-drop-line:before{right:-4px}.ronny-drop-line:after{left:-4px}
+.ronny-drop-line.is-invalid{background:var(--rx-danger,#a8423f);box-shadow:0 0 0 3px rgba(168,66,63,.16)}
+body.ronny-schedule-dragging,body.ronny-schedule-dragging *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}

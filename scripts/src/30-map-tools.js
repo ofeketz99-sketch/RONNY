@@ -656,7 +656,7 @@ function drawLegLineOverview(coords,mode,di,index,retraceRole=null){
   hit.on('click',e=>{
    if(e.originalEvent)L.DomEvent.stopPropagation(e.originalEvent);
    selectedDay=di;viewScope='day';$('map-scope').value='day';selectedStop=null;
-   cancelPointMove();renderAll();openLegEditor(index,e.latlng);
+   cancelPointMove();renderAll();openLegEditor(index,e.latlng);ronnySelectLeg(index,{reveal:true});
   });
  }
 }

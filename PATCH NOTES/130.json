@@ -1,0 +1,15 @@
+{
+  "version": "130",
+  "date": "2026-11-24",
+  "notes": [
+    "גרירה בלוח הזמנים: לכל כרטיס יש ידית גרירה. הכרטיס זז למקום שמסומן בקו, ולא מתחלף יותר עם הכרטיס שעליו שחררתם. עובד גם במגע.",
+    "טלפון: ממשק מצומצם עם שלוש לשוניות בלבד (תוכנית, מפה, טיולים). לוח הזמנים, ניווט לנקודה בגוגל מפות ועריכה קצרה בחלונית תחתונה. הכלים והגדרות המתקדמים נשארו במחשב.",
+    "שעה שמקלידים לנקודה קובעת את מקומה ביום. אם היא חופפת לפעילות אחרת, נפתח חלון שמראה את ההתנגשות ומאפשר לבחור איך לסדר.",
+    "בורר הימים סודר מחדש: יום וסמל המסלול, תאריך ושם היום בשורות נפרדות. אין יותר רווח ריק מתחתיו.",
+    "נתוני היום עברו לסרגל העליון, לצד נתוני כל הטיול. כשחלונית התכנון סגורה מופיעים שם חיצים למעבר בין ימים.",
+    "בלוק ההליכה: שעת ההתחלה והסיום בעמודת השעות, ונקודת ההתחלה לא מופיעה פעמיים.",
+    "לחיצה על דרך במפה מסמנת אותה גם בתכנון היומי, ולחיצה על דרך בתכנון מסמנת אותה במפה.",
+    "מחיקת נקודה: הכרטיס נעלם בהדרגה והרווח נסגר בעדינות."
+  ],
+  "technical": "New pure TripStateCommands.planRouteMove (insert-before move; walk = block, inner walk points stay inside their walk, circular finish stays last) and planTimedPlacement (position by typed arrival + overlap detection), covered by tests/route-move.test.cjs (16 tests). Native HTML5 drag in the schedule replaced with one delegated pointer-based drag on #schedule (24-timeline-scheduling.js). Phone mode (<=760px) is CSS-only in styles/phone.css plus small JS: ronnyIsPhone, rail-map tab, plan opens by default, outline resolution forced to day on phones, point editor/add picker switch to the map first. Day summary rendered into the top bar (#ronny-day-summary moved in index.html), warnings stay in the planner (#ronny-day-warnings). Planner upper height clamped to content. Road selection: ronnySelectLeg/ronnyClearSelectedLeg in 20-route-geometry.js. New styles: schedule-drag.css, planner-polish.css, phone.css. Backups: backups/2026-11-24_155052UTC_pre130_75acfdfc25e4."
+}

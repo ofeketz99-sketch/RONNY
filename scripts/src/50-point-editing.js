@@ -73,6 +73,8 @@ function openPointQuick(id){
  const rememberedPosition=existingPopup?.classList.contains('open')&&existingPopup.dataset.id===id&&existingPopup.dataset.wasMoved==='yes'?
   {left:existingPopup.style.left,top:existingPopup.style.top}:null;
  hideContext();hidePointQuick();
+ // Phone: the editor is a bottom sheet over the map, so leave the plan and keep the point visible above it.
+ if(ronnyIsPhone()){if($('planner').classList.contains('show-mobile'))showMap();setTimeout(()=>{const ll=L.latLng(+obj.stop.lat,+obj.stop.lng);if(map&&Number.isFinite(ll.lat)&&Number.isFinite(ll.lng))map.panTo(map.containerPointToLatLng(map.latLngToContainerPoint(ll).add([0,map.getSize().y*.33])),{animate:!ronnyReducedMotion()})},300)}
  if(obj.day!==selectedDay||viewScope==='all'){
   selectedDay=obj.day;viewScope='day';$('map-scope').value='day';renderAll();
  }
@@ -223,6 +225,12 @@ function openPointQuick(id){
   const walkOwner=stop.type==='walkTurn'&&walkIndex>0?route.slice(0,walkIndex).reverse().find(p=>p.type==='walkStart'):null;
   const walkTurnAdjusted=!!walkOwner&&arrivalChanged&&timeEditIntent!=='departure';
   if(walkTurnAdjusted)walkOwner.walkTurnClock=f.time.value;
+  // Patch 130: a typed arrival places the point by its time (and asks when it overlaps).
+  if(arrivalChanged&&timeEditIntent!=='departure'&&!walkTurnAdjusted&&ronnyCanPlaceByTime(stop)&&ronnyPlaceByTime(target.day,id,f.time.value)){
+   timeEditIntent=null;if(f.time.isConnected)f.time.value=stop.time;
+   const label=el.querySelector('#quick-save-state');if(label)label.textContent='נשמר';
+   save();renderMarkers();renderSchedule();return;
+  }
   const anchoredToStart=day.timeAnchor?.kind==='departure'&&day.timeAnchor.stopId===start?.id;
   let arrivalAdjustedLeg=false;
   if(!isMapOnlyPoint(stop)&&arrivalChanged&&timeEditIntent!=='departure'&&!walkTurnAdjusted){

@@ -281,8 +281,22 @@ function clearLegSpotlight(){
  activeLegSpotlight=null;
  document.querySelectorAll('.leg-open.leg-spotlit').forEach(b=>b.classList.remove('leg-spotlit'));
 }
+// Patch 130: a selected road (clicked in the plan or on the map) stays highlighted in both places until its editor closes.
+let ronnySelectedLeg=null;
+function ronnyMarkSelectedLeg(){document.querySelectorAll('.leg-open.ronny-leg-selected').forEach(b=>b.classList.remove('ronny-leg-selected'));if(ronnySelectedLeg!=null)document.querySelectorAll('.leg-open[data-leg-index="'+ronnySelectedLeg+'"]').forEach(b=>b.classList.add('ronny-leg-selected'))}
+function ronnySelectLeg(index,{fit=false,reveal=false}={}){
+ ronnySelectedLeg=index;clearLegSpotlight();spotlightLeg(index);ronnyMarkSelectedLeg();
+ const coords=paintedLegCoordinates.get(index)||legCoords(index);
+ if(fit&&map&&coords?.length>1)map.fitBounds(L.latLngBounds(coords),{padding:[70,70],maxZoom:16,animate:false});
+ if(reveal){
+  if(innerWidth<=760){$('planner')?.classList.add('show-mobile');setRail('plan')}
+  else if(document.querySelector('.app')?.classList.contains('planner-collapsed'))setPlannerCollapsed(false);
+  requestAnimationFrame(()=>document.querySelector('#schedule .leg-open[data-leg-index="'+index+'"]')?.scrollIntoView({block:'center',behavior:ronnyReducedMotion()?'auto':'smooth'}));
+ }
+}
+function ronnyClearSelectedLeg(){if(ronnySelectedLeg==null)return;ronnySelectedLeg=null;clearLegSpotlight();ronnyMarkSelectedLeg()}
 function spotlightLeg(index,show=true){
- if(!show){if(activeLegSpotlight===index)clearLegSpotlight();return}
+ if(!show){if(activeLegSpotlight===index&&ronnySelectedLeg!==index){clearLegSpotlight();if(ronnySelectedLeg!=null)spotlightLeg(ronnySelectedLeg)}return}
  if(viewScope!=='day'||!map||index<1||index>=stops().length)return;
  if(activeLegSpotlight===index)return;
  clearLegSpotlight();
@@ -347,7 +361,7 @@ function drawLegLine(coords,mode,index,unavailable=false,retraceRole=null){
  drawLegLabel(index,coords);
 }
 function manualLeg(index,arr=stops()){return RouteGeometry.manualLeg(index,arr,{legAt,legCoords,routeLegMinutes,distanceOfCoords})}
-function closeLegEditor(){const el=$('leg-editor');if(el){el.classList.remove('open');delete el.dataset.index}forcedHandleLayer?.clearLayers();if(activeDrawEditLeg!==null){activeDrawEditLeg=null;renderViaHandles()}}
+function closeLegEditor(){ronnyClearSelectedLeg();const el=$('leg-editor');if(el){el.classList.remove('open');delete el.dataset.index}forcedHandleLayer?.clearLayers();if(activeDrawEditLeg!==null){activeDrawEditLeg=null;renderViaHandles()}}
 function stopLegDrawing(){drawLegSession=null;$('leg-draw-banner')?.classList.remove('active');updateMapHint();renderViaHandles()}
 function startLegDrawing(index,mode='draw'){
  activeDrawEditLeg=null;const leg=getLegMutable(index);if(!leg)return;leg.mode=mode==='pencil'?'pencil':'draw';leg.path=Array.isArray(leg.path)?leg.path:[];drawLegSession={index,day:selectedDay};closeLegEditor();hidePointQuick();hideContext();save();drawRoute();renderSchedule();renderViaHandles();updateMapHint();toast(mode==='pencil'?'עיפרון חופשי: הוסף נקודות בזו אחר זו. הקו מחובר רק לנקודת המוצא.':'לחץ לאורך תוואי המעבר כדי לשרטט. לחץ ״סיום שרטוט״ כשתסיים.');

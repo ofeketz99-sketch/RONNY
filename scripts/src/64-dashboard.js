@@ -19,7 +19,7 @@ async function estimateRouteClimb(){const btn=$('ronny-elevation-trigger');if(bt
 }
 function initDayNavigation(){const strip=$('days');if(!strip||strip.dataset.scrollReady)return;strip.dataset.scrollReady='true';
  strip.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return; if(strip.scrollWidth<=strip.clientWidth+2)return;e.preventDefault();strip.scrollLeft+=e.deltaY},{passive:false});
- $('day-prev').onclick=()=>selectDay(selectedDay-1);$('day-next').onclick=()=>selectDay(selectedDay+1);
+ $('day-prev').onclick=()=>selectDay(selectedDay-1);$('day-next').onclick=()=>selectDay(selectedDay+1);if($('top-day-prev'))$('top-day-prev').onclick=()=>selectDay(selectedDay-1);if($('top-day-next'))$('top-day-next').onclick=()=>selectDay(selectedDay+1);
  
 }
 function openOutlineDayAssignment(){const points=currentOutline().points;if(!points.length){toast('ראשית הוסף עוגנים למתאר');return}

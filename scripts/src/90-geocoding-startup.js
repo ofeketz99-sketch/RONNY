@@ -292,9 +292,9 @@ function showSavedPlaceLibrary(){
 
 (async()=>{
  try{await initTripLibrary()}catch(e){state=prepareTrip(demo());activeTripId=uid();libraryReady=true;save();toast('טעינת הספרייה נכשלה. ניתן לייצא קובץ גיבוי.')}
- await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'?'outline':'day';const startupWorkspace=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(startupWorkspace);repairExistingSchedules();initMap();map?.on('moveend zoomend',ronnyRememberWorkspace);enableMapPopupDragging();initDaysManager();initOutsideDismissal();
+ await initSavedPlaces();$('ronny-rail-back').onclick=ronnyGoBack;planningResolution=state.settings.planningResolution==='outline'&&!ronnyIsPhone()?'outline':'day';const startupWorkspace=ronnyReadWorkspace();ronnyApplyWorkspaceSelection(startupWorkspace);repairExistingSchedules();initMap();map?.on('moveend zoomend',ronnyRememberWorkspace);enableMapPopupDragging();initDaysManager();initOutsideDismissal();
  window.addEventListener('resize',()=>{for(const id of ['leg-editor','point-quick','map-context','layer-filter-panel'])keepMapPopoverVisible($(id))});
- bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();
+ bind();setupResizers();initializePlannerVerticalResize();activatePhotoInput();renderAll();initMapGroupToggles();initMapQuickPickers();if(ronnyIsPhone()){$('planner').classList.add('show-mobile');setRail('plan')}
  // Restore an existing view without animation. For a new workspace, keep the
  // original deferred fit so map controls and gestures are not competing with an
  // animated flyTo at the instant the initial UI appears.

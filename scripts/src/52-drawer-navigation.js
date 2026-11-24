@@ -74,6 +74,8 @@ function createPointAndEdit(point,type,role=null){
 }
 function openStopForm(id=null,point=null,chosenType=null,justCreated=false){
  if(!id){
+  // Phone: the picker opens over the map, so switch to the map first.
+  if(ronnyIsPhone()&&$('planner').classList.contains('show-mobile')){showMap();setTimeout(()=>openStopForm(null,point,chosenType,justCreated),300);return}
   const p=point||map?.getCenter();if(!p)return;
   if(chosenType){createPointAndEdit(p,chosenType);return;}
   showPointTypeTree(p);return;
@@ -696,8 +698,8 @@ function setPlannerCollapsed(flag){
  if(!flag)setRail('plan');else setRail(null);
  setTimeout(()=>{map?.invalidateSize();if(googleMode&&window.google&&googleMap)google.maps.event.trigger(googleMap,'resize')},360);
 }
-function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.toggle('show-mobile',!open);setRail(open?null:'plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
-function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize(),260)}
+function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.add('show-mobile');setRail('plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
+function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize(),260)}
 
 function ronnyBudgetExpenses(){
  if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];

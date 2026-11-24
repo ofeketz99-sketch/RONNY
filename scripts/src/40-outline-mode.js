@@ -318,7 +318,7 @@ function selectDay(i,afterSelect){if(i<0||i>=state.days.length)return;
  }
  ronnyApplyDaySelection(i);afterSelect?.();
 }
-function ronnyApplyDaySelection(i){ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap();if(window.innerWidth<=760){$('planner').classList.remove('show-mobile');setRail(null)}}
+function ronnyApplyDaySelection(i){ronnyBulkStops.clear();ronnyBulkMode=false;planningResolution='day';cancelForcedRelocate();stopForcedWaypointMode();cancelPointMove();stopLegDrawing();closeLegEditor();selectedDay=i;selectedStop=null;viewScope='day';$('map-scope').value='day';hideContext();renderAll();fitMap()}
 // A day or stage can contain distant, unscheduled ideas.
 // Keep ALL planned route stops and manually drawn geometry in the fit, but don't
 // let a remote map-only pin shrink the initial entity into a tiny map footprint.
