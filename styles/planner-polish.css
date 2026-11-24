@@ -152,3 +152,36 @@ body.ronny-no-times #planner #schedule .ronny-walk-time{display:none!important}
 
 /* ---- Patch 137: the map's route-summary ("data") button is redundant; the same numbers are in the top bar ---- */
 #route-card-toggle,.map-pane .map-bottom{display:none!important}
+
+/* ==== Patch 138: schedule cards in a narrow planner ==== */
+/* 1. The details line: only the last text item may shrink, so there is at most one "…" (not one per item). */
+#planner #schedule .stop-body{container-type:inline-size;container-name:ronnycard}
+#planner #schedule .stop-secondary>*{flex:none!important}
+#planner #schedule .stop-secondary>span:not(.ronny-role-chip):not(.ronny-category-label):not(.dot){flex:0 1 auto!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#planner #schedule .stop-secondary .ronny-category-label{overflow:visible!important;text-overflow:clip!important}
+/* When the card is narrow, drop whole items instead of cutting them: category, then departure time, then the role word. */
+@container ronnycard (max-width: 270px){
+ #planner #schedule .stop-secondary .ronny-category-label,#planner #schedule .stop-secondary .ronny-category-label+.dot{display:none!important}
+ #planner #schedule .stop-secondary .ronny-sec-depart{display:none!important}
+ #planner #schedule .stop-tools .ronny-role-toggle{display:none!important}
+}
+@container ronnycard (max-width: 200px){
+ #planner #schedule .stop-secondary .ronny-role-chip{font-size:0!important;gap:0!important;padding:2px 4px!important}
+ #planner #schedule .stop-secondary .ronny-role-chip svg{width:11px!important;height:11px!important}
+}
+
+/* 2. Hover tools: fewer buttons, and a real fade toward the text instead of a hard box over it.
+   Reordering is done with the drag grip, so the up/down arrows are gone from the cards and the walk head. */
+#planner #schedule .stop-tools [data-move],#planner #schedule .ronny-walk-head [data-move]{display:none!important}
+#planner #schedule .stop-body .stop-tools{padding-inline-start:28px!important;padding-inline-end:3px!important;gap:2px!important;background:linear-gradient(to right,var(--rx-card,#fff) 0,var(--rx-card,#fff) calc(100% - 28px),rgba(255,255,255,0) 100%)!important;border-radius:0 10px 10px 0!important}
+#planner #schedule .stop-body .stop-tools .micro{width:28px!important;height:28px!important;border:0!important;background:transparent!important;border-radius:8px!important;color:var(--rx-ink-2,#515c52)!important}
+#planner #schedule .stop-body .stop-tools .micro:hover{background:var(--rx-accent-soft,#e7f0e9)!important;color:var(--rx-accent-strong,#35584a)!important}
+#planner #schedule .stop.focused .stop-body .stop-tools{background:linear-gradient(to right,color-mix(in srgb,var(--stop-color,#47705a) 9%,#fff) 0,color-mix(in srgb,var(--stop-color,#47705a) 9%,#fff) calc(100% - 28px),rgba(255,255,255,0) 100%)!important}
+
+/* 3. Walk block: inner rows stay inside the walk's frame, and the finish time is not repeated
+   (the head already shows start and finish in the time column). */
+#planner #schedule .ronny-walk-sub .stop-body{margin-inline-start:0!important;margin-inline-end:0!important;padding-inline-start:14px!important}
+#planner #schedule .ronny-walk-sub .ronny-drag-grip{inset-inline-end:6px!important}
+#planner #schedule .ronny-walk-sub .stop-body .stop-tools{inset-inline-end:6px!important;background:linear-gradient(to right,var(--walk-soft,#f3f7f4) 0,var(--walk-soft,#f3f7f4) calc(100% - 28px),rgba(255,255,255,0) 100%)!important}
+#planner #schedule .ronny-walk-sub[data-drag-ok="1"] .stop-body .stop-tools{inset-inline-end:30px!important}
+#planner #schedule .ronny-walk-block:has(.ronny-walk-time small) .ronny-walk-sub-last .ronny-time-chip{visibility:hidden!important}

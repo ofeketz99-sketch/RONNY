@@ -1,0 +1,10 @@
+{
+  "version": "138",
+  "date": "2026-11-24",
+  "notes": [
+    "כרטיסי לוח הזמנים בחלונית צרה: במקום כמה חיתוכים עם ״…״ בשורת הפרטים, פרטים פחות חשובים פשוט לא מוצגים (קטגוריה, שעת יציאה, ואז המילה ״בלו״ז״, שנשאר ממנה רק האייקון).",
+    "בריחוף על כרטיס מופיע רק עיפרון העריכה (וכשיש מקום, גם ״הפוך לנקודת צד״), עם מעבר רך, כך שהשם נשאר קריא. חיצי מעלה/מטה הוסרו, כי סדר משנים בגרירה.",
+    "בלוק ההליכה: השורות הפנימיות והכלים שלהן נשארים בתוך המסגרת, ושעת הסיום לא מופיעה פעמיים."
+  ],
+  "technical": "planner-polish.css: .stop-body is a size container (ronnycard); only the details span may shrink (one ellipsis at most); @container <=270px hides category label + dot, .ronny-sec-depart and the role toggle; <=200px makes the role chip icon-only. Departure time wrapped in .ronny-sec-depart (24-timeline-scheduling.js). Hover tools: [data-move] hidden in the schedule and walk head; logical padding with a 28px fade toward the text; borderless 28px buttons. Walk subs: inline margins removed (they overflowed the frame by 8px), grip and tools inset 6px, last sub time chip hidden when the head shows start/finish. Verified at planner widths 315 and 430. Backup: backups/2026-11-24_170931UTC_pre138_03e51197c2bb."
+}
