@@ -135,3 +135,17 @@ body.ronny-no-times #planner #schedule .ronny-walk-time{display:none!important}
 /* Day warnings live just above the schedule, so the header never changes height between days. */
 #planner > #ronny-day-warnings{padding:0 14px}
 #planner > #ronny-day-warnings .ronny-day-warnings{margin:4px 0 2px}
+
+/* ---- Patch 136: top-bar day arrows stay in fixed places, with a small frame and label ----
+   The stats sit in the middle column and can change width from day to day; the arrows hug the
+   outer edges of the stats area, whose width depends only on the trip title and the action buttons. */
+.topbar .ronny-top-stats{flex:1 1 0!important;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto auto minmax(0,1fr) auto;align-items:center;column-gap:0}
+.topbar .ronny-top-stats>#top-day-prev{grid-column:1}
+.topbar .ronny-top-stats>.ronny-stats-group:not(.ronny-stats-day){grid-column:3;margin-inline-end:9px}
+.topbar .ronny-top-stats>.ronny-stats-day{grid-column:4}
+.topbar .ronny-top-stats>#top-day-next{grid-column:6}
+.app.planner-collapsed .topbar .ronny-top-day-arrow{display:inline-flex}
+.topbar .ronny-top-day-arrow{align-items:center;gap:3px;width:auto;height:30px;padding:0 9px;border:1px solid rgba(83,119,96,.16);border-radius:9px;background:rgba(255,255,255,.35);color:#47634f;font-size:11px;font-weight:600;white-space:nowrap}
+.topbar .ronny-top-day-arrow svg{width:14px;height:14px;flex:none}
+.topbar .ronny-top-day-arrow:hover:not(:disabled){background:rgba(82,124,96,.09);border-color:rgba(82,124,96,.24);color:#35584a}
+.topbar .ronny-top-day-arrow:disabled{opacity:.35}

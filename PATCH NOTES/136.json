@@ -1,0 +1,9 @@
+{
+  "version": "136",
+  "date": "2026-11-24",
+  "notes": [
+    "חיצי המעבר בין ימים בסרגל העליון (כשחלונית התכנון סגורה) נשארים באותו מקום בכל יום, גם כשהנתונים משתנים.",
+    "לחיצים מסגרת קטנה וכיתוב: ״יום קודם״ ו״יום הבא״."
+  ],
+  "technical": "#ronny-top-stats is a 6-column grid (arrow | 1fr | trip | day | 1fr | arrow) with flex-basis 0 in the top bar, so the arrows sit at the edges of an area whose width does not depend on the stats, and the two stat cards are centered as one unit. Arrow buttons got labels and a light frame. Measured: arrow positions identical on every day. Backup: backups/2026-11-24_165239UTC_pre136_934dc3fa399d."
+}
