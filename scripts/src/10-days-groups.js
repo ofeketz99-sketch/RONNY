@@ -648,7 +648,7 @@ function isWithinSurface(target,active){
  // JSON input is intentionally outside the drawer in the fixed header.
  // Its synthetic click comes from the import action INSIDE the transfer drawer.
  // Do not intercept or cancel the file picker activation.
- if(active.el.id==='drawer' && target?.id==='import-file' && !!active.el.querySelector('#import-btn'))return true;
+ if(active.el.id==='drawer' && target?.id==='import-file' && !!active.el.querySelector('#import-btn,#library-import'))return true;
  // A selected point remains an interactive part of its open editor:
  // the next pointer press can start a Leaflet drag without an extra click.
  if(active.el.id==='point-quick'){

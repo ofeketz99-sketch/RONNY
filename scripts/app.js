@@ -1374,8 +1374,8 @@ function showLibrary(){
  const html=`<div class="api-intro"><strong>הטיולים שלי — ${count} ${count===1?'טיול':'טיולים'}</strong><p>כל טיול נשמר בנפרד בדפדפן. פתיחת טיול מתאימה אוטומטית את המפה לכל המסלול.</p></div>
  <div class="ronny-library-toolbar" role="toolbar" aria-label="פעולות ספריית הטיולים"><button type="button" data-trip-bulk="all">בחר הכול</button><button type="button" data-trip-bulk="none">בטל בחירה</button><button type="button" data-trip-bulk="expand">פתח הכול</button><button type="button" data-trip-bulk="collapse">סגור הכול</button><button type="button" class="ronny-bulk-danger" data-trip-bulk="delete">מחק נבחרים</button></div>
  <div class="library-list">${items.map(r=>{const trip=r.trip||{},days=trip.days||[],stops=days.reduce((n,d)=>n+(d.stops?.length||0),0),current=r.id===activeTripId,expanded=tripExpandedIds.has(r.id);return `<article class="library-item ronny-entity ${current?'current':''} ${expanded?'expanded':'is-collapsed'}" data-trip-card="${esc(r.id)}" role="button" tabindex="0" aria-label="פתח את הטיול ${esc(r.title)}"><label class="ronny-trip-check" title="בחירת טיול לפעולות מרוכזות"><input type="checkbox" data-trip-select="${esc(r.id)}" ${tripSelectedIds.has(r.id)?'checked':''} aria-label="בחר טיול ${esc(r.title)}"></label><button type="button" class="ronny-trip-toggle" data-trip-open="${esc(r.id)}" aria-label="פתח את הטיול ${esc(r.title)}"><span class="library-icon">${icon('map-pinned')}</span><span class="ronny-trip-summ"><strong title="${esc(r.title)}">${esc(r.title)}</strong><small>${days.length} ימים · ${stops} נקודות</small></span></button><button type="button" class="ronny-trip-expand" data-trip-toggle="${esc(r.id)}" aria-expanded="${expanded}" aria-label="${expanded?'סגור פרטי טיול':'הצג פרטי טיול'}" title="הצג או הסתר פרטים">${icon(expanded?'chevron-up':'chevron-down','small-icon')}</button><div class="library-info"><div class="library-rename-editor ronny-rename-row" data-rename-editor="${esc(r.id)}" hidden><input data-rename-input="${esc(r.id)}" maxlength="64" aria-label="שם חדש לטיול" value="${esc(r.title)}"><button type="button" data-rename-save="${esc(r.id)}" title="שמור שם טיול">${icon('check','small-icon')}</button></div>${current?'<span class="library-current-label">טיול פתוח כעת</span>':''}<small>תחילה: ${esc(r.startDate||'לא נקבע')}</small><small>עודכן: ${new Date(r.updatedAt||Date.now()).toLocaleString('he-IL',{dateStyle:'short',timeStyle:'short'})}</small></div><div class="library-actions"><button class="btn ${current?'btn-soft':'btn-primary'}" data-trip-open="${esc(r.id)}">${icon(current?'check':'folder-open')} ${current?'פתוח':'פתח והמשך'}</button><button class="btn" data-trip-rename="${esc(r.id)}">${icon('pencil')} שנה שם</button><button class="btn" data-trip-copy="${esc(r.id)}">${icon('copy')} שכפל</button><button class="btn" style="color:#b64b58" data-trip-delete="${esc(r.id)}">${icon('trash-2')} מחק</button></div></article>`}).join('')}</div><p class="footnote" style="margin-top:14px">השמירה מתבצעת אוטומטית במכשיר הנוכחי בלבד. לגיבוי או להעברה למחשב אחר: קובץ ← שמירת גיבוי.</p>`;
- openDrawer('ספריית הטיולים','MY TRIPS','טענת טיול להמשך עבודה או יצירת טיול חדש',html,`<button class="btn" id="library-export">${icon('download')} גיבוי הטיול הנוכחי</button><button class="btn btn-primary" id="library-new">${icon('plus')} טיול חדש</button>`);
- $('library-new').onclick=()=>createTrip();$('library-export').onclick=exportTrip;
+ openDrawer('ספריית הטיולים','MY TRIPS','טענת טיול להמשך עבודה או יצירת טיול חדש',html,`<button class="btn" id="library-import">${icon('upload')} טעינת טיול מקובץ</button><button class="btn" id="library-export">${icon('download')} גיבוי הטיול הנוכחי</button><button class="btn btn-primary" id="library-new">${icon('plus')} טיול חדש</button>`);
+ $('library-new').onclick=()=>createTrip();$('library-export').onclick=exportTrip;$('library-import').onclick=()=>$('import-file').click();
  $('drawer-body').querySelectorAll('[data-trip-select]').forEach(el=>el.onchange=()=>{el.checked?tripSelectedIds.add(el.dataset.tripSelect):tripSelectedIds.delete(el.dataset.tripSelect)});
  $('drawer-body').querySelectorAll('[data-trip-toggle]').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.tripToggle;tripExpandedIds.has(id)?tripExpandedIds.delete(id):tripExpandedIds.add(id);const card=btn.closest('[data-trip-card]'),opened=tripExpandedIds.has(id);card?.classList.toggle('is-collapsed',!opened);card?.classList.toggle('expanded',opened);btn.setAttribute('aria-expanded',String(opened));btn.querySelector('svg')?.remove();btn.insertAdjacentHTML('beforeend',icon(opened?'chevron-up':'chevron-down','small-icon'));refreshIcons()});
  $('drawer-body').querySelectorAll('[data-trip-bulk]').forEach(btn=>btn.onclick=()=>{
@@ -2161,7 +2161,7 @@ function isWithinSurface(target,active){
  // JSON input is intentionally outside the drawer in the fixed header.
  // Its synthetic click comes from the import action INSIDE the transfer drawer.
  // Do not intercept or cancel the file picker activation.
- if(active.el.id==='drawer' && target?.id==='import-file' && !!active.el.querySelector('#import-btn'))return true;
+ if(active.el.id==='drawer' && target?.id==='import-file' && !!active.el.querySelector('#import-btn,#library-import'))return true;
  // A selected point remains an interactive part of its open editor:
  // the next pointer press can start a Leaflet drag without an extra click.
  if(active.el.id==='point-quick'){
@@ -6395,11 +6395,12 @@ document.querySelector('.rail')?.addEventListener('click',e=>{
 $('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
  $('data-transfer-btn').onclick=showTransferCenter;$('import-file').onchange=async e=>{
   const f=e.target.files?.[0];if(!f)return;
-  const btn=$('import-btn');if(btn)btn.disabled=true;
+  const btns=[$('import-btn'),$('library-import')].filter(Boolean);btns.forEach(b=>b.disabled=true);
   try{
-   if(!/\.json$/i.test(f.name))throw Error('ייבוא טיול דורש קובץ JSON. לרשימות Google Takeout יש לבחור את האפשרות הנפרדת.');
+   if(/\.(zip|csv|kml|kmz)$/i.test(f.name))throw Error('זה קובץ מקומות, לא טיול. רשימות Google Takeout נטענות מספריית המקומות.');
    if(f.size>35e6)throw Error('קובץ גדול מדי (מעל 35MB)');
-   let payload;try{payload=JSON.parse((await f.text()).replace(/^\uFEFF/,''))}catch(_){throw Error('הקובץ אינו JSON תקין')}
+   // בלי בדיקת סיומת: בטלפון קובץ שהגיע מוואטסאפ או מ־Drive מגיע לפעמים בשם בלי .json או עם .txt
+   let payload;try{payload=JSON.parse((await f.text()).replace(/^\uFEFF/,''))}catch(_){throw Error('הקובץ "'+f.name+'" אינו קובץ טיול של RONNY (JSON)')}
    const candidate=payload?.trip&&Array.isArray(payload.trip.days)?payload.trip:payload;
    const imported=prepareTrip(validateTrip(candidate));
    await saveQueue;
@@ -6410,7 +6411,7 @@ $('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$
    closeDrawer();applyCurrentTrip();
    toast('הטיול יובא ונשמר בספרייה. הטיולים האחרים נשארו ללא שינוי.');
   }catch(err){console.error('RONNY import failed',err);toast('לא ניתן לייבא: '+(err?.message||'שגיאה לא ידועה'))}
-  finally{if(btn?.isConnected)btn.disabled=false;e.target.value=''}
+  finally{btns.forEach(b=>{if(b.isConnected)b.disabled=false});e.target.value=''}
  };
  $('new-trip').onclick=()=>createTrip();
  $('rail-library').onclick=()=>{showLibrary();setRail('library')};$('rail-saved-places').onclick=()=>{showSavedPlaceLibrary();setRail('saved-places')};

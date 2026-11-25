@@ -34,11 +34,12 @@ document.querySelector('.rail')?.addEventListener('click',e=>{
 $('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
  $('data-transfer-btn').onclick=showTransferCenter;$('import-file').onchange=async e=>{
   const f=e.target.files?.[0];if(!f)return;
-  const btn=$('import-btn');if(btn)btn.disabled=true;
+  const btns=[$('import-btn'),$('library-import')].filter(Boolean);btns.forEach(b=>b.disabled=true);
   try{
-   if(!/\.json$/i.test(f.name))throw Error('ייבוא טיול דורש קובץ JSON. לרשימות Google Takeout יש לבחור את האפשרות הנפרדת.');
+   if(/\.(zip|csv|kml|kmz)$/i.test(f.name))throw Error('זה קובץ מקומות, לא טיול. רשימות Google Takeout נטענות מספריית המקומות.');
    if(f.size>35e6)throw Error('קובץ גדול מדי (מעל 35MB)');
-   let payload;try{payload=JSON.parse((await f.text()).replace(/^\uFEFF/,''))}catch(_){throw Error('הקובץ אינו JSON תקין')}
+   // בלי בדיקת סיומת: בטלפון קובץ שהגיע מוואטסאפ או מ־Drive מגיע לפעמים בשם בלי .json או עם .txt
+   let payload;try{payload=JSON.parse((await f.text()).replace(/^\uFEFF/,''))}catch(_){throw Error('הקובץ "'+f.name+'" אינו קובץ טיול של RONNY (JSON)')}
    const candidate=payload?.trip&&Array.isArray(payload.trip.days)?payload.trip:payload;
    const imported=prepareTrip(validateTrip(candidate));
    await saveQueue;
@@ -49,7 +50,7 @@ $('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$
    closeDrawer();applyCurrentTrip();
    toast('הטיול יובא ונשמר בספרייה. הטיולים האחרים נשארו ללא שינוי.');
   }catch(err){console.error('RONNY import failed',err);toast('לא ניתן לייבא: '+(err?.message||'שגיאה לא ידועה'))}
-  finally{if(btn?.isConnected)btn.disabled=false;e.target.value=''}
+  finally{btns.forEach(b=>{if(b.isConnected)b.disabled=false});e.target.value=''}
  };
  $('new-trip').onclick=()=>createTrip();
  $('rail-library').onclick=()=>{showLibrary();setRail('library')};$('rail-saved-places').onclick=()=>{showSavedPlaceLibrary();setRail('saved-places')};

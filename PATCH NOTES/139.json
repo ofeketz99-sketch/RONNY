@@ -1,0 +1,10 @@
+{
+  "version": "139",
+  "date": "2026-11-25",
+  "notes": [
+    "טעינת טיול מקובץ עובדת בטלפון: בספריית הטיולים יש כפתור חדש ״טעינת טיול מקובץ״. עד עכשיו כפתור ״קובץ״ הוסתר בטלפון ולא הייתה שום דרך לטעון גיבוי.",
+    "אפשר לבחור כל קובץ: באנדרואיד קובץ גיבוי שהגיע מוואטסאפ, ממייל או מ־Drive הופיע אפור בבורר. הקובץ נבדק לפי התוכן, ולכן גם שם כמו ״טיול.json.txt״ או שם בלי סיומת נטען.",
+    "קובץ שאינו טיול (PDF, תמונה, ZIP של Google) מקבל הודעה ברורה במקום כישלון שקט."
+  ],
+  "technical": "index.html: #import-file without accept (Android greys out JSON whose provider reports application/octet-stream). 05-storage-trips.js: #library-import in the library drawer footer clicks #import-file; 10-days-groups.js isWithinSurface also allows it. 66-event-bindings.js: no .json name check, JSON.parse decides; zip/csv/kml/kmz get a places hint; both import buttons disabled while loading. e2e/transfer.spec.cjs: phone 390x844 library import of 'טיול צנרת.json.txt' (text/plain) and a non-trip file. Checked: npm test; e2e 86 of 92 pass with unpkg served locally; the 6 failures (desktop-final, walk-block, workspace-pencil, search-geocoding) fail the same way on a1ce618, because routing and geocoding hosts are blocked in this environment. Not tested on a real phone. Backup: backups/2026-11-25_190821UTC_pre139_a1ce6180041d."
+}
