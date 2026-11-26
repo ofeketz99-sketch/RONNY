@@ -31,7 +31,7 @@ document.querySelector('.rail')?.addEventListener('click',e=>{
   e.preventDefault();e.stopImmediatePropagation();closeDrawer();
  }
 },true);
-$('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
+$('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;if($('point-nav-prev')){$('point-nav-prev').onclick=()=>ronnyPointNavStep(-1);$('point-nav-next').onclick=()=>ronnyPointNavStep(1);$('point-nav-label').onclick=ronnyPointNavOpen}$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
  $('data-transfer-btn').onclick=showTransferCenter;$('import-file').onchange=async e=>{
   const f=e.target.files?.[0];if(!f)return;
   const btns=[$('import-btn'),$('library-import')].filter(Boolean);btns.forEach(b=>b.disabled=true);

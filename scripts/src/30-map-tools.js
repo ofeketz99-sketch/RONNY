@@ -371,6 +371,7 @@ function syncMarkerDragState(){
   marker?.classList.toggle('drag-marker',canDrag);
   marker?.classList.toggle('active',selected||selectedStop===m.options.ronnyStopId);
  });
+ ronnyPointNavSync();
 }
 function cancelPointMove(){
  if(!pointMoveModeId)return;

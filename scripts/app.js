@@ -4112,6 +4112,7 @@ function syncMarkerDragState(){
   marker?.classList.toggle('drag-marker',canDrag);
   marker?.classList.toggle('active',selected||selectedStop===m.options.ronnyStopId);
  });
+ ronnyPointNavSync();
 }
 function cancelPointMove(){
  if(!pointMoveModeId)return;
@@ -4839,7 +4840,7 @@ function renderMap(){const dToggle=$('map-description-toggle');if(dToggle)dToggl
  }
  renderOutlineStageGuide();renderMarkers();drawRoute();renderPoiLinks();renderPhotos();renderViaHandles();renderSavedPlaceMarkers();if(googleMode)updateGoogleMap()}
 
-function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();refreshIcons();ronnySyncSeparatorValues();if(modelChanged)save();ronnyRememberWorkspace()}
+function renderAll(){ronnyRenderGroupBar();const modelChanged=TripStateCommands.synchronizeForRender(state,planningResolution==='day',{syncWalkingLoops,synchronizeLoopDays,synchronizeDayStarts,synchronizeChronologicalEndpointNames,synchronizeNightIdentity});ensureStableViaColors();applyDayTheme();renderDays();renderSchedule();renderPlanningResolution();renderMap();renderTripDashboard();ronnyPointNavSync();refreshIcons();ronnySyncSeparatorValues();if(modelChanged)save();ronnyRememberWorkspace()}
 function dayMissingEndpoint(d){return TripQueries.dayMissingEndpoint(d)}
 function dayExcludedFromTotals(d){return TripQueries.dayExcludedFromTotals(d)}
 function selectDay(i,afterSelect){if(i<0||i>=state.days.length)return;
@@ -5271,7 +5272,7 @@ function openPointQuick(id){
  syncMarkerDragState();
  refreshIcons();
 }
-function focusStop(id){
+function focusStop(id,options){
  const obj=getStop(id);if(!obj||!map)return;
  hidePointQuick();closeLegEditor();hideContext();
  if(obj.day!==selectedDay||viewScope!=='day'){
@@ -5287,7 +5288,9 @@ function focusStop(id){
  // Do not unnecessarily recenter (or zoom) when the stop is already comfortably on screen.
  const bounds=map.getBounds?.();
  const inside=bounds?.isValid?.()&&bounds.pad(-.14).contains(target);
- if(!inside){
+ // Patch 140: the phone point arrows always bring the point to the centre, close enough to see it.
+ if(options?.center){const near=Math.max(14,zoom);if(near===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});else map.flyTo(target,near,{duration:reduced?0:.6,animate:!reduced})}
+ else if(!inside){
   const preferred=Math.max(10,zoom);
   if(preferred===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});
   else map.flyTo(target,preferred,{duration:reduced?0:.55,animate:!reduced});
@@ -6012,6 +6015,12 @@ function setPlannerCollapsed(flag){
 }
 function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.add('show-mobile');setRail('plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
 function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize({pan:false}),260)}
+// Patch 140: phone map mode — previous/next point arrows in the top bar.
+// The route points of the selected day, in order; side points, ideas and the automatic loop/walk ends are skipped.
+function ronnyPointNavList(){return (state.days[selectedDay]?.stops||[]).filter(s=>validPoint(s)&&!s.autoLoopEnd&&!s.autoWalkEnd&&!isMapOnlyPoint(s))}
+function ronnyPointNavStep(dir){const list=ronnyPointNavList();if(!list.length)return;const at=list.findIndex(s=>s.id===selectedStop);const next=at<0?(dir>0?0:list.length-1):Math.max(0,Math.min(list.length-1,at+dir));if(next===at)return;focusStop(list[next].id,{center:true})}
+function ronnyPointNavSync(){const box=$('ronny-point-nav');if(!box)return;const list=ronnyPointNavList(),at=list.findIndex(s=>s.id===selectedStop);box.hidden=!list.length;$('point-nav-count').textContent=at<0?list.length+' נקודות':(at+1)+'/'+list.length;$('point-nav-name').textContent=at<0?'היום':list[at].name||'נקודה';$('point-nav-prev').disabled=at===0;$('point-nav-next').disabled=at===list.length-1;$('point-nav-label').title=at<0?'עבור לנקודה הראשונה':'פתח את '+(list[at].name||'הנקודה')}
+function ronnyPointNavOpen(){const list=ronnyPointNavList();if(!list.length)return;const cur=list.find(s=>s.id===selectedStop);if(cur)openPointQuick(cur.id);else focusStop(list[0].id,{center:true})}
 
 function ronnyBudgetExpenses(){
  if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];
@@ -6392,7 +6401,7 @@ document.querySelector('.rail')?.addEventListener('click',e=>{
   e.preventDefault();e.stopImmediatePropagation();closeDrawer();
  }
 },true);
-$('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
+$('rail-plan').onclick=showPlan;if($('rail-map'))$('rail-map').onclick=showMap;if($('point-nav-prev')){$('point-nav-prev').onclick=()=>ronnyPointNavStep(-1);$('point-nav-next').onclick=()=>ronnyPointNavStep(1);$('point-nav-label').onclick=ronnyPointNavOpen}$('rail-settings').onclick=()=>{openSettings();setRail('settings')};$('rail-budget').onclick=()=>{showBudget();setRail('budget')};$('rail-lodging').onclick=()=>{showLodging();setRail('lodging')};$('rail-photos').onclick=()=>{showPhotos();setRail('photos')};$('rail-pdf').onclick=()=>{openPrintDialog();setRail('pdf')};$('rail-help').onclick=()=>{help();setRail('help')};
  $('data-transfer-btn').onclick=showTransferCenter;$('import-file').onchange=async e=>{
   const f=e.target.files?.[0];if(!f)return;
   const btns=[$('import-btn'),$('library-import')].filter(Boolean);btns.forEach(b=>b.disabled=true);

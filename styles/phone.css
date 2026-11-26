@@ -87,3 +87,19 @@
  .ronny-install-go{flex:none;padding:7px 13px;border:0;border-radius:10px;background:#47705a;color:#fff;font-size:12.5px;font-weight:700}
  .ronny-install-close{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:#8a948b;font-size:13px}
 }
+
+/* Patch 140: in map mode the top bar shows previous / next point arrows for the selected day instead of the trip name. */
+.ronny-point-nav{display:none}
+@media (max-width:760px){
+ .topbar{overflow:clip!important}
+ .app:has(#rail-map.active) .topbar .trip-title{display:none!important}
+ .app:has(#rail-map.active) .ronny-point-nav:not([hidden]){display:flex}
+ .ronny-point-nav{flex:1 1 auto;min-width:0;align-items:center;gap:4px;direction:rtl}
+ .ronny-point-nav-arrow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:40px;height:38px;padding:0;border:1px solid var(--rx-line,#e6dfd0);border-radius:12px;background:var(--rx-surface,#fffdf8);color:var(--rx-accent-strong,#35584a);box-shadow:0 1px 3px rgba(44,55,47,.06)}
+ .ronny-point-nav-arrow svg{width:20px;height:20px}
+ .ronny-point-nav-arrow:active:not(:disabled){background:var(--rx-accent-soft,#e7f0e9)}
+ .ronny-point-nav-arrow:disabled{opacity:.35}
+ .ronny-point-nav-label{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 8px;border:0;border-radius:12px;background:none;color:var(--rx-ink,#2c372f);font-size:14px;font-weight:700}
+ .ronny-point-nav-count{flex:none;padding:2px 7px;border-radius:999px;background:var(--rx-accent-soft,#e7f0e9);color:var(--rx-accent-strong,#35584a);font-size:11.5px;font-weight:800;unicode-bidi:isolate}
+ .ronny-point-nav-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+}

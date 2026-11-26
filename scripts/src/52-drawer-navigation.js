@@ -702,6 +702,12 @@ function setPlannerCollapsed(flag){
 }
 function showPlan(){const open=innerWidth<=760?$('planner').classList.contains('show-mobile'):!document.querySelector('.app').classList.contains('planner-collapsed');closeDrawer();if(innerWidth<=760){$('planner').classList.add('show-mobile');setRail('plan')}else{setPlannerCollapsed(open);if(!open)$('planner').scrollTop=0}}
 function showMap(){closeDrawer();if(innerWidth<=760){$('planner').classList.remove('show-mobile');setRail('map')}else setPlannerCollapsed(true);setTimeout(()=>map?.invalidateSize({pan:false}),260)}
+// Patch 140: phone map mode — previous/next point arrows in the top bar.
+// The route points of the selected day, in order; side points, ideas and the automatic loop/walk ends are skipped.
+function ronnyPointNavList(){return (state.days[selectedDay]?.stops||[]).filter(s=>validPoint(s)&&!s.autoLoopEnd&&!s.autoWalkEnd&&!isMapOnlyPoint(s))}
+function ronnyPointNavStep(dir){const list=ronnyPointNavList();if(!list.length)return;const at=list.findIndex(s=>s.id===selectedStop);const next=at<0?(dir>0?0:list.length-1):Math.max(0,Math.min(list.length-1,at+dir));if(next===at)return;focusStop(list[next].id,{center:true})}
+function ronnyPointNavSync(){const box=$('ronny-point-nav');if(!box)return;const list=ronnyPointNavList(),at=list.findIndex(s=>s.id===selectedStop);box.hidden=!list.length;$('point-nav-count').textContent=at<0?list.length+' נקודות':(at+1)+'/'+list.length;$('point-nav-name').textContent=at<0?'היום':list[at].name||'נקודה';$('point-nav-prev').disabled=at===0;$('point-nav-next').disabled=at===list.length-1;$('point-nav-label').title=at<0?'עבור לנקודה הראשונה':'פתח את '+(list[at].name||'הנקודה')}
+function ronnyPointNavOpen(){const list=ronnyPointNavList();if(!list.length)return;const cur=list.find(s=>s.id===selectedStop);if(cur)openPointQuick(cur.id);else focusStop(list[0].id,{center:true})}
 
 function ronnyBudgetExpenses(){
  if(!Array.isArray(state.extraExpenses))state.extraExpenses=[];

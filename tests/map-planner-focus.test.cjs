@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const text=fs.readFileSync(path.join(__dirname,'../scripts/src/50-point-editing.js'),'utf8');
-const start=text.indexOf('function focusStop(id){'),end=text.indexOf('// Drawer history retains',start);
+const start=text.indexOf('function focusStop(id,options){'),end=text.indexOf('// Drawer history retains',start);
 assert.ok(start>=0&&end>start,'focusStop source exists');
 function create(inside=true,zoom=13){
  const calls=[],stop={id:'via',type:'via',lat:46.04,lng:7.80};
@@ -30,4 +30,13 @@ test('offscreen stop pans at the existing zoom instead of unnecessarily zooming'
 test('distant stop at low zoom improves detail only once',()=>{
  const h=create(false,6);h.env.focusStop('via');
  const fly=h.calls.find(c=>c[0]==='fly');assert.ok(fly);assert.equal(fly[2],10);
+});
+test('phone point arrows: a visible stop is still centred, zooming in to street level',()=>{
+ const h=create(true,11);h.env.focusStop('via',{center:true});
+ const fly=h.calls.find(c=>c[0]==='fly');assert.ok(fly);assert.equal(fly[2],14);
+});
+test('phone point arrows keep a closer zoom and only pan',()=>{
+ const h=create(true,16);h.env.focusStop('via',{center:true});
+ assert.equal(h.calls.some(c=>c[0]==='pan'),true);
+ assert.equal(h.calls.some(c=>c[0]==='fly'),false);
 });

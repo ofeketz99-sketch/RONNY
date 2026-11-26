@@ -1,0 +1,10 @@
+{
+  "version": "140",
+  "date": "2026-11-26",
+  "notes": [
+    "מעבר בין נקודות במפה בטלפון: במצב מפה הסרגל העליון מציג חיצים ״הנקודה הקודמת״ ו״הנקודה הבאה״, ובאמצע את מספר הנקודה ושמה (למשל 2/5). כל לחיצה ממרכזת את המפה על הנקודה ומתקרבת אליה.",
+    "לחיצה על שם הנקודה בסרגל פותחת את עורך הנקודה.",
+    "החיצים עוברים על נקודות המסלול של היום הנבחר, לפי הסדר. נקודות צד ורעיונות לא נכללים. בלשונית התוכנית הסרגל העליון נשאר עם שם הטיול, ובמחשב אין שינוי."
+  ],
+  "technical": "index.html: #ronny-point-nav (#point-nav-prev, #point-nav-label, #point-nav-next) in the top bar. 52-drawer-navigation.js: ronnyPointNavList (selected day, validPoint, no autoLoopEnd/autoWalkEnd/map-only), ronnyPointNavStep, ronnyPointNavSync, ronnyPointNavOpen; synced from renderAll and syncMarkerDragState. 50-point-editing.js: focusStop(id,{center:true}) always centres, zoom max(14,current). phone.css: shown only under .app:has(#rail-map.active) at <=760px, trip title hidden there; .topbar overflow:clip on phone, because the 660px ::after decoration made the bar scrollable and focusing an arrow scrolled it sideways. tests/map-planner-focus.test.cjs: new signature + 2 centre cases. New e2e/phone-point-nav.spec.cjs (not run locally: Playwright is not installed here). Checked: npm test 167/167; in Chromium at 375x812: arrows, 1/3..3/3, disabled ends, centring, label opens the editor, plan tab and desktop unchanged. Not tested on a real phone or in Safari (:has needs iOS 15.4+). Backup: backups/2026-11-26_071606UTC_pre140_020ddcac9125."
+}

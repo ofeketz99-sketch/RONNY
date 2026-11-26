@@ -365,7 +365,7 @@ function openPointQuick(id){
  syncMarkerDragState();
  refreshIcons();
 }
-function focusStop(id){
+function focusStop(id,options){
  const obj=getStop(id);if(!obj||!map)return;
  hidePointQuick();closeLegEditor();hideContext();
  if(obj.day!==selectedDay||viewScope!=='day'){
@@ -381,7 +381,9 @@ function focusStop(id){
  // Do not unnecessarily recenter (or zoom) when the stop is already comfortably on screen.
  const bounds=map.getBounds?.();
  const inside=bounds?.isValid?.()&&bounds.pad(-.14).contains(target);
- if(!inside){
+ // Patch 140: the phone point arrows always bring the point to the centre, close enough to see it.
+ if(options?.center){const near=Math.max(14,zoom);if(near===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});else map.flyTo(target,near,{duration:reduced?0:.6,animate:!reduced})}
+ else if(!inside){
   const preferred=Math.max(10,zoom);
   if(preferred===zoom)map.panTo(target,{animate:!reduced,duration:reduced?0:.48});
   else map.flyTo(target,preferred,{duration:reduced?0:.55,animate:!reduced});
