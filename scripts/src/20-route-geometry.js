@@ -416,7 +416,7 @@ function renderDrawVertices(){
  }
  function popupOccupiedAreas(pane,el,paneRect){
   // Search, map tools, zoom buttons, visible labels and other currently open popovers.
-  const selectors=['.map-search','.map-quick-views','.map-tools-side','.map-controls','.leaflet-control-zoom','.map-utility','.route-card','.leaflet-tooltip','.leaflet-popup','.map-floating-popup.open'];
+  const selectors=['.map-search','.map-quick-views','.map-tools-side','.map-controls','.leaflet-control-zoom','.ronny-locate-control','.map-utility','.route-card','.leaflet-tooltip','.leaflet-popup','.map-floating-popup.open'];
   const areas=[];
   for(const selector of selectors){
    for(const node of pane.querySelectorAll(selector)){

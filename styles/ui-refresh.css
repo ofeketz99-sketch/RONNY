@@ -499,3 +499,20 @@ body.ronny-no-times #planner #schedule .ronny-walk-block:before,body.ronny-no-ti
 #planner #schedule .ronny-walk-sub .stop-tools{background:linear-gradient(to right,var(--walk-soft) 72%,transparent)!important}
 #planner #schedule .ronny-walk-sub-plain .stop-secondary{display:none!important}
 #planner #schedule .ronny-walk-sub-plain .stop-body{min-height:30px!important}
+
+/* Patch 141: current location. The button sits under the zoom buttons and matches them.
+   Blue is reserved for "you are here", as in most map apps. */
+.leaflet-control.ronny-locate-control{margin-top:8px!important;border:0!important;box-shadow:none!important;background:transparent!important}
+.ronny-locate-btn{width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid #dce8ed;border-radius:14px;background:#fff;color:#2d4456;box-shadow:0 8px 22px #17384c18;cursor:pointer;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
+.ronny-locate-btn svg{width:21px;height:21px;stroke-width:2}
+.ronny-locate-btn:hover{background:#edf7f5;border-color:#b8ddd5}
+.ronny-locate-btn[data-state="searching"]{color:#1a73e8}
+.ronny-locate-btn[data-state="searching"] svg{animation:ronny-locate-blink 1.1s ease-in-out infinite}
+.ronny-locate-btn[data-state="follow"]{background:#e8f0fe;border-color:#9ec1f7;color:#1a73e8}
+.ronny-locate-btn[data-state="free"]{color:#1a73e8}
+.ronny-locate-marker{background:none;border:0}
+.ronny-locate-dot{position:absolute;inset:3px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 1px 5px #0000004d}
+.ronny-locate-dot::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid #1a73e8;opacity:0;animation:ronny-locate-pulse 2s ease-out infinite}
+@keyframes ronny-locate-blink{50%{opacity:.35}}
+@keyframes ronny-locate-pulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ronny-locate-btn[data-state="searching"] svg,.ronny-locate-dot::after{animation:none}}

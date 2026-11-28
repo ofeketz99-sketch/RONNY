@@ -23,6 +23,7 @@ const parts=[
   "22-route-editor",
   "24-timeline-scheduling",
   "30-map-tools",
+  "32-current-location",
   "40-outline-mode",
   "50-point-editing",
   "52-drawer-navigation",

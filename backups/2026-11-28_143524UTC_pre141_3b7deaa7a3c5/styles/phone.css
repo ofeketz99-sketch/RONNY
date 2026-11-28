@@ -1,0 +1,105 @@
+/* Patch 130: stripped-down phone interface (width <= 760px, same breakpoint as the mobile layout).
+   Only three tabs: plan, map and trips. The day's schedule, the map and a short point editor.
+   Planning tools, statistics and settings stay on the computer. Nothing is deleted from the trip. */
+.ronny-phone-only,.ronny-phone-label,#planner #schedule .ronny-nav-link{display:none!important}
+
+@media (max-width:760px){
+ /* ---- Bottom tab bar: plan · map · trips ---- */
+ .rail{display:flex!important;justify-content:space-around!important;align-items:stretch!important;gap:0!important;padding:4px 6px calc(4px + env(safe-area-inset-bottom))!important;overflow:hidden!important;background:var(--rx-surface,#fffdf8)!important;border-top:1px solid var(--rx-line,#e6dfd0)!important;box-shadow:0 -4px 16px rgba(44,55,47,.06)!important}
+ .rail .rail-btn{display:none!important}
+ .rail #rail-plan,.rail #rail-map,.rail #rail-library{display:flex!important;flex:1 1 0!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;width:auto!important;height:auto!important;max-width:120px!important;margin:0!important;padding:5px 0!important;border-radius:12px!important;background:none!important;color:var(--rx-ink-3,#667062)!important;box-shadow:none!important}
+ .rail #rail-plan.active,.rail #rail-map.active,.rail #rail-library.active{color:var(--rx-accent-strong,#35584a)!important;background:var(--rx-accent-soft,#e7f0e9)!important}
+ .rail .rail-btn.active:before{display:none!important}
+ .rail .rail-btn svg{width:21px!important;height:21px!important}
+ .rail .ronny-phone-label{display:block!important;font-size:11px!important;font-weight:800!important;line-height:1.1!important}
+ .rail .rail-bottom{display:contents!important}
+
+ /* ---- Top bar: trip name and undo only ---- */
+ .topbar{gap:8px!important}
+ #ronny-top-stats,#ronny-trip-dashboard,#ronny-local-save-status,#data-transfer-btn,#new-trip{display:none!important}
+ .trip-name{width:auto!important;max-width:none!important;flex:1 1 auto!important;font-size:16px!important}
+ .trip-title{flex:1 1 auto!important;min-width:0!important}
+
+ /* ---- Map: search, zoom and the two base maps ---- */
+ .map-mini-tools,#map-day-trigger,#map-day-menu,#map-picker-menu,#route-card-toggle,.map-bottom,.map-tools-side,#map-controls,.map-hint{display:none!important}
+
+ /* ---- Plan: day picker and the schedule ---- */
+ #planner .planner-topline,#planner .panel-head,#planner .day-sequence-heading,#ronny-day-groups-bar,#ronny-stage-summary,#day-context,#ronny-day-summary,#planner-upper-resizer,#add-day,#auto-time,#day-time-mode,#planner .panel-footer .budget-line,#planner-ribbon-open{display:none!important}
+ #planner .planner-upper{flex:0 0 auto!important;height:auto!important;max-height:none!important;overflow:visible!important;padding-top:8px!important}
+ #planner #days .ronny-day-card-edit,#planner .ronny-day-navigation #add-day{display:none!important}
+ #planner .section-ribbon{padding:8px 15px 4px!important}
+ #planner #schedule .ronny-bulk-toolbar,#planner #schedule .ronny-stage-bridge,#planner #schedule .ronny-side-points{display:none!important}
+
+ /* Schedule cards: full names, only edit / navigate / drag */
+ #planner #schedule .stop-title{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:14px!important;line-height:1.25!important}
+ #planner #schedule .stop-tools [data-move],#planner #schedule .stop-tools .ronny-role-toggle,#planner #schedule .ronny-walk-head [data-move]{display:none!important}
+ #planner #schedule .ronny-nav-link{display:inline-flex!important;align-items:center;justify-content:center;color:var(--rx-accent-strong,#35584a)!important}
+ #planner #schedule .stop-tools .micro{width:36px!important;height:34px!important}
+ #planner #schedule .ronny-drag-grip{width:26px!important;height:40px!important;color:#8e9a8c!important}
+ #planner #schedule .stop[data-drag-ok="1"] .stop-body{padding-inline-end:30px!important}
+ #planner #schedule .ronny-walk-head{padding-inline-end:30px!important}
+ #planner #schedule .ronny-role-chip,#planner #schedule .ronny-category-label+.dot{display:none!important}
+ #planner .panel-footer{padding:10px 15px!important}
+ #planner .panel-footer #panel-add{width:100%!important;justify-content:center!important}
+
+ /* ---- Point editor: a bottom sheet with name, category, description and time ---- */
+ #point-quick.open{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:var(--phone-rail-h)!important;width:100%!important;max-width:none!important;max-height:min(60dvh,540px)!important;border-radius:18px 18px 0 0!important;transform:none!important;overflow-y:auto!important;z-index:1300!important;box-shadow:0 -10px 34px rgba(36,46,39,.22)!important}
+ #point-quick .popup-drag-handle,#point-quick .ronny-role-field,#point-quick .ronny-transfer-card,#point-quick .ronny-night-card,#point-quick .ronny-description-choice,
+ #point-quick [data-ronny-point-section="icons"],#point-quick [data-ronny-point-section="context"],#point-quick [data-ronny-point-section="colors"],#point-quick [data-ronny-point-section="routes"],
+ #point-quick [data-quick-street-view],#point-quick [data-quick-details],#point-quick .walk-loop-route-actions,#point-quick .ronny-walk-clock-hint{display:none!important}
+ /* ---- Add-point picker: a bottom sheet with just the categories ---- */
+ #map-context.open{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:var(--phone-rail-h)!important;width:100%!important;max-width:none!important;max-height:min(60dvh,520px)!important;border-radius:18px 18px 0 0!important;transform:none!important;overflow-y:auto!important;z-index:1300!important;box-shadow:0 -10px 34px rgba(36,46,39,.22)!important}
+ #map-context .popup-drag-handle,#map-context .tree-role-choice,#map-context .map-tree-hint,#map-context .tree-quick-points,#map-context .tree-more-actions{display:none!important}
+ /* ---- Trips: just the list, open and new trip ---- */
+ #drawer .ronny-library-toolbar,#drawer .ronny-trip-check,#drawer-body > .footnote{display:none!important}
+ /* ---- Slimmer bars (patch 132) ---- */
+ :root{--phone-top-h:50px;--phone-rail-h:54px}
+ .topbar{height:var(--phone-top-h)!important;min-height:0!important;padding:0 12px!important}
+ .topbar .trip-logo{display:none!important}
+ .topbar .trip-name{font-size:15px!important;padding-block:4px!important}
+ .topbar .top-actions .btn{padding:6px!important;min-height:0!important}
+ .rail{height:var(--phone-rail-h)!important;padding-block:3px calc(3px + env(safe-area-inset-bottom))!important}
+ .rail #rail-plan,.rail #rail-map,.rail #rail-library{padding:3px 0!important;gap:1px!important}
+ .rail .rail-btn svg{width:19px!important;height:19px!important}
+ .rail .ronny-phone-label{font-size:10.5px!important}
+ .planner,.map-pane{top:var(--phone-top-h)!important;bottom:var(--phone-rail-h)!important}
+
+ /* ---- Map top row: base-map switch pinned to the left edge, a compact search beside it ---- */
+ #map-quick-views{top:10px!important;left:10px!important;right:auto!important;gap:0!important;width:auto!important}
+ #map-base-switch{position:absolute!important;left:0!important;right:auto!important;top:0!important;width:auto!important;height:38px!important;min-height:0!important;padding:2px!important;gap:2px!important;margin:0!important;border-radius:12px!important}
+ #map-base-switch button{width:34px!important;height:34px!important;min-width:0!important;padding:0!important}
+ #map-base-switch button svg{width:17px!important;height:17px!important}
+ .map-top{top:10px!important;right:10px!important;left:94px!important;width:auto!important;gap:0!important}
+ .map-top #search-box,.map-top .map-search{width:100%!important;max-width:none!important;height:38px!important;min-height:0!important;margin:0!important;border-radius:12px!important}
+ #place-search{height:38px!important;min-height:0!important;padding-block:0!important;font-size:14px!important}
+ #search-btn{width:34px!important;height:34px!important;min-width:0!important}
+ #search-btn svg{width:17px!important;height:17px!important}
+ .leaflet-top.leaflet-right{top:58px!important;right:2px!important}
+ .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;font-size:18px!important}
+ /* ---- Installed app (patch 137): room for the phone's status bar, and the install offer ---- */
+ html.ronny-standalone .topbar{padding-top:env(safe-area-inset-top)!important;height:calc(var(--phone-top-h) + env(safe-area-inset-top))!important}
+ html.ronny-standalone .planner,html.ronny-standalone .map-pane{top:calc(var(--phone-top-h) + env(safe-area-inset-top))!important}
+ .ronny-install{position:fixed;left:10px;right:10px;bottom:calc(var(--phone-rail-h) + 10px);z-index:1500;display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(83,119,96,.18);border-radius:14px;background:rgba(255,253,248,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 6px 22px rgba(36,46,39,.16);direction:rtl}
+ .ronny-install img{flex:none;border-radius:9px}
+ .ronny-install-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+ .ronny-install-copy strong{font-size:13px;color:#2c372f}
+ .ronny-install-copy span{font-size:11px;color:#667062;line-height:1.3}
+ .ronny-install-go{flex:none;padding:7px 13px;border:0;border-radius:10px;background:#47705a;color:#fff;font-size:12.5px;font-weight:700}
+ .ronny-install-close{flex:none;width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:#8a948b;font-size:13px}
+}
+
+/* Patch 140: in map mode the top bar shows previous / next point arrows for the selected day instead of the trip name. */
+.ronny-point-nav{display:none}
+@media (max-width:760px){
+ .topbar{overflow:clip!important}
+ .app:has(#rail-map.active) .topbar .trip-title{display:none!important}
+ .app:has(#rail-map.active) .ronny-point-nav:not([hidden]){display:flex}
+ .ronny-point-nav{flex:1 1 auto;min-width:0;align-items:center;gap:4px;direction:rtl}
+ .ronny-point-nav-arrow{flex:none;display:inline-flex;align-items:center;justify-content:center;width:40px;height:38px;padding:0;border:1px solid var(--rx-line,#e6dfd0);border-radius:12px;background:var(--rx-surface,#fffdf8);color:var(--rx-accent-strong,#35584a);box-shadow:0 1px 3px rgba(44,55,47,.06)}
+ .ronny-point-nav-arrow svg{width:20px;height:20px}
+ .ronny-point-nav-arrow:active:not(:disabled){background:var(--rx-accent-soft,#e7f0e9)}
+ .ronny-point-nav-arrow:disabled{opacity:.35}
+ .ronny-point-nav-label{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 8px;border:0;border-radius:12px;background:none;color:var(--rx-ink,#2c372f);font-size:14px;font-weight:700}
+ .ronny-point-nav-count{flex:none;padding:2px 7px;border-radius:999px;background:var(--rx-accent-soft,#e7f0e9);color:var(--rx-accent-strong,#35584a);font-size:11.5px;font-weight:800;unicode-bidi:isolate}
+ .ronny-point-nav-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+}

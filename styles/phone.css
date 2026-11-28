@@ -103,3 +103,9 @@
  .ronny-point-nav-count{flex:none;padding:2px 7px;border-radius:999px;background:var(--rx-accent-soft,#e7f0e9);color:var(--rx-accent-strong,#35584a);font-size:11.5px;font-weight:800;unicode-bidi:isolate}
  .ronny-point-nav-name{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 }
+
+/* Patch 141: the location button keeps the phone size of the zoom buttons. */
+@media (max-width:760px){
+ .ronny-locate-btn{width:36px!important;height:36px!important;border-radius:12px!important}
+ .ronny-locate-btn svg{width:19px!important;height:19px!important}
+}

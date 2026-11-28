@@ -2701,7 +2701,7 @@ function renderDrawVertices(){
  }
  function popupOccupiedAreas(pane,el,paneRect){
   // Search, map tools, zoom buttons, visible labels and other currently open popovers.
-  const selectors=['.map-search','.map-quick-views','.map-tools-side','.map-controls','.leaflet-control-zoom','.map-utility','.route-card','.leaflet-tooltip','.leaflet-popup','.map-floating-popup.open'];
+  const selectors=['.map-search','.map-quick-views','.map-tools-side','.map-controls','.leaflet-control-zoom','.ronny-locate-control','.map-utility','.route-card','.leaflet-tooltip','.leaflet-popup','.map-floating-popup.open'];
   const areas=[];
   for(const selector of selectors){
    for(const node of pane.querySelectorAll(selector)){
@@ -3849,7 +3849,7 @@ function ronnyMeasureBindControls(){
   ronnyMeasure.points.length=0;ronnyMeasure.undoLengths.length=0;ronnyMeasure.hover=null;ronnyMeasureDraw();
  });
 }
-function initMap(){if(!window.L){$('map').innerHTML='<div style="padding:90px 30px;text-align:center;direction:rtl">לא ניתן לטעון את רכיב המפה. בדוק חיבור אינטרנט ופתח מחדש.</div>';toast('ספריית המפה לא נטענה');return}map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([mapPrefs.home.lat,mapPrefs.home.lng],mapPrefs.home.zoom);L.control.zoom({position:'topright'}).addTo(map);markerLayer=L.layerGroup().addTo(map);routeLayer=L.layerGroup().addTo(map);poiLinkLayer=L.layerGroup().addTo(map);map.createPane('ronnyPoiLinks');map.getPane('ronnyPoiLinks').style.zIndex='420';map.getPane('ronnyPoiLinks').style.pointerEvents='none';map.createPane('ronnyRouteLabels');map.getPane('ronnyRouteLabels').style.zIndex='490';map.getPane('ronnyRouteLabels').style.pointerEvents='none';legTextSvgRenderer=L.svg({pane:'ronnyRouteLabels',padding:1});legLabelLayer=L.layerGroup().addTo(map);photoLayer=L.layerGroup().addTo(map);viaLayer=L.layerGroup().addTo(map);forcedHandleLayer=L.layerGroup().addTo(map);outlineLayer=L.layerGroup().addTo(map);savedPlaceLayer=L.layerGroup().addTo(map);savedPlacePreviewLayer=L.layerGroup().addTo(map);ronnyMeasureLayer=L.layerGroup().addTo(map);setMapStyle(normalizeMapStyle(state.settings.mapStyle),false);map.on('click',e=>{if(clearSearchPreviewMarker())return;if(ronnyMeasure.active||savedPreviewMode)return;if(Date.now()-ronnyMarkerDraggedAt<450)return;if(savedPinPlacementId){const p=savedPlaces.places.find(x=>x.id===savedPinPlacementId);savedPinPlacementId=null;if(p){p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);p.positionSource='user-map';persistSavedPlaces();renderSavedPlaceMarkers();showSavedPlaceLibrary();toast('מיקום המקום נקבע ונשמר');}return;}if(outlineMoveModeId&&planningResolution!=='day'){const id=outlineMoveModeId;outlineMoveModeId=null;const p=currentOutline().points.find(x=>x.id===id);if(p){const old={...p};p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);syncOutlineAnchors(id,old);save();renderAll();updateMapHint();toast('מיקום היעד עודכן')}return;}if(planningResolution!=='day'&&!newTripSetupDraft&&!forcedRelocateSession&&!pointMoveModeId&&!drawLegSession&&!forcedPointSession&&!homePickMode&&!photoPlacement&&!quickStreetMode){if($('map-context')?.classList.contains('open')){hideContext();return}addOutlinePoint(e.latlng);return;}if(newTripSetupDraft){const draft={...newTripSetupDraft,lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};newTripSetupDraft=null;updateMapHint();createTrip(draft);return}if(forcedRelocateSession){relocateForcedWaypoint(e.latlng);return}if(pointMoveModeId){relocatePoint(pointMoveModeId,e.latlng);return}if(drawLegSession){addDrawVertex(e.latlng.lat,e.latlng.lng);return}if(forcedPointSession){addForcedPoint(e.latlng);return}if($('leg-editor')?.classList.contains('open')){closeLegEditor();return}if($('point-quick')?.classList.contains('open')){hidePointQuick();return}if(homePickMode){homePickMode=false;mapPrefs.home={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};saveMapPrefs();updateMapHint();toast('נקודת הפתיחה נשמרה. בפעם הבאה האתר ייפתח כאן.');return}if($('map-context').classList.contains('open')){hideContext();return}if(photoPlacement){photoPlacement={lat:e.latlng.lat,lng:e.latlng.lng};$('photo-file').click();return}if(quickStreetMode){openGoogleStreetView(e.latlng.lat,e.latlng.lng);return}currentContext={lat:e.latlng.lat,lng:e.latlng.lng};showContext(e.containerPoint.x,e.containerPoint.y)});map.getContainer().addEventListener('click',e=>{if(!savedPreviewMode||e.target.closest?.('.leaflet-control'))return;e.stopPropagation();e.preventDefault()},true);
+function initMap(){if(!window.L){$('map').innerHTML='<div style="padding:90px 30px;text-align:center;direction:rtl">לא ניתן לטעון את רכיב המפה. בדוק חיבור אינטרנט ופתח מחדש.</div>';toast('ספריית המפה לא נטענה');return}map=L.map('map',{zoomControl:false,worldCopyJump:true,preferCanvas:true}).setView([mapPrefs.home.lat,mapPrefs.home.lng],mapPrefs.home.zoom);L.control.zoom({position:'topright'}).addTo(map);ronnyLocateInit();markerLayer=L.layerGroup().addTo(map);routeLayer=L.layerGroup().addTo(map);poiLinkLayer=L.layerGroup().addTo(map);map.createPane('ronnyPoiLinks');map.getPane('ronnyPoiLinks').style.zIndex='420';map.getPane('ronnyPoiLinks').style.pointerEvents='none';map.createPane('ronnyRouteLabels');map.getPane('ronnyRouteLabels').style.zIndex='490';map.getPane('ronnyRouteLabels').style.pointerEvents='none';legTextSvgRenderer=L.svg({pane:'ronnyRouteLabels',padding:1});legLabelLayer=L.layerGroup().addTo(map);photoLayer=L.layerGroup().addTo(map);viaLayer=L.layerGroup().addTo(map);forcedHandleLayer=L.layerGroup().addTo(map);outlineLayer=L.layerGroup().addTo(map);savedPlaceLayer=L.layerGroup().addTo(map);savedPlacePreviewLayer=L.layerGroup().addTo(map);ronnyMeasureLayer=L.layerGroup().addTo(map);setMapStyle(normalizeMapStyle(state.settings.mapStyle),false);map.on('click',e=>{if(clearSearchPreviewMarker())return;if(ronnyMeasure.active||savedPreviewMode)return;if(Date.now()-ronnyMarkerDraggedAt<450)return;if(savedPinPlacementId){const p=savedPlaces.places.find(x=>x.id===savedPinPlacementId);savedPinPlacementId=null;if(p){p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);p.positionSource='user-map';persistSavedPlaces();renderSavedPlaceMarkers();showSavedPlaceLibrary();toast('מיקום המקום נקבע ונשמר');}return;}if(outlineMoveModeId&&planningResolution!=='day'){const id=outlineMoveModeId;outlineMoveModeId=null;const p=currentOutline().points.find(x=>x.id===id);if(p){const old={...p};p.lat=+e.latlng.lat.toFixed(6);p.lng=+e.latlng.lng.toFixed(6);syncOutlineAnchors(id,old);save();renderAll();updateMapHint();toast('מיקום היעד עודכן')}return;}if(planningResolution!=='day'&&!newTripSetupDraft&&!forcedRelocateSession&&!pointMoveModeId&&!drawLegSession&&!forcedPointSession&&!homePickMode&&!photoPlacement&&!quickStreetMode){if($('map-context')?.classList.contains('open')){hideContext();return}addOutlinePoint(e.latlng);return;}if(newTripSetupDraft){const draft={...newTripSetupDraft,lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};newTripSetupDraft=null;updateMapHint();createTrip(draft);return}if(forcedRelocateSession){relocateForcedWaypoint(e.latlng);return}if(pointMoveModeId){relocatePoint(pointMoveModeId,e.latlng);return}if(drawLegSession){addDrawVertex(e.latlng.lat,e.latlng.lng);return}if(forcedPointSession){addForcedPoint(e.latlng);return}if($('leg-editor')?.classList.contains('open')){closeLegEditor();return}if($('point-quick')?.classList.contains('open')){hidePointQuick();return}if(homePickMode){homePickMode=false;mapPrefs.home={lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6),zoom:map.getZoom()};saveMapPrefs();updateMapHint();toast('נקודת הפתיחה נשמרה. בפעם הבאה האתר ייפתח כאן.');return}if($('map-context').classList.contains('open')){hideContext();return}if(photoPlacement){photoPlacement={lat:e.latlng.lat,lng:e.latlng.lng};$('photo-file').click();return}if(quickStreetMode){openGoogleStreetView(e.latlng.lat,e.latlng.lng);return}currentContext={lat:e.latlng.lat,lng:e.latlng.lng};showContext(e.containerPoint.x,e.containerPoint.y)});map.getContainer().addEventListener('click',e=>{if(!savedPreviewMode||e.target.closest?.('.leaflet-control'))return;e.stopPropagation();e.preventDefault()},true);
  map.on('movestart',hideContext);map.on('moveend zoomend resize',queueLegTextRefresh);ronnyMeasureBindMapPointer();setTimeout(()=>map.invalidateSize(),250)}
 const MAP_SAFE_ZOOM={satellite:17,'satellite-labels':17,osm:19,hiking:17,cyclosm:20,'topo-r':16};
 let visibleBasemapStyle=null,basemapTransition=null;
@@ -4535,6 +4535,117 @@ function renderPoiLinks(){
 
 /* Macro planner: outline -> stage -> days; it never destroys detailed days. */
 const OUTLINE_COLORS=['#638a70','#6b87a8','#b18368','#8c779b','#a39559','#6c9c93','#a7717b','#869867'];
+// Current location on the map (patch 141). The position is only drawn on the map:
+// it is never saved, never sent anywhere and never added to the trip.
+const RONNY_LOCATE_OPTIONS=Object.freeze({enableHighAccuracy:true,maximumAge:10000,timeout:20000});
+// Programmatic moves start within this window; any other move start means the user took over.
+const RONNY_LOCATE_OWN_MOVE_MS=700;
+const ronnyLocate={state:'off',follow:false,watchId:null,fix:null,layer:null,dot:null,ring:null,button:null,ownMoveUntil:0};
+
+// How close to zoom for a fix of `accuracy` metres. A precise fix never zooms the user out.
+function ronnyLocateZoom(accuracy,currentZoom){
+ const a=Number(accuracy),z=Number(currentZoom)||0;
+ const target=!Number.isFinite(a)||a<=0||a<=50?16:a<=200?15:a<=1000?14:a<=5000?12:10;
+ return a>1000?target:Math.max(z,target);
+}
+function ronnyLocateMessage(reason){
+ return {
+  unsupported:'הדפדפן הזה לא תומך באיתור מיקום',
+  insecure:'איתור מיקום עובד רק בכתובת מאובטחת (https)',
+  1:'אין הרשאה למיקום. אפשר לאשר אותה בהגדרות האתר בדפדפן ולנסות שוב',
+  2:'המיקום לא זמין כרגע. בדקו שה־GPS בטלפון פועל',
+  3:'לא התקבל מיקום בזמן. נסו שוב, רצוי בשטח פתוח'
+ }[reason]||'לא ניתן לאתר את המיקום כרגע';
+}
+function ronnyLocateSyncButton(){
+ const b=ronnyLocate.button;if(!b)return;
+ const view=ronnyLocate.state==='on'?(ronnyLocate.follow?'follow':'free'):ronnyLocate.state;
+ const label={off:'הצג את המיקום שלי',searching:'מאתר את המיקום שלך… לחיצה מבטלת',follow:'המפה עוקבת אחרי המיקום שלך · לחיצה מכבה',free:'חזור למיקום שלי'}[view];
+ b.dataset.state=view;
+ b.setAttribute('aria-pressed',String(view!=='off'));
+ b.setAttribute('aria-label',label);
+ b.title=label;
+}
+function ronnyLocateMoveMap(apply){ronnyLocate.ownMoveUntil=Date.now()+RONNY_LOCATE_OWN_MOVE_MS;apply()}
+function ronnyLocateCenter(first){
+ const fix=ronnyLocate.fix;if(!map||!fix)return;
+ const here=L.latLng(fix.lat,fix.lng);
+ if(!first){
+  // While following, move only when the position nears the edge, so the map does not jitter.
+  if(!map.getBounds().pad(-0.25).contains(here))ronnyLocateMoveMap(()=>map.panTo(here,{animate:true}));
+  return;
+ }
+ if(fix.accuracy>1000&&ronnyLocate.ring){ronnyLocateMoveMap(()=>map.flyToBounds(ronnyLocate.ring.getBounds(),{maxZoom:15,duration:.8}));return}
+ const zoom=ronnyLocateZoom(fix.accuracy,map.getZoom());
+ // Same rule as day changes: large zoom jumps fly, so the tiles do not all vanish at once.
+ ronnyLocateMoveMap(()=>Math.abs(zoom-map.getZoom())>=3?map.flyTo(here,zoom,{duration:.8}):map.setView(here,zoom,{animate:true}));
+}
+function ronnyLocateDraw(){
+ const fix=ronnyLocate.fix;if(!map||!fix)return;
+ const here=[fix.lat,fix.lng];
+ if(!ronnyLocate.layer)ronnyLocate.layer=L.layerGroup().addTo(map);
+ if(!ronnyLocate.ring){
+  ronnyLocate.ring=L.circle(here,{radius:fix.accuracy,interactive:false,color:'#1a73e8',weight:1,opacity:.55,fillColor:'#1a73e8',fillOpacity:.12,className:'ronny-locate-ring'}).addTo(ronnyLocate.layer);
+  ronnyLocate.dot=L.marker(here,{interactive:false,keyboard:false,zIndexOffset:900,icon:L.divIcon({className:'ronny-locate-marker',html:'<span class="ronny-locate-dot"></span>',iconSize:[22,22],iconAnchor:[11,11]})}).addTo(ronnyLocate.layer);
+ }else{ronnyLocate.ring.setLatLng(here);ronnyLocate.ring.setRadius(fix.accuracy);ronnyLocate.dot.setLatLng(here)}
+}
+function ronnyLocateOnFix(position){
+ if(ronnyLocate.state==='off')return;
+ const c=position.coords,first=!ronnyLocate.fix;
+ ronnyLocate.fix={lat:c.latitude,lng:c.longitude,accuracy:Math.max(1,Number(c.accuracy)||1)};
+ ronnyLocate.state='on';
+ ronnyLocateDraw();
+ if(ronnyLocate.follow)ronnyLocateCenter(first);
+ if(first&&ronnyLocate.fix.accuracy>1000)toast('המיקום משוער בלבד (±'+(ronnyLocate.fix.accuracy/1000).toFixed(1)+' ק״מ)');
+ ronnyLocateSyncButton();
+}
+function ronnyLocateOnError(error){
+ if(ronnyLocate.state==='off')return;
+ // After a fix, a passing timeout or weak signal keeps the last known position on the map.
+ if(ronnyLocate.fix&&error?.code!==1)return;
+ ronnyLocateStop();
+ toast(ronnyLocateMessage(error?.code));
+}
+function ronnyLocateStart(){
+ if(!window.isSecureContext){toast(ronnyLocateMessage('insecure'));return}
+ const geo=navigator.geolocation;
+ if(!geo){toast(ronnyLocateMessage('unsupported'));return}
+ ronnyLocate.state='searching';ronnyLocate.follow=true;ronnyLocate.fix=null;
+ ronnyLocateSyncButton();
+ ronnyLocate.watchId=geo.watchPosition(ronnyLocateOnFix,ronnyLocateOnError,RONNY_LOCATE_OPTIONS);
+}
+function ronnyLocateStop(){
+ if(ronnyLocate.watchId!==null)navigator.geolocation?.clearWatch(ronnyLocate.watchId);
+ ronnyLocate.layer?.clearLayers();
+ Object.assign(ronnyLocate,{state:'off',follow:false,watchId:null,fix:null,dot:null,ring:null});
+ ronnyLocateSyncButton();
+}
+// Off → locate and follow. Following → off. Map moved away → back to the position and follow again.
+function ronnyLocateToggle(){
+ if(ronnyLocate.state==='off'){ronnyLocateStart();return}
+ if(ronnyLocate.state==='on'&&!ronnyLocate.follow){ronnyLocate.follow=true;ronnyLocateCenter(true);ronnyLocateSyncButton();return}
+ ronnyLocateStop();
+}
+function ronnyLocateInit(){
+ if(!map||ronnyLocate.button)return;
+ const Control=L.Control.extend({options:{position:'topright'},onAdd(){
+  const box=L.DomUtil.create('div','leaflet-bar ronny-locate-control');
+  const button=L.DomUtil.create('button','ronny-locate-btn',box);
+  button.type='button';button.id='map-locate';
+  button.innerHTML='<i data-lucide="locate-fixed" aria-hidden="true"></i>';
+  L.DomEvent.disableClickPropagation(box);L.DomEvent.disableScrollPropagation(box);
+  L.DomEvent.on(button,'click',e=>{L.DomEvent.preventDefault(e);ronnyLocateToggle()});
+  ronnyLocate.button=button;ronnyLocateSyncButton();
+  return box;
+ }});
+ new Control().addTo(map);
+ // A drag is always the user, even in the middle of the locate animation. Any other move that
+ // the button did not start (zoom, a day, a point) also ends following.
+ const release=()=>{if(!ronnyLocate.follow)return;ronnyLocate.follow=false;ronnyLocateSyncButton()};
+ map.on('dragstart',release);
+ map.on('movestart',()=>{if(Date.now()>=ronnyLocate.ownMoveUntil)release()});
+ refreshIcons();
+}
 function normalizeOutline(value){
  const raw=value&&typeof value==='object'?value:{};
  const points=Array.isArray(raw.points)?raw.points.filter(p=>p&&typeof p.name==='string'&&validPoint(p)).slice(0,90).map(p=>({id:typeof p.id==='string'&&p.id?p.id:uid(),name:(/^יעד\s+\d+$/.test(p.name.trim())?'יעד':p.name.slice(0,70))||'יעד',description:String(p.description||'').slice(0,2500),showMapDescription:p.showMapDescription===true,lat:Number(p.lat),lng:Number(p.lng)})):[];

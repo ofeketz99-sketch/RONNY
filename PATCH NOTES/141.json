@@ -1,0 +1,10 @@
+{
+  "version": "141",
+  "date": "2026-11-28",
+  "notes": [
+    "כפתור ״המיקום שלי״ במפה, מתחת לכפתורי הזום, בטלפון ובמחשב. לחיצה מראה את המיקום שלך כנקודה כחולה עם עיגול דיוק וממרכזת אליה את המפה.",
+    "בזמן שהמפה עוקבת, היא זזה איתך כשמתקרבים לקצה המסך. גרירה של המפה או מעבר ליום או לנקודה מפסיקים את המעקב, ולחיצה על הכפתור מחזירה אליו. לחיצה נוספת מכבה את ה־GPS.",
+    "המיקום רק מוצג במפה. הוא לא נשמר, לא נשלח לשום מקום ולא נוסף לטיול. אם אין הרשאה או שאין קליטה, מופיעה הודעה שמסבירה מה לעשות."
+  ],
+  "technical": "New scripts/src/32-current-location.js (in tools/build.js after 30-map-tools): Leaflet control .ronny-locate-control/#map-locate added in initMap after the zoom control. navigator.geolocation.watchPosition (enableHighAccuracy, maximumAge 10s, timeout 20s); states off/searching/follow/free on data-state. First fix: setView, or flyTo when the zoom jump is 3+; zoom by accuracy (16/15/14, never zooming out a fix under 1 km); over 1 km flyToBounds of the accuracy circle with a toast. Following pans only when the dot leaves the inner area (pad -0.25). dragstart always ends following; other movestart events end it unless the button started the move (700 ms window). Errors before a fix (or a later permission denial) stop and toast; later timeouts keep the last position. Requires isSecureContext. Styles in ui-refresh.css and phone.css (36 px like the phone zoom buttons); .ronny-locate-control added to popupOccupiedAreas in 20-route-geometry.js. No change to sw.js: no new runtime file. Tests: tests/current-location.test.cjs (12), e2e/current-location.spec.cjs (3, Chromium with a simulated position: computer, phone 390 px, denied permission). Not tested on a real phone, in Safari or Firefox. Backup: backups/2026-11-28_143524UTC_pre141_3b7deaa7a3c5."
+}
